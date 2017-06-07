@@ -1,7 +1,7 @@
 # we are using oldclassic as default example
 target=oldclassic
 
-native_classpath+=/Users/qiyitang/Documents/PhD/2017GSOC/jpf-visual/bin/
+native_classpath+=./bin/
 
 # not related with trace_storer, we can store with any search algorithm
 search.class=.search.heuristic.BFSHeuristic
