@@ -18,8 +18,9 @@
 
 
 import gov.nasa.jpf.Config;
+import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Reporter;
-import gov.nasa.jpf.traceServer.printer.console.ConsoleTracePrinter;
+
 
 import java.io.IOException;
 import java.io.PrintWriter;
