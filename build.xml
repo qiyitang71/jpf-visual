@@ -34,7 +34,6 @@
   <!-- get the dependent project properties -->
   <property file="${jpf-core}/jpf.properties"/>
   <property file="${jpf-shell}/jpf.properties"/>
-  <property file="${jpf-trace-server}/jpf.properties"/>
 
   <!-- compiler settings -->
   <property name="src_level"     value="8"/>
@@ -47,7 +46,6 @@
 
     <!-- our own classes and libs come first -->
     <pathelement location="build/main"/>
-    <pathelement location="build/scala" />
 
     <!-- we don't have these
     <pathelement location="build/peers"/>
@@ -59,7 +57,6 @@
     <!-- add projects we depend on -->
     <pathelement path="${jpf-core.native_classpath}"/>
     <pathelement path="${jpf-shell.native_classpath}"/>
-    <pathelement path="${jpf-trace-server.native_classpath}"/>
   </path>
   
   <path id="jpf-shell.path">
@@ -67,10 +64,6 @@
       <pathelement path="${jpf-shell}/build/main/" />
   </path>
   
-  <path id="jpf-trace-server.path">
-      <path refid="lib.path" />
-      <pathelement path="${jpf-trace-server}/build/main/" />
-  </path>
 
   <!-- init: common initialization -->
   <target name="-init">
@@ -89,7 +82,6 @@
     <available file="src/classes"     type="dir" property="have_classes"/>
     <available file="src/tests"       type="dir" property="have_tests"/>
     <available file="src/examples"    type="dir" property="have_examples"/>
-    <available file="src/scala" type="dir" property="have_scala" />
 
     <condition property="have_jvm_code">
       <or>
@@ -114,13 +106,7 @@
     <fail unless="have_tests">no src/tests</fail>
     <fail unless="have_examples">no src/examples</fail>
     -->
-    <taskdef resource="scala/tools/ant/antlib.xml">
-        <classpath>
-            <pathelement location="lib/scala-compiler.jar" />
-            <pathelement location="lib/scala-library.jar" />
-            <pathelement location="lib/scala-reflect.jar" />
-        </classpath>
-    </taskdef>
+
 
   </target>
 
@@ -128,22 +114,10 @@
   <!-- ======================= COMPILE SECTION ============================= -->
 
   <!-- public compile -->
-  <target name="compile" depends="-init,-compile-scala,-jar-scala,-compile-annotations,-compile-main,-compile-peers,-compile-classes,-compile-tests,-compile-examples"
+  <target name="compile" depends="-init,-compile-annotations,-compile-main,-compile-peers,-compile-classes,-compile-tests,-compile-examples"
           description="compile all JPF core sources" >
   </target>
-
-  <target name="-compile-scala" if="have_scala">
-    <mkdir dir="build/scala" />
-    <scalac srcdir="src" destdir="build/scala" classpathref="jpf-trace-server.path" deprecation="yes">
-    </scalac>
-  </target>
-  
-  <target name="-jar-scala" if="have_scala">
-      <jar jarfile="build/${ant.project.name}-scala.jar">
-          <fileset dir="build/scala" erroronmissingdir="false" />
-      </jar>
-  </target>
-  
+	
   <target name="-compile-annotations" if="have_annotations">
     <mkdir dir="build/annotations"/>
     <javac srcdir="src/annotations" destdir="build/annotations" includeantruntime="false"
