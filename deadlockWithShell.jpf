@@ -4,7 +4,7 @@ target=oldclassic
 native_classpath+=./bin/
 
 # not related with trace_storer, we can store with any search algorithm
-search.class=.search.heuristic.BFSHeuristic
+#search.class=.search.heuristic.BFSHeuristic
 
 # trace emitter
 listener=gov.nasa.jpf.traceEmitter.DeadlockAnalyzerEmitter
