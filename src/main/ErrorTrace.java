@@ -78,7 +78,6 @@ public class ErrorTrace extends JPanel {
 					mxGeometry geo = model.getGeometry(cells[i]);
 					if (geo.getAlternateBounds() != null) {
 						geo.setWidth(geo.getAlternateBounds().getWidth());
-						geo.setHeight(15);
 					}
 				}
 			}
