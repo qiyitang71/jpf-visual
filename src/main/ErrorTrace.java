@@ -32,7 +32,6 @@ public class ErrorTrace extends JPanel {
 	// if()
 	// }
 
-
 	public ErrorTrace() {
 		super();
 		mxGraph graph = new mxGraph();
@@ -237,32 +236,14 @@ public class ErrorTrace extends JPanel {
 			mxCell lane10 = (mxCell) graph.insertVertex(parent, null, "", 0, 0, numOfCols * dx + START_SIZE, 0, "row");
 			lane10.setConnectable(false);
 
-			mxCell tranNum10 = (mxCell) graph.insertVertex(lane10, null, "20", 0, 0, dx, dy);
+			mxCell tranNum10 = (mxCell) graph.insertVertex(lane10, null, "21", 0, 0, dx, dy);
 			tranNum10.setConnectable(false);
 
 			mxCell thread09 = (mxCell) graph.insertVertex(lane10, null, "", 0, 0, dx * 4, dy);
 			thread09.setConnectable(false);
 
-			mxCell thread9 = (mxCell) graph.insertVertex(lane10, null, "Tr. 20", 0, 0, dx, dy);
+			mxCell thread9 = (mxCell) graph.insertVertex(lane10, null, "Tr. 21", 0, 0, dx, dy);
 			thread9.setConnectable(false);
-			// mxCell pool1 = (mxCell) graph.insertVertex(parent, null, "", 0,
-			// 0, 200,0);
-			// pool1.setConnectable(false);
-			// System.out.println(pool1.getGeometry());
-			//
-			// mxCell lane1 = (mxCell) graph.insertVertex(pool1, null, "Lane 1",
-			// 0, 0, 178, 100);
-			// lane1.setConnectable(false);
-			// //lane1.setGeometry(new mxGeometry(0,0, 200,100));
-			// System.out.println(lane1.getGeometry());
-			//
-			// mxCell pool2 = (mxCell) graph.insertVertex(parent, null, "", 0,
-			// 0, 200, 0);
-			// pool2.setConnectable(false);
-			//
-			// mxCell lane2 = (mxCell)graph.insertVertex(pool2, null, "Lane 2",
-			// 0, 0, 178, 100);
-			// lane2.setConnectable(false);
 
 		} finally {
 			model.endUpdate();
