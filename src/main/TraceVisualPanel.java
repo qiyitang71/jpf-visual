@@ -135,6 +135,7 @@ public class TraceVisualPanel extends ShellPanel implements VerifyCommandListene
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroll, textScroll);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(150);
+		
 		topicsPanel.add(splitPane);
 
 		setLayout(layout);
