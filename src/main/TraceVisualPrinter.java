@@ -286,7 +286,7 @@ public class TraceVisualPrinter extends Publisher {
             
             lastLine = line;
           }
-
+          /*more information of the trace*/
           if (showCode) {
             Instruction insn = s.getInstruction();
             if (showMethod){
