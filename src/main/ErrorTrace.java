@@ -26,7 +26,7 @@ public class ErrorTrace extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private final int dx = 100;
 	private final int dy = 45;
-	private final int START_SIZE = 15;
+	private final int START_SIZE = 18;
 	private final int numOfThreads = 5;
 
 	public ErrorTrace() {
@@ -56,7 +56,7 @@ public class ErrorTrace extends JPanel {
 		mxIGraphModel model = graph.getModel();
 
 		graph.setCellsEditable(false);
-		// graph.setCellsSelectable(false);
+		graph.setCellsSelectable(false);
 		graph.setCellsResizable(false);
 		Map<String, Object> defaultStyle = graph.getStylesheet().getDefaultVertexStyle();
 		Map<String, Object> rowStyle = new HashMap<String, Object>(defaultStyle);
