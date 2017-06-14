@@ -43,7 +43,8 @@ public class TraceVisualPrinter extends Publisher {
   // output destinations
   String fileName;
   FileOutputStream fos;
-
+  Path path;
+  
   String port;
 
   // the various degrees of information for program traces
@@ -240,7 +241,7 @@ public class TraceVisualPrinter extends Publisher {
    */
   @Override
   protected void publishTrace() {
-    Path path = reporter.getPath();
+    this.path = reporter.getPath();
     int i=0;
 
     if (path.size() == 0) {
@@ -286,6 +287,7 @@ public class TraceVisualPrinter extends Publisher {
             
             lastLine = line;
           }
+          
           /*more information of the trace*/
           if (showCode) {
             Instruction insn = s.getInstruction();

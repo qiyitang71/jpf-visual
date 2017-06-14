@@ -16,11 +16,9 @@
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
 
-
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Reporter;
-
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -36,54 +34,54 @@ import java.util.Map;
  * 
  */
 
-public class ConsoleTopicPublisher extends TraceVisualPrinter implements
-    TopicPublisher {
+public class ConsoleTopicPublisher extends TraceVisualPrinter implements TopicPublisher {
 
-  private LinkedHashMap<String, Topic> topics;
-  private StringWriter output;
+	private LinkedHashMap<String, Topic> topics;
+	private StringWriter output;
 
-  private String curTopic;
+	private String curTopic;
 
-  public ConsoleTopicPublisher(Config config, Reporter reporter) {
-    super(config, reporter);
-    topics = new LinkedHashMap<String, Topic>();
-  }
+	public ConsoleTopicPublisher(Config config, Reporter reporter) {
+		super(config, reporter);
+		topics = new LinkedHashMap<String, Topic>();
+	}
 
-  protected void setTopics() {
-	  setTopicItems("consoleTracePrinter");
-  }
+	protected void setTopics() {
+		setTopicItems("consoleTracePrinter");
+	}
 
-  public Map<String, Topic> getResults() {
-    return topics;
-  }
+	public Map<String, Topic> getResults() {
+		return topics;
+	}
 
-  protected void openChannel() {
-    output = new StringWriter();
-    out = new PrintWriter(output);
-  }
+	protected void openChannel() {
+		output = new StringWriter();
+		out = new PrintWriter(output);
+	}
 
-  protected void closeChannel() {
-    try {
-      out.close();
-      output.close();
-    } catch (IOException ex) {
-      ex.printStackTrace();
-    }
-  }
+	protected void closeChannel() {
+		try {
+			out.close();
+			output.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
 
-  public void publishTopicStart(String topic) {
-    if (topic != null) {
-      StringBuffer buff = output.getBuffer();
-      if (buff.length() > 0) {
-        topics.put("console " + curTopic, new Topic(buff.toString()));
-        buff.setLength(0); // reset the output buffer
-      }
-    }
-    curTopic = topic;
-  }
+	public void publishTopicStart(String topic) {
+		if (topic != null) {
+			StringBuffer buff = output.getBuffer();
+			if (buff.length() > 0) {
+				topics.put("console " + curTopic, new Topic(buff.toString()));
+				System.out.println("TEST topic = " + topic +" curTopic = " + curTopic);
+				buff.setLength(0); // reset the output buffer
+			}
+		}
+		curTopic = topic;
+	}
 
-  public void publishEpilog() {
-    publishTopicStart("");
-  }
+	public void publishEpilog() {
+		publishTopicStart("");
+	}
 
 }
