@@ -266,15 +266,19 @@ public class DrawErrorTrace extends JPanel {
 							String[] strs = s.split("\\n");
 							String first;
 							String last;
-							if (strs.length > 1) {
+							if (strs.length > 0) {
 								first = strs[0].replaceAll("^.*?:.*?:", "");
-								last = strs[strs.length - 1].replaceAll("^.*?:.*?:", "");
-								c.setValue(Left.format(first, 20) + "\n...\n" + Left.format(last, 20));
-							} else if (strs.length == 1) {
-								first = strs[0].replaceAll("^.*?:.*?:", "");
-								c.setValue(Left.format(first, 20));
+								StringBuilder sb = new StringBuilder().append(Left.format(first, 20));
+								if (strs.length > 1) {
+									last = strs[strs.length - 1].replaceAll("^.*?:.*?:", "");
+
+									if (strs.length > 2) {
+										sb.append("\n...");
+									}
+									sb.append("\n" + Left.format(last, 20));
+								}
+								c.setValue(sb.toString());
 							}
-							// c.setValue(c.getId());
 						} else {
 							// set back the style of the expanded cell
 							Map<String, Object> style = graph.getStylesheet().getStyles().get(str);
