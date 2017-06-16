@@ -164,9 +164,8 @@ public class DrawErrorTrace extends JPanel {
 
 		Map<String, Object> defaultStyle = graph.getStylesheet().getDefaultVertexStyle();
 		defaultStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, "middle");
-		;
 		defaultStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "white");
-		defaultStyle.put(mxConstants.STYLE_FONTSIZE, 11);
+		defaultStyle.put(mxConstants.STYLE_FONTSIZE, FONT_SIZE);
 		defaultStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
 		defaultStyle.put(mxConstants.STYLE_HORIZONTAL, true);
 		defaultStyle.put(mxConstants.STYLE_FONTCOLOR, "black");
@@ -182,6 +181,7 @@ public class DrawErrorTrace extends JPanel {
 		graph.getStylesheet().putCellStyle("content", contentStyle);
 
 		Map<String, Object> menuStyle = new HashMap<String, Object>(defaultStyle);
+		
 		// menu style not foldable
 		menuStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
 		menuStyle.put(mxConstants.STYLE_HORIZONTAL, false);
@@ -189,38 +189,23 @@ public class DrawErrorTrace extends JPanel {
 		menuStyle.put(mxConstants.STYLE_SPACING_TOP, TOP_SPACE);
 		graph.getStylesheet().putCellStyle("menu", menuStyle);
 
-		Map<String, Object> rowStyle = new HashMap<String, Object>(defaultStyle);
-
+		Map<String, Object> rowStyle = new HashMap<String, Object>(menuStyle);
 		rowStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
-		// rowStyle.put(mxConstants.STYLE_VERTICAL_ALIGN,
-		// mxConstants.ALIGN_TOP);
-		rowStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "white");
-		rowStyle.put(mxConstants.STYLE_FONTSIZE, 11);
-		rowStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
-		rowStyle.put(mxConstants.STYLE_HORIZONTAL, false);
-		rowStyle.put(mxConstants.STYLE_FONTCOLOR, "black");
-		rowStyle.put(mxConstants.STYLE_STROKECOLOR, "black");
-		rowStyle.put(mxConstants.STYLE_SPACING_TOP, TOP_SPACE);
-		rowStyle.remove(mxConstants.STYLE_FILLCOLOR);
+		rowStyle.put(mxConstants.STYLE_FOLDABLE, true);
 		graph.getStylesheet().putCellStyle("row", rowStyle);
 
-		Map<String, Object> labelStyle = new HashMap<String, Object>(defaultStyle);
-		labelStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
-		labelStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "white");
+		Map<String, Object> labelStyle = new HashMap<String, Object>(menuStyle);
 		labelStyle.put(mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
 		labelStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_BOTTOM);
 		labelStyle.put(mxConstants.STYLE_FONTSIZE, CONTENT_FONT);
 		labelStyle.put(mxConstants.STYLE_FONTSTYLE, mxConstants.FONT_BOLD);
-		labelStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
-		labelStyle.put(mxConstants.STYLE_FONTCOLOR, "black");
-		labelStyle.put(mxConstants.STYLE_STROKECOLOR, "black");
-		labelStyle.remove(mxConstants.STYLE_FILLCOLOR);
 		labelStyle.put(mxConstants.STYLE_HORIZONTAL, true);
 		labelStyle.put(mxConstants.STYLE_SWIMLANE_LINE, 0);
-		labelStyle.put(mxConstants.STYLE_FOLDABLE, false);
-
 		graph.getStylesheet().putCellStyle("label", labelStyle);
+		
 		// when folding, the width of the cell won't change
+		// the orientation STYLE_HORIZONTAL will change
+		// the content of rows will change
 		mxIEventListener foldingHandler = new mxIEventListener() {
 			@Override
 			public void invoke(Object sender, mxEventObject evt) {
@@ -231,6 +216,7 @@ public class DrawErrorTrace extends JPanel {
 						geo.setWidth(geo.getAlternateBounds().getWidth());
 						String str = model.getStyle(cells[i]);
 						if (graph.isCellCollapsed(cells[i])) {
+							
 							// set the style when folded
 							// cells[i] must be of style "rowi"
 							mxCell c = (mxCell) cells[i];
@@ -243,10 +229,6 @@ public class DrawErrorTrace extends JPanel {
 							style.put(mxConstants.STYLE_ALIGN, "left");
 							style.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * dx + START_SIZE + LEFT_SPACE);
 							style.put(mxConstants.STYLE_SWIMLANE_LINE, 0);
-							// style.put(mxConstants.STYLE_SPACING_BOTTOM,
-							// TOP_SPACE);
-							// style.remove(mxConstants.STYLE_SPACING_TOP);
-							// style.put(mxConstants.STYLE_SPACING_TOP, -2);
 
 							String s = detailList.get(idx);
 							s = s.replaceAll("gov.nasa.jpf.vm.*?\\n", "").replaceAll("\\[.*?\\n", "");
@@ -293,7 +275,6 @@ public class DrawErrorTrace extends JPanel {
 		};
 
 		graph.addListener(mxEvent.FOLD_CELLS, foldingHandler);
-		// graph.addListener(mxEvent.CELLS_FOLDED, foldingHandler);
 
 		// while folding, the lower cells goes up
 		mxLayoutManager layoutMng = new mxLayoutManager(graph) {
