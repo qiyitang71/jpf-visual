@@ -160,6 +160,8 @@ public class DrawErrorTrace extends JPanel {
 		graph.setCellsEditable(false);
 		graph.setCellsSelectable(false);
 		graph.setCellsResizable(false);
+		graph.setCollapseToPreferredSize(false);
+
 		Map<String, Object> defaultStyle = graph.getStylesheet().getDefaultVertexStyle();
 
 		// defaultStyle.put(mxConstants.STYLE_SHAPE,
@@ -240,6 +242,7 @@ public class DrawErrorTrace extends JPanel {
 					mxGeometry geo = model.getGeometry(cells[i]);
 					if (geo.getAlternateBounds() != null) {
 						geo.setWidth(geo.getAlternateBounds().getWidth());
+						String str = model.getStyle(cells[i]);
 						if (graph.isCellCollapsed(cells[i])) {
 							// set the style when folded
 							mxCell c = (mxCell) cells[i];
@@ -247,7 +250,7 @@ public class DrawErrorTrace extends JPanel {
 							int from = group.get(idx)._1;
 							int threadIdx = path.get(from).getThreadIndex();
 
-							Map<String, Object> style = graph.getStylesheet().getStyles().get("row");
+							Map<String, Object> style = graph.getStylesheet().getStyles().get(str);
 							style.put(mxConstants.STYLE_HORIZONTAL, true);
 							style.put(mxConstants.STYLE_ALIGN, "left");
 							style.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * dx + START_SIZE + LEFT_SPACE);
@@ -273,11 +276,10 @@ public class DrawErrorTrace extends JPanel {
 							// c.setValue(c.getId());
 						} else {
 							// set back the style of the expanded cell
-							Map<String, Object> style = graph.getStylesheet().getStyles().get("row");
+							Map<String, Object> style = graph.getStylesheet().getStyles().get(str);
 							style.put(mxConstants.STYLE_HORIZONTAL, false);
 							style.put(mxConstants.STYLE_SWIMLANE_LINE, 1);
 							style.remove(mxConstants.STYLE_ALIGN);
-							// style.put(mxConstants.STYLE_ALIGN, "middle");
 							style.put(mxConstants.STYLE_SPACING_TOP, TOP_SPACE);
 							style.remove(mxConstants.STYLE_SPACING_LEFT);
 
@@ -298,6 +300,7 @@ public class DrawErrorTrace extends JPanel {
 		};
 
 		graph.addListener(mxEvent.FOLD_CELLS, foldingHandler);
+		graph.addListener(mxEvent.CELLS_FOLDED, foldingHandler);
 
 		// while folding, the lower cells goes up
 		mxLayoutManager layoutMng = new mxLayoutManager(graph) {
@@ -339,21 +342,27 @@ public class DrawErrorTrace extends JPanel {
 				mxCell lane;
 
 				// set the id of lane to be the group idx
+				Map<String, Object> tmpStyle = new HashMap<>(rowStyle);
+				graph.getStylesheet().putCellStyle("row" + i, tmpStyle);
+
 				if (from != to) {
 					lane = (mxCell) graph.insertVertex(parent, "" + i, from + "-" + to, 0, 0,
-							numOfThreads * dx + START_SIZE, 0, "row");
+							numOfThreads * dx + START_SIZE, 0, "row" + i);
 				} else {
 					lane = (mxCell) graph.insertVertex(parent, "" + i, from, 0, 0, numOfThreads * dx + START_SIZE, 0,
-							"row");
+							"row" + i);
 				}
 				lane.setId("" + i);
 				lane.setConnectable(false);
+
+				// lane.setCollapsed(true);
 
 				int threadIdx = path.get(from).getThreadIndex();
 				Map<String, Object> tmpLabel = new HashMap<String, Object>(labelStyle);
 				tmpLabel.put(mxConstants.STYLE_SPACING_LEFT, dx * threadIdx + dx / 2);
 				graph.getStylesheet().putCellStyle("label" + i, tmpLabel);
 				int currHt = heightList.get(i) * AMPLIFY;
+
 				mxCell labelRow = (mxCell) graph.insertVertex(lane, null, "" + threadIdx, 0, 0, numOfThreads * dx,
 						START_SIZE + currHt, "label" + i);
 				labelRow.setConnectable(false);
@@ -361,15 +370,16 @@ public class DrawErrorTrace extends JPanel {
 				mxCell content = (mxCell) graph.insertVertex(labelRow, null, detailList.get(i), 0, 0, numOfThreads * dx,
 						currHt, "content");
 				content.setConnectable(false);
+
 			}
 
 			// set the collapsed height i.e. the folded height
 			for (Object o : graph.getChildCells(parent)) {
 				mxCell cell = (mxCell) o;
-				if (cell != null && model.getStyle(cell) == "row") {
+				if (cell != null && cell.getId() != null) {
 					model.getGeometry(cell)
 							.setAlternateBounds(new mxRectangle(0, 0, numOfThreads * dx + START_SIZE, ALTER_SIZE));
-					//graph.foldCells(true, false, new Object[] { cell }, true);
+					graph.foldCells(true, false, new Object[] { cell }, true);
 				}
 			}
 
