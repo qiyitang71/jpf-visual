@@ -42,7 +42,7 @@ public class DrawErrorTrace extends JPanel {
 	private final int LEFT_SPACE = 15;
 	private final int ALTER_SIZE = 50;
 	private final int FONT_SIZE = 11;
-	private final int CONTENT_FONT = 9;
+	private final int CONTENT_FONT = 12;
 	private final int AMPLIFY = 17;
 	// private final int numOfThreads = 5;
 
@@ -224,6 +224,7 @@ public class DrawErrorTrace extends JPanel {
 		labelStyle.put(mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
 		labelStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_BOTTOM);
 		labelStyle.put(mxConstants.STYLE_FONTSIZE, CONTENT_FONT);
+		labelStyle.put(mxConstants.STYLE_FONTSTYLE, mxConstants.FONT_BOLD);
 		labelStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
 		labelStyle.put(mxConstants.STYLE_FONTCOLOR, "black");
 		labelStyle.put(mxConstants.STYLE_STROKECOLOR, "black");
