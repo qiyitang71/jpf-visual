@@ -31,6 +31,7 @@ import com.mxgraph.util.mxRectangle;
 import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
+import com.mxgraph.view.mxGraphView;
 import com.mxgraph.view.mxLayoutManager;
 
 public class DrawErrorTrace extends JPanel {
@@ -61,6 +62,10 @@ public class DrawErrorTrace extends JPanel {
 	}
 
 	public void drawGraph(Path path) {
+
+		/**
+		 * deal with the trace
+		 */
 
 		if (path.size() == 0) {
 			return; // nothing to publish
@@ -140,11 +145,15 @@ public class DrawErrorTrace extends JPanel {
 				}
 
 			}
+			tempStr.deleteCharAt(tempStr.length() - 1);
 			detailList.add(tempStr.toString());
 			heightList.add(height);
 
 		}
 
+		/**
+		 * begin draw table contents
+		 */
 		mxGraph graph = new mxGraph() {
 			public mxRectangle getStartSize(Object swimlane) {
 				mxRectangle result = new mxRectangle();
@@ -171,8 +180,8 @@ public class DrawErrorTrace extends JPanel {
 
 		graph.setCellsEditable(false);
 		graph.setCellsSelectable(false);
-		graph.setCellsResizable(false);
-		graph.setCollapseToPreferredSize(false);
+		graph.setCellsResizable(true);
+		// graph.setCollapseToPreferredSize(false);
 
 		Map<String, Object> style = graph.getStylesheet().getDefaultVertexStyle();
 
@@ -193,10 +202,11 @@ public class DrawErrorTrace extends JPanel {
 		// Object>(defaultStyle);
 
 		Map<String, Object> contentStyle = new HashMap<String, Object>(textStyle);
-		contentStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_TOP);
+		//contentStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_TOP);
 		contentStyle.put(mxConstants.STYLE_ALIGN, "left");
 		contentStyle.put(mxConstants.STYLE_SPACING_LEFT, LEFT_SPACE);
-		contentStyle.put(mxConstants.STYLE_SPACING_TOP, 7);
+		//contentStyle.put(mxConstants.STYLE_SPACING_TOP, 1);
+		contentStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 
 		graph.getStylesheet().putCellStyle("content", contentStyle);
 
@@ -333,16 +343,18 @@ public class DrawErrorTrace extends JPanel {
 
 				int threadIdx = path.get(from).getThreadIndex();
 				Map<String, Object> tmpLabel = new HashMap<String, Object>(labelStyle);
-				tmpLabel.put(mxConstants.STYLE_SPACING_LEFT, dx * threadIdx + dx / 2 - LEFT_SPACE/2);
+				tmpLabel.put(mxConstants.STYLE_SPACING_LEFT, dx * threadIdx + dx / 2 - LEFT_SPACE / 2);
 				graph.getStylesheet().putCellStyle("label" + i, tmpLabel);
-				int currHt = heightList.get(i) * AMPLIFY;
+
+				int htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(tmpLabel)).getHeight();
+				int currHt = heightList.get(i) * htPerLine;
 
 				mxCell labelRow = (mxCell) graph.insertVertex(lane, null, "" + threadIdx, 0, 0, numOfThreads * dx,
 						START_SIZE + currHt, "label" + i);
 				labelRow.setConnectable(false);
 
-				mxCell content = (mxCell) graph.insertVertex(labelRow, null, detailList.get(i), 0, 0, numOfThreads * dx,
-						currHt, "content");
+				mxCell content = (mxCell) graph.insertVertex(labelRow, null, detailList.get(i), 0,
+						0, numOfThreads * dx, currHt, "content");
 				content.setConnectable(false);
 
 			}
@@ -363,12 +375,12 @@ public class DrawErrorTrace extends JPanel {
 		}
 		mxGraphComponent graphComponent = new mxGraphComponent(graph);
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
-		graphComponent.setAutoScroll(false);
-		graphComponent.setAutoscrolls(false);
+		// graphComponent.setAutoScroll(false);
+		// graphComponent.setAutoscrolls(false);
 		graphComponent.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		graphComponent.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
-		//graphComponent.setVerticalScrollBar(null);
+		// graphComponent.setVerticalScrollBar(null);
 
 		this.add(graphComponent);
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
