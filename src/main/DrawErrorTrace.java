@@ -365,6 +365,11 @@ public class DrawErrorTrace extends JPanel {
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		graphComponent.setAutoScroll(false);
 		graphComponent.setAutoscrolls(false);
+		graphComponent.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		graphComponent.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+
+		//graphComponent.setVerticalScrollBar(null);
+
 		this.add(graphComponent);
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
