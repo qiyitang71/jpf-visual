@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -44,10 +45,14 @@ public class DrawErrorTrace extends JPanel {
 	private final int FONT_SIZE = 11;
 	private final int CONTENT_FONT = 12;
 	private final int AMPLIFY = 17;
-	// private final int numOfThreads = 5;
+	private int numOfThreads = -1;
 
 	public DrawErrorTrace() {
 		super();
+	}
+
+	public int getNumberOfThreads() {
+		return this.numOfThreads;
 	}
 
 	public void drawGraph(Path path) {
@@ -58,7 +63,6 @@ public class DrawErrorTrace extends JPanel {
 
 		int currTran = 0;
 		int prevThread = -1;
-		int numOfThreads = -1;
 		int start = -1;
 
 		List<Pair<Integer, Integer>> group = new LinkedList<>(); // group the
@@ -162,17 +166,25 @@ public class DrawErrorTrace extends JPanel {
 		graph.setCellsResizable(false);
 		graph.setCollapseToPreferredSize(false);
 
-		Map<String, Object> defaultStyle = graph.getStylesheet().getDefaultVertexStyle();
-		defaultStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, "middle");
-		defaultStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "white");
-		defaultStyle.put(mxConstants.STYLE_FONTSIZE, FONT_SIZE);
-		defaultStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
-		defaultStyle.put(mxConstants.STYLE_HORIZONTAL, true);
-		defaultStyle.put(mxConstants.STYLE_FONTCOLOR, "black");
-		defaultStyle.put(mxConstants.STYLE_STROKECOLOR, "black");
-		defaultStyle.remove(mxConstants.STYLE_FILLCOLOR);
+		Map<String, Object> style = graph.getStylesheet().getDefaultVertexStyle();
 
-		Map<String, Object> contentStyle = new HashMap<String, Object>(defaultStyle);
+		style.put(mxConstants.STYLE_VERTICAL_ALIGN, "middle");
+		style.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "white");
+		style.put(mxConstants.STYLE_FONTSIZE, FONT_SIZE);
+		style.put(mxConstants.STYLE_STARTSIZE, 0);
+		style.put(mxConstants.STYLE_HORIZONTAL, true);
+		style.put(mxConstants.STYLE_FONTCOLOR, "black");
+		style.put(mxConstants.STYLE_STROKECOLOR, "black");
+		style.remove(mxConstants.STYLE_FILLCOLOR);
+
+		Map<String, Object> textStyle = new HashMap<String, Object>(style);
+		textStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
+		graph.getStylesheet().putCellStyle("text", textStyle);
+
+		// Map<String, Object> Style = new HashMap<String,
+		// Object>(defaultStyle);
+
+		Map<String, Object> contentStyle = new HashMap<String, Object>(textStyle);
 		contentStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_TOP);
 		contentStyle.put(mxConstants.STYLE_ALIGN, "left");
 		contentStyle.put(mxConstants.STYLE_SPACING_LEFT, LEFT_SPACE);
@@ -180,29 +192,23 @@ public class DrawErrorTrace extends JPanel {
 
 		graph.getStylesheet().putCellStyle("content", contentStyle);
 
-		Map<String, Object> menuStyle = new HashMap<String, Object>(defaultStyle);
-		
-		// menu style not foldable
-		menuStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
-		menuStyle.put(mxConstants.STYLE_HORIZONTAL, false);
-		menuStyle.put(mxConstants.STYLE_FOLDABLE, false);
-		menuStyle.put(mxConstants.STYLE_SPACING_TOP, TOP_SPACE);
-		graph.getStylesheet().putCellStyle("menu", menuStyle);
-
-		Map<String, Object> rowStyle = new HashMap<String, Object>(menuStyle);
+		Map<String, Object> rowStyle = new HashMap<String, Object>(textStyle);
+		rowStyle.put(mxConstants.STYLE_HORIZONTAL, false);
 		rowStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
 		rowStyle.put(mxConstants.STYLE_FOLDABLE, true);
+		rowStyle.put(mxConstants.STYLE_SPACING_TOP, TOP_SPACE);
 		graph.getStylesheet().putCellStyle("row", rowStyle);
 
-		Map<String, Object> labelStyle = new HashMap<String, Object>(menuStyle);
+		Map<String, Object> labelStyle = new HashMap<String, Object>(rowStyle);
 		labelStyle.put(mxConstants.STYLE_ALIGN, mxConstants.ALIGN_LEFT);
 		labelStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_BOTTOM);
 		labelStyle.put(mxConstants.STYLE_FONTSIZE, CONTENT_FONT);
 		labelStyle.put(mxConstants.STYLE_FONTSTYLE, mxConstants.FONT_BOLD);
 		labelStyle.put(mxConstants.STYLE_HORIZONTAL, true);
 		labelStyle.put(mxConstants.STYLE_SWIMLANE_LINE, 0);
+		labelStyle.put(mxConstants.STYLE_FOLDABLE, false);
 		graph.getStylesheet().putCellStyle("label", labelStyle);
-		
+
 		// when folding, the width of the cell won't change
 		// the orientation STYLE_HORIZONTAL will change
 		// the content of rows will change
@@ -216,7 +222,7 @@ public class DrawErrorTrace extends JPanel {
 						geo.setWidth(geo.getAlternateBounds().getWidth());
 						String str = model.getStyle(cells[i]);
 						if (graph.isCellCollapsed(cells[i])) {
-							
+
 							// set the style when folded
 							// cells[i] must be of style "rowi"
 							mxCell c = (mxCell) cells[i];
@@ -280,11 +286,9 @@ public class DrawErrorTrace extends JPanel {
 		mxLayoutManager layoutMng = new mxLayoutManager(graph) {
 			public mxIGraphLayout getLayout(Object parent) {
 
-				if (model.getChildCount(parent) > 0 && model.getStyle(parent) != "row"
-						&& model.getStyle(parent) != "menu") {
+				if (model.getChildCount(parent) > 0 && model.getStyle(parent) != "row") {
 					return new mxStackLayout(graph, false);
-				} else if (model.getChildCount(parent) > 0
-						&& (model.getStyle(parent) == "row" || model.getStyle(parent) == "menu")) {
+				} else if (model.getChildCount(parent) > 0 && model.getStyle(parent) == "row") {
 					return new mxStackLayout(graph, true);
 				}
 				return null;
@@ -296,18 +300,7 @@ public class DrawErrorTrace extends JPanel {
 
 		model.beginUpdate();
 		try {
-			// draw the menu
-			mxCell menu = (mxCell) graph.insertVertex(parent, null, "Trans.", 0, 0, numOfThreads * dx + START_SIZE, 0,
-					"menu");
-			menu.setConnectable(false);
 
-			for (int i = 0; i < numOfThreads; i++) {
-				if (i == 0) {
-					((mxCell) graph.insertVertex(menu, null, "main", 0, 0, dx, dy)).setConnectable(false);
-				} else {
-					((mxCell) graph.insertVertex(menu, null, "Thread-" + i, 0, 0, dx, dy)).setConnectable(false);
-				}
-			}
 
 			// show the details
 			for (int i = 0; i < numOfRows; i++) {
@@ -364,6 +357,8 @@ public class DrawErrorTrace extends JPanel {
 		mxGraphComponent graphComponent = new mxGraphComponent(graph);
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		this.add(graphComponent);
+		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+
 	}
 
 	public static void main(String[] args) {

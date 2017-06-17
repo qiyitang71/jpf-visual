@@ -33,13 +33,13 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private DrawErrorTrace errorTrace = new DrawErrorTrace();
 	private ProgressTrackerUI tracker = new ProgressTrackerUI();
 	private CardLayout layout = new CardLayout();
-
+	private JScrollPane errorTraceScroll;
 	private Path path;
 
 	public ErrorTracePanel() {
 		super("Error Trace", null, "View JPF's Output");
 		ShellManager.getManager().addCommandListener(VerifyCommand.class, this);
-		JScrollPane errorTraceScroll = new JScrollPane(errorTrace);
+		errorTraceScroll = new JScrollPane(errorTrace);
 		errorTraceScroll.getViewport().setBackground(Color.white);
 		errorTraceScroll.setMinimumSize(new Dimension(100, 50));
 
@@ -122,6 +122,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 			errorTrace.removeAll();
 			errorTrace.drawGraph(path);
+			errorTraceScroll.setColumnHeaderView(new DrawMenu(errorTrace.getNumberOfThreads()));
 			layout.show(this, TOPICS);
 
 			getShell().requestFocus(this);
