@@ -122,7 +122,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 			errorTrace.removeAll();
 			errorTrace.drawGraph(path);
-			errorTraceScroll.setColumnHeaderView(new DrawMenu(errorTrace.getNumberOfThreads()));
+			errorTraceScroll.setColumnHeaderView(new DrawMenu(errorTrace.getThreadNames()));
 			layout.show(this, TOPICS);
 
 			getShell().requestFocus(this);

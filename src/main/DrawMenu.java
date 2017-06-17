@@ -42,14 +42,13 @@ public class DrawMenu extends JPanel {
 	private final int TOP_SPACE = 10;
 	private final int LEFT_SPACE = 15;
 	private final int ALTER_SIZE = 50;
-	private final int FONT_SIZE = 11;
+	private final int FONT_SIZE = 12;
 	private final int CONTENT_FONT = 12;
 	private final int AMPLIFY = 17;
 	// private final int numOfThreads = 5;
 
-	public DrawMenu(int numOfThreads) {
+	public DrawMenu(List<String> threadNames) {
 		super();
-
 
 		mxGraph graph = new mxGraph();
 
@@ -69,16 +68,14 @@ public class DrawMenu extends JPanel {
 		style.put(mxConstants.STYLE_HORIZONTAL, true);
 		style.put(mxConstants.STYLE_FONTCOLOR, "black");
 		style.put(mxConstants.STYLE_STROKECOLOR, "black");
+		style.put(mxConstants.STYLE_FONTSTYLE, mxConstants.FONT_BOLD);
 		style.remove(mxConstants.STYLE_FILLCOLOR);
 
-		Map<String, Object> textStyle = new HashMap<String, Object>(style);
-		textStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
-		graph.getStylesheet().putCellStyle("text", textStyle);
-
-		Map<String, Object> menuStyle = new HashMap<String, Object>(textStyle);
+		Map<String, Object> menuStyle = new HashMap<String, Object>(style);
 
 		// menu style not foldable
 		menuStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
+		menuStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
 		menuStyle.put(mxConstants.STYLE_HORIZONTAL, false);
 		menuStyle.put(mxConstants.STYLE_FOLDABLE, false);
 		menuStyle.put(mxConstants.STYLE_SPACING_TOP, TOP_SPACE);
@@ -103,16 +100,16 @@ public class DrawMenu extends JPanel {
 		model.beginUpdate();
 		try {
 			// draw the menu
+			int numOfThreads = threadNames.size();
 			mxCell menu = (mxCell) graph.insertVertex(parent, null, "Trans.", 0, 0, numOfThreads * dx + START_SIZE, 0,
 					"menu");
 			menu.setConnectable(false);
 
 			for (int i = 0; i < numOfThreads; i++) {
-				if (i == 0) {
-					((mxCell) graph.insertVertex(menu, null, "main", 0, 0, dx, dy)).setConnectable(false);
-				} else {
-					((mxCell) graph.insertVertex(menu, null, "Thread-" + i, 0, 0, dx, dy)).setConnectable(false);
-				}
+
+				((mxCell) graph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, dx, dy))
+						.setConnectable(false);
+
 			}
 		} finally {
 			model.endUpdate();
@@ -130,10 +127,10 @@ public class DrawMenu extends JPanel {
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(700, 320);
-		DrawMenu et = new DrawMenu(6);
-		JScrollPane scrollPane = new JScrollPane(et);
-		frame.getContentPane().add(scrollPane);
-		//et.drawGraph(6);
+		//DrawMenu et = new DrawMenu(6);
+		//JScrollPane scrollPane = new JScrollPane(et);
+		//frame.getContentPane().add(scrollPane);
+		// et.drawGraph(6);
 		frame.setVisible(true);
 
 	}

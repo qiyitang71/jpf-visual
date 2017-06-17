@@ -46,6 +46,7 @@ public class DrawErrorTrace extends JPanel {
 	private final int CONTENT_FONT = 12;
 	private final int AMPLIFY = 17;
 	private int numOfThreads = -1;
+	private List<String> threadNames = null;
 
 	public DrawErrorTrace() {
 		super();
@@ -53,6 +54,10 @@ public class DrawErrorTrace extends JPanel {
 
 	public int getNumberOfThreads() {
 		return this.numOfThreads;
+	}
+
+	public List<String> getThreadNames() {
+		return new ArrayList<>(threadNames);
 	}
 
 	public void drawGraph(Path path) {
@@ -67,10 +72,13 @@ public class DrawErrorTrace extends JPanel {
 
 		List<Pair<Integer, Integer>> group = new LinkedList<>(); // group the
 																	// transition
-																	// range
+		threadNames = new ArrayList<>(); // range
 		// first pass of the trace
 		for (Transition t : path) {
 			int currThread = t.getThreadIndex();
+			if (threadNames.size() == currThread) {
+				threadNames.add(t.getThreadInfo().getName());
+			}
 			if (currTran == 0) {
 				start = 0;
 			}
@@ -301,7 +309,6 @@ public class DrawErrorTrace extends JPanel {
 		model.beginUpdate();
 		try {
 
-
 			// show the details
 			for (int i = 0; i < numOfRows; i++) {
 				int from = group.get(i)._1;
@@ -326,7 +333,7 @@ public class DrawErrorTrace extends JPanel {
 
 				int threadIdx = path.get(from).getThreadIndex();
 				Map<String, Object> tmpLabel = new HashMap<String, Object>(labelStyle);
-				tmpLabel.put(mxConstants.STYLE_SPACING_LEFT, dx * threadIdx + dx / 2);
+				tmpLabel.put(mxConstants.STYLE_SPACING_LEFT, dx * threadIdx + dx / 2 - LEFT_SPACE/2);
 				graph.getStylesheet().putCellStyle("label" + i, tmpLabel);
 				int currHt = heightList.get(i) * AMPLIFY;
 
@@ -356,6 +363,8 @@ public class DrawErrorTrace extends JPanel {
 		}
 		mxGraphComponent graphComponent = new mxGraphComponent(graph);
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
+		graphComponent.setAutoScroll(false);
+		graphComponent.setAutoscrolls(false);
 		this.add(graphComponent);
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
