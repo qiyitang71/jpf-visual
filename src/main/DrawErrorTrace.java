@@ -42,10 +42,9 @@ public class DrawErrorTrace extends JPanel {
 	private final int START_SIZE = 30;
 	private final int TOP_SPACE = 10;
 	private final int LEFT_SPACE = 15;
-	private final int ALTER_SIZE = 50;
+	private final int ALTER_SIZE = 66;
 	private final int FONT_SIZE = 11;
 	private final int CONTENT_FONT = 12;
-	private final int AMPLIFY = 17;
 	private int numOfThreads = -1;
 	private List<String> threadNames = null;
 
@@ -198,14 +197,12 @@ public class DrawErrorTrace extends JPanel {
 		textStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
 		graph.getStylesheet().putCellStyle("text", textStyle);
 
-		// Map<String, Object> Style = new HashMap<String,
-		// Object>(defaultStyle);
-
 		Map<String, Object> contentStyle = new HashMap<String, Object>(textStyle);
-		//contentStyle.put(mxConstants.STYLE_VERTICAL_ALIGN, mxConstants.ALIGN_TOP);
+		// contentStyle.put(mxConstants.STYLE_VERTICAL_ALIGN,
+		// mxConstants.ALIGN_TOP);
 		contentStyle.put(mxConstants.STYLE_ALIGN, "left");
 		contentStyle.put(mxConstants.STYLE_SPACING_LEFT, LEFT_SPACE);
-		//contentStyle.put(mxConstants.STYLE_SPACING_TOP, 1);
+		// contentStyle.put(mxConstants.STYLE_SPACING_TOP, 1);
 		contentStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 
 		graph.getStylesheet().putCellStyle("content", contentStyle);
@@ -246,6 +243,8 @@ public class DrawErrorTrace extends JPanel {
 							mxCell c = (mxCell) cells[i];
 							int idx = Integer.parseInt(c.getId());
 							int from = group.get(idx)._1;
+							int to = group.get(idx)._2;
+
 							int threadIdx = path.get(from).getThreadIndex();
 
 							Map<String, Object> style = graph.getStylesheet().getStyles().get(str);
@@ -253,15 +252,21 @@ public class DrawErrorTrace extends JPanel {
 							style.put(mxConstants.STYLE_ALIGN, "left");
 							style.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * dx + START_SIZE + LEFT_SPACE);
 							style.put(mxConstants.STYLE_SWIMLANE_LINE, 0);
-
+							style.put(mxConstants.STYLE_SPACING_TOP, START_SIZE-TOP_SPACE);
 							String s = detailList.get(idx);
 							s = s.replaceAll("gov.nasa.jpf.vm.*?\\n", "").replaceAll("\\[.*?\\n", "");
 							String[] strs = s.split("\\n");
 							String first;
 							String last;
+							StringBuilder sb = new StringBuilder();
+							if (from != to) {
+								sb.append("Tr. " + from + "-" + to);
+							} else {
+								sb.append("Tr. " + from);
+							}
 							if (strs.length > 0) {
 								first = strs[0].replaceAll("^.*?:.*?:", "");
-								StringBuilder sb = new StringBuilder().append(Left.format(first, 20));
+								sb.append("\n" + Left.format(first, 20));
 								if (strs.length > 1) {
 									last = strs[strs.length - 1].replaceAll("^.*?:.*?:", "");
 
@@ -270,9 +275,11 @@ public class DrawErrorTrace extends JPanel {
 									}
 									sb.append("\n" + Left.format(last, 20));
 								}
+
 								c.setValue(sb.toString());
+
 							}
-						} else if (!str.equals("menu")) {
+						} else {
 							// set back the style of the expanded cell
 							Map<String, Object> style = graph.getStylesheet().getStyles().get(str);
 							style.put(mxConstants.STYLE_HORIZONTAL, false);
@@ -353,8 +360,8 @@ public class DrawErrorTrace extends JPanel {
 						START_SIZE + currHt, "label" + i);
 				labelRow.setConnectable(false);
 
-				mxCell content = (mxCell) graph.insertVertex(labelRow, null, detailList.get(i), 0,
-						0, numOfThreads * dx, currHt, "content");
+				mxCell content = (mxCell) graph.insertVertex(labelRow, null, detailList.get(i), 0, 0, numOfThreads * dx,
+						currHt, "content");
 				content.setConnectable(false);
 
 			}

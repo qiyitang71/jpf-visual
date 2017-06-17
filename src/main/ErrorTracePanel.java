@@ -11,6 +11,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -42,6 +43,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		errorTraceScroll = new JScrollPane(errorTrace);
 		errorTraceScroll.getViewport().setBackground(Color.white);
 		errorTraceScroll.setMinimumSize(new Dimension(100, 50));
+		errorTraceScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
 		JPanel tablePanel = new JPanel();
 		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
@@ -50,7 +52,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		tablePanel.setBackground(Color.white);
 		tablePanel.add(errorTraceScroll);
 		setLayout(layout);
-
+		
 		add(tablePanel, TOPICS);
 		add(tracker, PROGRESS);
 		layout.show(this, PROGRESS);
@@ -123,6 +125,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			errorTrace.removeAll();
 			errorTrace.drawGraph(path);
 			errorTraceScroll.setColumnHeaderView(new DrawMenu(errorTrace.getThreadNames()));
+			errorTraceScroll.setViewportBorder(BorderFactory.createLineBorder(Color.white));
 			layout.show(this, TOPICS);
 
 			getShell().requestFocus(this);
