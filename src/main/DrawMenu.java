@@ -50,16 +50,16 @@ public class DrawMenu extends JPanel {
 	public DrawMenu(List<String> threadNames) {
 		super();
 
-		mxGraph graph = new mxGraph();
+		mxGraph menuGraph = new mxGraph();
 
-		mxIGraphModel model = graph.getModel();
+		mxIGraphModel menuModel = menuGraph.getModel();
 
-		graph.setCellsEditable(false);
-		graph.setCellsSelectable(false);
-		graph.setCellsResizable(false);
-		graph.setCollapseToPreferredSize(false);
+		menuGraph.setCellsEditable(false);
+		menuGraph.setCellsSelectable(false);
+		menuGraph.setCellsResizable(false);
+		menuGraph.setCollapseToPreferredSize(false);
 
-		Map<String, Object> style = graph.getStylesheet().getDefaultVertexStyle();
+		Map<String, Object> style = menuGraph.getStylesheet().getDefaultVertexStyle();
 
 		style.put(mxConstants.STYLE_VERTICAL_ALIGN, "middle");
 		style.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "white");
@@ -79,15 +79,15 @@ public class DrawMenu extends JPanel {
 		menuStyle.put(mxConstants.STYLE_HORIZONTAL, false);
 		menuStyle.put(mxConstants.STYLE_FOLDABLE, false);
 		menuStyle.put(mxConstants.STYLE_SPACING_TOP, TOP_SPACE);
-		graph.getStylesheet().putCellStyle("menu", menuStyle);
+		menuGraph.getStylesheet().putCellStyle("menu", menuStyle);
 
 		// while folding, the lower cells goes up
-		mxLayoutManager layoutMng = new mxLayoutManager(graph) {
+		mxLayoutManager menuLayoutMng = new mxLayoutManager(menuGraph) {
 			public mxIGraphLayout getLayout(Object parent) {
 
-				if (model.getChildCount(parent) > 0 && model.getStyle(parent) != "menu") {
+				if (menuModel.getChildCount(parent) > 0 && menuModel.getStyle(parent) != "menu") {
 					return new mxStackLayout(graph, false);
-				} else if (model.getChildCount(parent) > 0 && model.getStyle(parent) == "menu") {
+				} else if (menuModel.getChildCount(parent) > 0 && menuModel.getStyle(parent) == "menu") {
 					return new mxStackLayout(graph, true);
 				}
 				return null;
@@ -95,27 +95,27 @@ public class DrawMenu extends JPanel {
 
 		};
 
-		Object parent = graph.getDefaultParent();
+		Object menuParent = menuGraph.getDefaultParent();
 
-		model.beginUpdate();
+		menuModel.beginUpdate();
 		try {
 			// draw the menu
 			int numOfThreads = threadNames.size();
-			mxCell menu = (mxCell) graph.insertVertex(parent, null, "Trans.", 0, 0, numOfThreads * dx + START_SIZE, 0,
+			mxCell menu = (mxCell) menuGraph.insertVertex(menuParent, null, "Trans.", 0, 0, numOfThreads * dx + START_SIZE, 0,
 					"menu");
 			menu.setConnectable(false);
 
 			for (int i = 0; i < numOfThreads; i++) {
 
-				((mxCell) graph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, dx, dy))
+				((mxCell) menuGraph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, dx, dy))
 						.setConnectable(false);
 
 			}
 		} finally {
-			model.endUpdate();
+			menuModel.endUpdate();
 
 		}
-		mxGraphComponent graphComponent = new mxGraphComponent(graph);
+		mxGraphComponent graphComponent = new mxGraphComponent(menuGraph);
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		this.add(graphComponent);
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));

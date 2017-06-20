@@ -1,3 +1,5 @@
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,10 +36,10 @@ import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxGraphView;
 import com.mxgraph.view.mxLayoutManager;
 
-public class DrawErrorTrace extends JPanel {
+public class DrawErrorTrace extends JPanel implements ComponentListener {
 
 	private static final long serialVersionUID = 1L;
-	private final int dx = 300;
+	private int dx = 316;
 	private final int dy = 45;
 	private final int START_SIZE = 30;
 	private final int TOP_SPACE = 10;
@@ -47,9 +49,22 @@ public class DrawErrorTrace extends JPanel {
 	private final int CONTENT_FONT = 12;
 	private int numOfThreads = -1;
 	private List<String> threadNames = null;
+	mxGraph graph;
+	mxIGraphModel model;
+	mxGraph menuGraph;
+	mxIGraphModel menuModel;
+	Path path;
+	List<Pair<Integer, Integer>> group;
+	mxGraphComponent graphComponent;
 
 	public DrawErrorTrace() {
 		super();
+
+		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+		graphComponent = new mxGraphComponent(new mxGraph());
+		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
+		graphComponent.addComponentListener(this);
+		this.add(graphComponent);
 	}
 
 	public int getNumberOfThreads() {
@@ -65,7 +80,7 @@ public class DrawErrorTrace extends JPanel {
 		/**
 		 * deal with the trace
 		 */
-
+		this.path = path;
 		if (path.size() == 0) {
 			return; // nothing to publish
 		}
@@ -74,9 +89,10 @@ public class DrawErrorTrace extends JPanel {
 		int prevThread = -1;
 		int start = -1;
 
-		List<Pair<Integer, Integer>> group = new LinkedList<>(); // group the
-																	// transition
+		group = new LinkedList<>(); // group the
+									// transition
 		threadNames = new ArrayList<>(); // range
+		numOfThreads = -1;
 		// first pass of the trace
 		for (Transition t : path) {
 			int currThread = t.getThreadIndex();
@@ -153,7 +169,7 @@ public class DrawErrorTrace extends JPanel {
 		/**
 		 * begin draw table contents
 		 */
-		mxGraph graph = new mxGraph() {
+		graph = new mxGraph() {
 			public mxRectangle getStartSize(Object swimlane) {
 				mxRectangle result = new mxRectangle();
 				mxCellState state = view.getState(swimlane);
@@ -175,7 +191,7 @@ public class DrawErrorTrace extends JPanel {
 			}
 		};
 
-		mxIGraphModel model = graph.getModel();
+		model = graph.getModel();
 
 		graph.setCellsEditable(false);
 		graph.setCellsSelectable(false);
@@ -252,7 +268,7 @@ public class DrawErrorTrace extends JPanel {
 							style.put(mxConstants.STYLE_ALIGN, "left");
 							style.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * dx + START_SIZE + LEFT_SPACE);
 							style.put(mxConstants.STYLE_SWIMLANE_LINE, 0);
-							style.put(mxConstants.STYLE_SPACING_TOP, START_SIZE-TOP_SPACE);
+							style.put(mxConstants.STYLE_SPACING_TOP, START_SIZE - TOP_SPACE);
 							String s = detailList.get(idx);
 							s = s.replaceAll("gov.nasa.jpf.vm.*?\\n", "").replaceAll("\\[.*?\\n", "");
 							String[] strs = s.split("\\n");
@@ -380,17 +396,83 @@ public class DrawErrorTrace extends JPanel {
 			model.endUpdate();
 
 		}
-		mxGraphComponent graphComponent = new mxGraphComponent(graph);
-		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
-		// graphComponent.setAutoScroll(false);
-		// graphComponent.setAutoscrolls(false);
-		graphComponent.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		graphComponent.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+		graphComponent.getGridColor();
+		// System.out.println("??? is null");
 
-		// graphComponent.setVerticalScrollBar(null);
+		if (graphComponent == null) {
+			System.out.println("graphComponent is null");
+		} else if (graph == null) {
+			System.out.println("graph is null");
+		}
+		graphComponent.setGraph(graph);
+		menuGraph = new mxGraph();
+		menuModel = menuGraph.getModel();
 
-		this.add(graphComponent);
-		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+		menuGraph.setCellsEditable(false);
+		menuGraph.setCellsSelectable(false);
+		menuGraph.setCellsResizable(false);
+		menuGraph.setCollapseToPreferredSize(false);
+
+		Map<String, Object> mDefaultstyle = menuGraph.getStylesheet().getDefaultVertexStyle();
+
+		mDefaultstyle.put(mxConstants.STYLE_VERTICAL_ALIGN, "middle");
+		mDefaultstyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "white");
+		mDefaultstyle.put(mxConstants.STYLE_FONTSIZE, FONT_SIZE);
+		mDefaultstyle.put(mxConstants.STYLE_STARTSIZE, 0);
+		mDefaultstyle.put(mxConstants.STYLE_HORIZONTAL, true);
+		mDefaultstyle.put(mxConstants.STYLE_FONTCOLOR, "black");
+		mDefaultstyle.put(mxConstants.STYLE_STROKECOLOR, "black");
+		mDefaultstyle.put(mxConstants.STYLE_FONTSTYLE, mxConstants.FONT_BOLD);
+		mDefaultstyle.remove(mxConstants.STYLE_FILLCOLOR);
+
+		Map<String, Object> menuStyle = new HashMap<String, Object>(mDefaultstyle);
+
+		// menu style not foldable
+		menuStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
+		menuStyle.put(mxConstants.STYLE_STARTSIZE, START_SIZE);
+		menuStyle.put(mxConstants.STYLE_HORIZONTAL, false);
+		menuStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
+		menuStyle.put(mxConstants.STYLE_FOLDABLE, false);
+		menuStyle.put(mxConstants.STYLE_SPACING_TOP, TOP_SPACE);
+		menuGraph.getStylesheet().putCellStyle("menu", menuStyle);
+
+		// while folding, the lower cells goes up
+		mxLayoutManager menuLayoutMng = new mxLayoutManager(menuGraph) {
+			public mxIGraphLayout getLayout(Object parent) {
+
+				if (menuModel.getChildCount(parent) > 0 && menuModel.getStyle(parent) != "menu") {
+					return new mxStackLayout(graph, false);
+				} else if (menuModel.getChildCount(parent) > 0 && menuModel.getStyle(parent) == "menu") {
+					return new mxStackLayout(graph, true);
+				}
+				return null;
+			}
+
+		};
+
+		Object menuParent = menuGraph.getDefaultParent();
+
+		menuModel.beginUpdate();
+		try {
+			// draw the menu
+			// int numOfThreads = threadNames.size();
+			mxCell menu = (mxCell) menuGraph.insertVertex(menuParent, null, "Trans.", 0, 0,
+					numOfThreads * dx + START_SIZE, 0, "menu");
+			menu.setConnectable(false);
+
+			for (int i = 0; i < numOfThreads; i++) {
+
+				((mxCell) menuGraph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, dx, dy))
+						.setConnectable(false);
+
+			}
+		} finally {
+			menuModel.endUpdate();
+
+		}
+		mxGraphComponent menuGraghComponent = new mxGraphComponent(menuGraph);
+		menuGraghComponent.getGraphHandler().setRemoveCellsFromParent(false);
+		graphComponent.setColumnHeaderView(menuGraghComponent);
 
 	}
 
@@ -404,6 +486,90 @@ public class DrawErrorTrace extends JPanel {
 		frame.getContentPane().add(scrollPane);
 		// et.drawGraph();
 		frame.setVisible(true);
+
+	}
+
+	@Override
+	public void componentHidden(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void componentMoved(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void componentResized(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		if (this.graph == null)
+			return;
+		dx = (int) (Math.floor((this.getWidth() * 1.0 - START_SIZE) / numOfThreads));
+		// System.out.println("dx = " + dx);
+		// System.out.println("width = " + this.getWidth());
+		// System.out.println("numOfThreads = " + numOfThreads);
+
+		Object parent = graph.getDefaultParent();
+		for (Object objLane : graph.getChildCells(parent)) {
+			if (objLane != null) {
+				String str = model.getStyle(objLane);
+				Map<String, Object> style = graph.getStylesheet().getStyles().get(str);
+				mxCell c = (mxCell) objLane;
+				int idx = Integer.parseInt(c.getId());
+				int from = group.get(idx)._1;
+				int threadIdx = path.get(from).getThreadIndex();
+				if (graph.isCellCollapsed(objLane)) {
+					style.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * dx + START_SIZE + LEFT_SPACE);
+				} else {
+					style.remove(mxConstants.STYLE_SPACING_LEFT);
+				}
+				graph.resizeCell(objLane, new mxRectangle(0, 0, numOfThreads * dx + START_SIZE,
+						graph.getCellGeometry(objLane).getHeight()));
+				// graph.refresh();
+				for (Object objLabel : graph.getChildCells(objLane)) {
+					if (objLabel != null) {
+						String tmpStr = model.getStyle(objLabel);
+						Map<String, Object> tmpStyle = graph.getStylesheet().getStyles().get(tmpStr);
+						tmpStyle.put(mxConstants.STYLE_SPACING_LEFT, dx * threadIdx + dx / 2 - LEFT_SPACE / 2);
+						graph.resizeCell(objLabel,
+								new mxRectangle(0, 0, numOfThreads * dx, graph.getCellGeometry(objLabel).getHeight()));
+						// graph.refresh();
+
+						for (Object objContent : graph.getChildCells(objLabel)) {
+							if (objContent != null) {
+								graph.resizeCell(objContent, new mxRectangle(0, 0, numOfThreads * dx,
+										graph.getCellGeometry(objContent).getHeight()));
+
+							}
+						}
+					}
+				}
+			}
+		}
+		graph.refresh();
+
+		parent = menuGraph.getDefaultParent();
+		for (Object obj : menuGraph.getChildCells(parent)) {
+			if (obj != null) {
+				menuGraph.resizeCell(obj,
+						new mxRectangle(0, 0, numOfThreads * dx + START_SIZE, graph.getCellGeometry(obj).getHeight()));
+				for (Object subObj : menuGraph.getChildCells(obj)) {
+					if (subObj != null) {
+						menuGraph.resizeCell(subObj,
+								new mxRectangle(0, 0, dx, graph.getCellGeometry(subObj).getHeight()));
+					}
+				}
+			}
+		}
+		menuGraph.refresh();
+
+	}
+
+	@Override
+	public void componentShown(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
 
 	}
 }

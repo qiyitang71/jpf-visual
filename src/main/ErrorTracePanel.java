@@ -34,23 +34,24 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private DrawErrorTrace errorTrace = new DrawErrorTrace();
 	private ProgressTrackerUI tracker = new ProgressTrackerUI();
 	private CardLayout layout = new CardLayout();
-	private JScrollPane errorTraceScroll;
+	//private JScrollPane errorTraceScroll;
 	private Path path;
 
 	public ErrorTracePanel() {
 		super("Error Trace", null, "View JPF's Output");
 		ShellManager.getManager().addCommandListener(VerifyCommand.class, this);
-		errorTraceScroll = new JScrollPane(errorTrace);
-		errorTraceScroll.getViewport().setBackground(Color.white);
-		errorTraceScroll.setMinimumSize(new Dimension(100, 50));
-		errorTraceScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		
+//		errorTraceScroll = new JScrollPane(errorTrace);
+//		errorTraceScroll.getViewport().setBackground(Color.white);
+//		errorTraceScroll.setMinimumSize(new Dimension(100, 50));
+//		errorTraceScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
 		JPanel tablePanel = new JPanel();
 		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
 		tablePanel.add(statusLabel);
 
 		tablePanel.setBackground(Color.white);
-		tablePanel.add(errorTraceScroll);
+		tablePanel.add(errorTrace);
 		setLayout(layout);
 		
 		add(tablePanel, TOPICS);
@@ -122,10 +123,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		}
 		if (found) {
 
-			errorTrace.removeAll();
+			//errorTrace.removeAll();
+			
 			errorTrace.drawGraph(path);
-			errorTraceScroll.setColumnHeaderView(new DrawMenu(errorTrace.getThreadNames()));
-			errorTraceScroll.setViewportBorder(BorderFactory.createLineBorder(Color.white));
+			//new DrawMenu(errorTrace.getThreadNames());
+			//errorTraceScroll.setViewportBorder(BorderFactory.createLineBorder(Color.white));
 			layout.show(this, TOPICS);
 
 			getShell().requestFocus(this);
