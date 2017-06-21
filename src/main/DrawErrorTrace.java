@@ -1,3 +1,4 @@
+import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import com.mxgraph.view.mxLayoutManager;
 public class DrawErrorTrace extends JPanel implements ComponentListener {
 
 	private static final long serialVersionUID = 1L;
-	private int dx = 266;
+	private int dx = 250;
 	private final int dy = 45;
 	private final int START_SIZE = 30;
 	private final int TOP_SPACE = 10;
@@ -50,13 +51,14 @@ public class DrawErrorTrace extends JPanel implements ComponentListener {
 	private final int CONTENT_FONT = 12;
 	private final int OUTLINE_SIZE = 150;
 	private int numOfThreads = -1;
+	List<Pair<Integer, Integer>> group;
 	private List<String> threadNames = null;
 	mxGraph graph;
 	mxIGraphModel model;
 	mxGraph menuGraph;
 	mxIGraphModel menuModel;
 	Path path;
-	List<Pair<Integer, Integer>> group;
+
 	mxGraphComponent graphComponent;
 
 	public DrawErrorTrace() {
@@ -68,6 +70,8 @@ public class DrawErrorTrace extends JPanel implements ComponentListener {
 		graphComponent.addComponentListener(this);
 		this.add(graphComponent);
 		mxGraphOutline outln = new mxGraphOutline(graphComponent);
+		Rectangle r = new Rectangle(100, 100);
+		outln.setBounds(r);
 		this.add(outln);
 	}
 
@@ -400,14 +404,7 @@ public class DrawErrorTrace extends JPanel implements ComponentListener {
 			model.endUpdate();
 
 		}
-		graphComponent.getGridColor();
-		// System.out.println("??? is null");
 
-		if (graphComponent == null) {
-			System.out.println("graphComponent is null");
-		} else if (graph == null) {
-			System.out.println("graph is null");
-		}
 		graphComponent.setGraph(graph);
 		menuGraph = new mxGraph();
 		menuModel = menuGraph.getModel();
@@ -510,9 +507,9 @@ public class DrawErrorTrace extends JPanel implements ComponentListener {
 		// TODO Auto-generated method stub
 		if (this.graph == null)
 			return;
-		dx = (int) (Math.floor((this.getWidth() * 1.0 - START_SIZE - OUTLINE_SIZE) / numOfThreads));
+		dx = (int) (Math.floor((this.getWidth() * 1.0 - START_SIZE - OUTLINE_SIZE - 10) / numOfThreads));
 		// System.out.println("dx = " + dx);
-		// System.out.println("width = " + this.getWidth());
+		System.out.println("width = " + this.getWidth());
 		// System.out.println("numOfThreads = " + numOfThreads);
 
 		Object parent = graph.getDefaultParent();
