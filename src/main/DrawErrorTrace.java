@@ -25,6 +25,7 @@ import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.swing.mxGraphOutline;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxEvent;
 import com.mxgraph.util.mxEventObject;
@@ -39,7 +40,7 @@ import com.mxgraph.view.mxLayoutManager;
 public class DrawErrorTrace extends JPanel implements ComponentListener {
 
 	private static final long serialVersionUID = 1L;
-	private int dx = 316;
+	private int dx = 266;
 	private final int dy = 45;
 	private final int START_SIZE = 30;
 	private final int TOP_SPACE = 10;
@@ -47,6 +48,7 @@ public class DrawErrorTrace extends JPanel implements ComponentListener {
 	private final int ALTER_SIZE = 66;
 	private final int FONT_SIZE = 11;
 	private final int CONTENT_FONT = 12;
+	private final int OUTLINE_SIZE = 150;
 	private int numOfThreads = -1;
 	private List<String> threadNames = null;
 	mxGraph graph;
@@ -65,6 +67,8 @@ public class DrawErrorTrace extends JPanel implements ComponentListener {
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		graphComponent.addComponentListener(this);
 		this.add(graphComponent);
+		mxGraphOutline outln = new mxGraphOutline(graphComponent);
+		this.add(outln);
 	}
 
 	public int getNumberOfThreads() {
@@ -506,7 +510,7 @@ public class DrawErrorTrace extends JPanel implements ComponentListener {
 		// TODO Auto-generated method stub
 		if (this.graph == null)
 			return;
-		dx = (int) (Math.floor((this.getWidth() * 1.0 - START_SIZE) / numOfThreads));
+		dx = (int) (Math.floor((this.getWidth() * 1.0 - START_SIZE - OUTLINE_SIZE) / numOfThreads));
 		// System.out.println("dx = " + dx);
 		// System.out.println("width = " + this.getWidth());
 		// System.out.println("numOfThreads = " + numOfThreads);
