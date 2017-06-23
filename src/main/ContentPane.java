@@ -418,6 +418,20 @@ public class ContentPane {
 			mxCell cell = (mxCell) o;
 			if (cell != null && cell.getId() != null) {
 				graph.foldCells(true, false, new Object[] { cell }, true);
+				/**
+				 * reset the highlight
+				 */
+				for (Object rowChild : graph.getChildCells(cell)) {
+					mxCell rowChildCell = (mxCell) rowChild;
+					if (rowChildCell.getStyle() != "range") {
+						for (Object contentObj : graph.getChildCells(rowChildCell)) {
+							mxCell contentCell = (mxCell) contentObj;
+							if (contentCell != null && contentCell.getId() != null) {
+								contentCell.setStyle("content");
+							}
+						}
+					}
+				}
 			}
 		}
 		graph.refresh();
