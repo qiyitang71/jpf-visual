@@ -30,9 +30,9 @@ public class TraceData {
 		int prevThread = -1;
 		int start = -1;
 
-		group = new ArrayList<>(); // group the
-									// transition
-		threadNames = new ArrayList<>(); // range
+		// group the transition range
+		group = new ArrayList<>(); 
+		threadNames = new ArrayList<>(); 
 		numOfThreads = -1;
 		// first pass of the trace
 		for (Transition t : path) {

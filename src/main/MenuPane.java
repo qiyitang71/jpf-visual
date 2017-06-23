@@ -12,7 +12,7 @@ import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxLayoutManager;
 
 public class MenuPane {
-	private int cellWidth = 250;
+	private int cellWidth = PaneConstants.DEFAULT_CELL_WIDTH;
 	private mxGraph menuGraph;
 	private mxIGraphModel menuModel;
 	private int numOfThreads = -1;

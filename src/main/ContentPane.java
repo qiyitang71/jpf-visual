@@ -23,8 +23,7 @@ import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
 public class ContentPane {
-
-	private int cellWidth = 250;
+	private int cellWidth = PaneConstants.DEFAULT_CELL_WIDTH;
 	private mxGraph graph;
 	private mxIGraphModel model;
 
