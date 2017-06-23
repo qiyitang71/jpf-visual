@@ -5,6 +5,7 @@ import gov.nasa.jpf.shell.ShellPanel;
 import gov.nasa.jpf.shell.commands.VerifyCommand;
 import gov.nasa.jpf.shell.listeners.VerifyCommandListener;
 import gov.nasa.jpf.shell.util.ProgressTrackerUI;
+import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
 import java.awt.CardLayout;
@@ -62,7 +63,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			public void valueChanged(ListSelectionEvent evt) {
 				// Make sure this doesn't get called multiple times for one
 				// event
-				//System.out.println("yyy");
+				// System.out.println("yyy");
 
 				if (evt.getValueIsAdjusting() == false) {
 
@@ -70,13 +71,13 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					if (topic.equals("wait/notify")) {
 						if (td == null)
 							return;
-						Set<Integer> set = td.getWaitNotify();
+						Set<Pair<Integer, Integer>> set = td.getWaitNotify();
 						errorTrace.expand(set);
 						System.out.println("wait/notify");
 
-//						for (int i : set) {
-//							System.out.println(i);
-//						}
+						// for (int i : set) {
+						// System.out.println(i);
+						// }
 					}
 					if (topic.equals("table")) {
 						errorTrace.foldAll();

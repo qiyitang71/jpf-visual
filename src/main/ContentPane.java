@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -220,28 +221,29 @@ public class ContentPane {
 		try {
 
 			// show the details
-			for (int i = 0; i < numOfRows; i++) {
-				int from = group.get(i)._1;
-				int to = group.get(i)._2;
+			for (int ithRow = 0; ithRow < numOfRows; ithRow++) {
+				int from = group.get(ithRow)._1;
+				int to = group.get(ithRow)._2;
 
 				// set the id of lane to be the group idx
 				Map<String, Object> tmpStyle = new HashMap<>(rowStyle);
-				graph.getStylesheet().putCellStyle("row" + i, tmpStyle);
+				graph.getStylesheet().putCellStyle("row" + ithRow, tmpStyle);
 
-				mxCell lane = (mxCell) graph.insertVertex(parent, "" + i, null, 0, 0,
-						numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE, 0, "row" + i);
+				mxCell lane = (mxCell) graph.insertVertex(parent, "" + ithRow, null, 0, 0,
+						numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE, 0,
+						"row" + ithRow);
 
-				lane.setId("" + i);
+				lane.setId("" + ithRow);
 				lane.setConnectable(false);
 
 				int threadIdx = path.get(from).getThreadIndex();
 				Map<String, Object> tmpLabel = new HashMap<String, Object>(labelStyle);
 				tmpLabel.put(mxConstants.STYLE_SPACING_LEFT,
 						cellWidth * threadIdx + cellWidth / 2 - PaneConstants.LEFT_SPACE / 2);
-				graph.getStylesheet().putCellStyle("label" + i, tmpLabel);
+				graph.getStylesheet().putCellStyle("label" + ithRow, tmpLabel);
 
 				int htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(tmpLabel)).getHeight();
-				int currHt = heightList.get(i) * htPerLine;
+				int currHt = heightList.get(ithRow) * htPerLine + 5;
 
 				mxCell range;
 
@@ -253,12 +255,23 @@ public class ContentPane {
 							PaneConstants.START_SIZE + currHt, "range");
 				}
 				mxCell labelRow = (mxCell) graph.insertVertex(lane, null, "" + threadIdx, 0, 0,
-						numOfThreads * cellWidth, PaneConstants.START_SIZE + currHt, "label" + i);
+						numOfThreads * cellWidth, PaneConstants.START_SIZE + currHt, "label" + ithRow);
 				labelRow.setConnectable(false);
 
-				mxCell content = (mxCell) graph.insertVertex(labelRow, null, detailList.get(i), 0, 0,
-						numOfThreads * cellWidth, currHt, "content");
-				content.setConnectable(false);
+				/**
+				 * draw the line one at a time
+				 */
+				String[] contentLines = detailList.get(ithRow).split("\\n");
+				for (int ithLine = 0; ithLine < contentLines.length; ithLine++) {
+					mxCell content = (mxCell) graph.insertVertex(labelRow, "" + ithLine, contentLines[ithLine], 0, 0,
+							numOfThreads * cellWidth, htPerLine, "content");
+					content.setConnectable(false);
+					content.setId("" + ithLine);
+				}
+				// mxCell content = (mxCell) graph.insertVertex(labelRow, null,
+				// detailList.get(ithRow), 0, 0,
+				// numOfThreads * cellWidth, currHt, "content");
+				// content.setConnectable(false);
 
 			}
 
@@ -297,7 +310,8 @@ public class ContentPane {
 						new mxRectangle(0, 0,
 								numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE,
 								graph.getCellGeometry(objLane).getHeight()));
-				System.out.println(numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE);
+				// System.out.println(numOfThreads * cellWidth +
+				// PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE);
 				model.getGeometry(objLane).getAlternateBounds()
 						.setWidth(numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE);
 				if (graph.isCellCollapsed(objLane)) {
@@ -326,28 +340,72 @@ public class ContentPane {
 		graph.refresh();
 	}
 
-	public void expand(Set<Integer> set) {
-		System.out.println("xxxx");
+	public void expand(Set<Pair<Integer, Integer>> set) {
+		// System.out.println("xxxx");
+
+		Set<Integer> expandedRows = new HashSet<>();
+		for (Pair<Integer, Integer> p : set) {
+			expandedRows.add(p._1);
+		}
+		Map<Integer, Set<Integer>> map = new HashMap<>();
+		for (Pair<Integer, Integer> p : set) {
+			int rowNum = p._1;
+			if (map.containsKey(rowNum)) {
+				map.get(rowNum).add(p._2);
+			} else {
+				Set<Integer> newSet = new HashSet<>();
+				newSet.add(p._2);
+				map.put(rowNum, newSet);
+			}
+		}
 
 		Object parent = graph.getDefaultParent();
 		for (Object o : graph.getChildCells(parent)) {
 			mxCell cell = (mxCell) o;
-			System.out.println(cell.getId());
+			// System.out.println(cell.getId());
 
 			if (cell != null && cell.getId() != null) {
 				// System.out.println("row");
 				int id = Integer.parseInt(cell.getId());
 
-				System.out.println("origi = " + model.getGeometry(cell));
-				System.out.println("alter = " + model.getGeometry(cell).getAlternateBounds());
+				// System.out.println("origi = " + model.getGeometry(cell));
+				// System.out.println("alter = " +
+				// model.getGeometry(cell).getAlternateBounds());
 
-				if (set.contains(id)) {
+				if (expandedRows.contains(id)) {
 					graph.foldCells(false, false, new Object[] { cell }, true);
+					for (Object rowChild : graph.getChildCells(cell)) {
+						mxCell rowChildCell = (mxCell) rowChild;
+						if (rowChildCell.getStyle() != "range") {
+							for (Object contentObj : graph.getChildCells(rowChildCell)) {
+								mxCell contentCell = (mxCell) contentObj;
+								if (contentCell != null && contentCell.getId() != null) {
+									int cid = Integer.parseInt(contentCell.getId());
+									// System.out.println("hl in progress" +
+									// cid);
+									// System.out.println("map contains: " +
+									// map.get(id));
+									if (map.get(id).contains(cid)) {
+										Map<String, Object> hlStyle = new HashMap<>(
+												graph.getStylesheet().getStyles().get(contentCell.getStyle()));
+										hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "yellow");
+										graph.getStylesheet().putCellStyle("highlight", hlStyle);
+										contentCell.setStyle("highlight");
+									}
+
+								}
+							}
+
+						}
+
+					}
+
 				} else {
 					graph.foldCells(true, false, new Object[] { cell }, true);
 				}
 
-				System.out.println("alter2 = " + model.getGeometry(cell).getAlternateBounds());
+				// System.out.println("alter2 = " +
+				// model.getGeometry(cell).getAlternateBounds());
 			}
 		}
 		graph.refresh();

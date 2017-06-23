@@ -65,7 +65,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		graphComponent.setColumnHeaderView(menuGraghComponent);
 	}
 
-	public void expand(Set<Integer> set) {
+	public void expand(Set<Pair<Integer, Integer>> set) {
 		content.expand(set);
 	}
 

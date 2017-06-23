@@ -143,107 +143,80 @@ public class TraceData {
 		return group;
 	}
 
-	public Set<Integer> getWaitNotify() {
+	public Set<Pair<Integer, Integer>> getWaitNotify() {
 		Set<Integer> hasInfo = new HashSet<>();
+		// Set<Integer> lineInfo = new HashSet<>();
+		// Pair<Set<Integer>, Set<Integer>> hasInfos = new Pair<Set<Integer>,
+		// Set<Integer>>(hasInfo, lineInfo);
+		Set<Pair<Integer, Integer>> hasInfos = new HashSet<>();
 		for (int pi = 0; pi < group.size(); pi++) {
 			Pair<Integer, Integer> p = group.get(pi);
 			MethodInfo lastMi = null;
 			int start = p._1;
 			int end = p._2;
+			int height = 0;
+
 			for (int i = start; i <= end; i++) {
 				Transition t = path.get(i);
-				for (Step s : t) {
-					Instruction insn = s.getInstruction();
-					if (insn instanceof EXECUTENATIVE) {
-						MethodInfo mi = insn.getMethodInfo();
-						if (mi != lastMi) {
-							ClassInfo mci = mi.getClassInfo();
-							// System.out.println(mci.getName());
+				String lastLine = null;
+				int nNoSrc = 0;
+				// tempStr.append(t.getChoiceGenerator() + "\n");
+				height++;
+				for (int ithStep = 0; ithStep < t.getStepCount(); ithStep++) {
+					Step s = t.getStep(ithStep);
+					String line = s.getLineString();
+					if (line != null) {
+						String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$", "")
+								.replaceAll("/\\*.*$", "").replaceAll("^.*?\\*/", "").replaceAll("\\*.*$", "").trim();
 
-							if (mci != null && mci.getName().contains("java.lang.Object")) {
-							//	System.out.println("object");
+						if (!line.equals(lastLine) && src.length() > 1) {
+							if (nNoSrc > 0) {
+								// tempStr.append(" [" + nNoSrc + " insn w/o
+								// sources]" + "\n");
+								height++;
 
-								if (mi.getUniqueName().contains("wait()") || mi.getUniqueName().contains("notify()")
-										|| mi.getUniqueName().contains("notifyAll()")) {
-									//System.out.println(mi.getUniqueName());
-									hasInfo.add(pi);
-									break;
-								}
 							}
-							lastMi = mi;
+
+							// tempStr.append(" ");
+							// tempStr.append(Left.format(s.getLocationString(),
+							// 30));
+							// tempStr.append(": ");
+							// tempStr.append(src + "\n");
+							height++;
+							nNoSrc = 0;
+						}
+					} else { // no source
+						nNoSrc++;
+					}
+					lastLine = line;
+
+					Instruction insn = s.getInstruction();
+
+					if (insn instanceof VirtualInvocation) {
+						System.out.println("insn = " + insn);
+						String insnStr = insn.toString();
+						if (insnStr.contains("java.lang.Object.wait()") || insnStr.contains("java.lang.Object.notify()")
+								|| insnStr.contains("java.lang.Object.notifyAll()")) {
+							hasInfos.add(new Pair<>(pi, height - 1));
+							hasInfo.add(pi);
+							System.out.println("row = " + pi + " height =" + height);
+							// break;
 						}
 					}
+					// if (nNoSrc == 0) {
+
+					// if (i == end && ithStep == t.getStepCount() - 1) {
+					// height--;
+					// }
+
+					// }
 				}
-				if (hasInfo.size() > 0 && hasInfo.contains(pi)) {
-					break;
-				}
+				// if (hasInfo.size() > 0 && hasInfo.contains(pi)) {
+				// break;
+				// }
 			}
+			System.out.println("height = " + height);
 		}
-		return new HashSet<Integer>(hasInfo);
-
-		// for (Transition t : path) {
-		//
-		// if (showCG){
-		// out.println(t.getChoiceGenerator());
-		// }
-		//
-		// if (showSteps) {
-		// String lastLine = null;
-		// MethodInfo lastMi = null;
-		// int nNoSrc=0;
-		//
-		// for (Step s : t) {
-		// if (showSource) {
-		// String line = s.getLineString();
-		// if (line != null) {
-		// if (!line.equals(lastLine)) {
-		// if (nNoSrc > 0){
-		// out.println(" [" + nNoSrc + " insn w/o sources]");
-		// }
-		//
-		// out.print(" ");
-		// if (showLocation) {
-		// out.print(Left.format(s.getLocationString(),30));
-		// out.print(" : ");
-		// }
-		// out.println(line.trim());
-		// nNoSrc = 0;
-		//
-		// }
-		// } else { // no source
-		// nNoSrc++;
-		// }
-		//
-		// lastLine = line;
-		// }
-		//
-		// /*more information of the trace*/
-		// if (showCode) {
-		// Instruction insn = s.getInstruction();
-		// if (showMethod){
-		// MethodInfo mi = insn.getMethodInfo();
-		// if (mi != lastMi) {
-		// ClassInfo mci = mi.getClassInfo();
-		// out.print(" ");
-		// if (mci != null) {
-		// out.print(mci.getName());
-		// out.print(".");
-		// }
-		// out.println(mi.getUniqueName());
-		// lastMi = mi;
-		// }
-		// }
-		// out.print(" ");
-		// out.println(insn);
-		// }
-		// }
-		//
-		// if (showSource && !showCode && (nNoSrc > 0)) {
-		// out.println(" [" + nNoSrc + " insn w/o sources]");
-		// }
-		// }
-		// }
-		// }
-
+		return new HashSet<>(hasInfos);
 	}
 }
