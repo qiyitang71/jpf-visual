@@ -72,9 +72,11 @@ public class MenuPane {
 			// draw the menu
 			// int numOfThreads = threadNames.size();
 			mxCell menu = (mxCell) menuGraph.insertVertex(menuParent, null, "Trans.", 0, 0,
-					numOfThreads * cellWidth + PaneConstants.START_SIZE, 0, "menu");
+					numOfThreads * cellWidth , 0, "menu");
 			menu.setConnectable(false);
+			System.out.println("menu lane cellWidth = " + menuModel.getGeometry(menu));
 
+			
 			for (int i = 0; i < numOfThreads; i++) {
 
 				((mxCell) menuGraph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, cellWidth,

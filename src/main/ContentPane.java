@@ -133,7 +133,7 @@ public class ContentPane {
 				for (int i = 0; i < cells.length; i++) {
 					mxGeometry geo = model.getGeometry(cells[i]);
 					if (geo.getAlternateBounds() != null) {
-						geo.setWidth(geo.getAlternateBounds().getWidth());
+						geo.setWidth(geo.getWidth());
 						String str = model.getStyle(cells[i]);
 						if (graph.isCellCollapsed(cells[i])) {
 							// set the style when folded
@@ -266,17 +266,16 @@ public class ContentPane {
 			for (Object o : graph.getChildCells(parent)) {
 				mxCell cell = (mxCell) o;
 				if (cell != null && cell.getId() != null) {
-					model.getGeometry(cell).setAlternateBounds(new mxRectangle(0, 0,
-							numOfThreads * cellWidth + PaneConstants.START_SIZE, PaneConstants.ALTER_SIZE));
+					model.getGeometry(cell)
+							.setAlternateBounds(new mxRectangle(0, 0,
+									numOfThreads * cellWidth + PaneConstants.SIGN_SIZE + PaneConstants.RANGE_SIZE,
+									PaneConstants.ALTER_SIZE));
 					graph.foldCells(true, false, new Object[] { cell }, true);
 				}
 			}
-
 		} finally {
 			model.endUpdate();
-
 		}
-
 	}
 
 	public mxGraph getGraph() {
@@ -294,14 +293,17 @@ public class ContentPane {
 				int idx = Integer.parseInt(c.getId());
 				int from = group.get(idx)._1;
 				int threadIdx = path.get(from).getThreadIndex();
-				if (graph.isCellCollapsed(objLane)) {
-					style.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth + PaneConstants.SIGN_SIZE
-							+ PaneConstants.RANGE_SIZE + PaneConstants.LEFT_SPACE);
-				}
 				graph.resizeCell(objLane,
 						new mxRectangle(0, 0,
 								numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE,
 								graph.getCellGeometry(objLane).getHeight()));
+				System.out.println(numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE);
+				model.getGeometry(objLane).getAlternateBounds()
+						.setWidth(numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE);
+				if (graph.isCellCollapsed(objLane)) {
+					style.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth + PaneConstants.SIGN_SIZE
+							+ PaneConstants.RANGE_SIZE + PaneConstants.LEFT_SPACE);
+				}
 				for (Object objLabel : graph.getChildCells(objLane)) {
 					if (objLabel != null && model.getStyle(objLabel) != "range") {
 						String tmpStr = model.getStyle(objLabel);
@@ -333,16 +335,19 @@ public class ContentPane {
 			System.out.println(cell.getId());
 
 			if (cell != null && cell.getId() != null) {
-				//System.out.println("row");
+				// System.out.println("row");
 				int id = Integer.parseInt(cell.getId());
-				System.out.println(id);
+
+				System.out.println("origi = " + model.getGeometry(cell));
+				System.out.println("alter = " + model.getGeometry(cell).getAlternateBounds());
 
 				if (set.contains(id)) {
 					graph.foldCells(false, false, new Object[] { cell }, true);
 				} else {
 					graph.foldCells(true, false, new Object[] { cell }, true);
-
 				}
+
+				System.out.println("alter2 = " + model.getGeometry(cell).getAlternateBounds());
 			}
 		}
 		graph.refresh();
@@ -357,6 +362,8 @@ public class ContentPane {
 				graph.foldCells(true, false, new Object[] { cell }, true);
 			}
 		}
+		graph.refresh();
+
 	}
 
 }

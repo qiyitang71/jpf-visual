@@ -97,10 +97,11 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			return;
 		// - PaneConstants.OUTLINE_SIZE
 		// TODO Auto-generated method stub
-		// System.out.println("resize" + this.getWidth());
 
 		int newWidth = (int) (Math
 				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.START_SIZE - 65) / numOfThreads));
+		System.out.println("resize" + newWidth);
+
 		content.resize(newWidth);
 		menu.resize(newWidth);
 
