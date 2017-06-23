@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.layout.mxStackLayout;
@@ -322,4 +323,40 @@ public class ContentPane {
 		}
 		graph.refresh();
 	}
+
+	public void expand(Set<Integer> set) {
+		System.out.println("xxxx");
+
+		Object parent = graph.getDefaultParent();
+		for (Object o : graph.getChildCells(parent)) {
+			mxCell cell = (mxCell) o;
+			System.out.println(cell.getId());
+
+			if (cell != null && cell.getId() != null) {
+				//System.out.println("row");
+				int id = Integer.parseInt(cell.getId());
+				System.out.println(id);
+
+				if (set.contains(id)) {
+					graph.foldCells(false, false, new Object[] { cell }, true);
+				} else {
+					graph.foldCells(true, false, new Object[] { cell }, true);
+
+				}
+			}
+		}
+		graph.refresh();
+	}
+
+	public void foldAll() {
+		// set the collapsed height i.e. the folded height
+		Object parent = graph.getDefaultParent();
+		for (Object o : graph.getChildCells(parent)) {
+			mxCell cell = (mxCell) o;
+			if (cell != null && cell.getId() != null) {
+				graph.foldCells(true, false, new Object[] { cell }, true);
+			}
+		}
+	}
+
 }

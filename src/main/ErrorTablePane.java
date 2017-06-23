@@ -3,6 +3,7 @@ import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -37,7 +38,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		// this.add(outln);
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphComponent, outln);
 		splitPane.setOneTouchExpandable(false);
-		splitPane.setDividerLocation(800);
+		splitPane.setDividerLocation(700);
 		this.add(splitPane);
 
 		// graphComponent.setMinimumSize(new Dimension(200, 50));
@@ -45,8 +46,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	}
 
-	public void draw(Path path) {
-		TraceData td = new TraceData(path);
+	public void draw(TraceData td) {
+		Path path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
 		List<Pair<Integer, Integer>> group = td.getGroup();
 		List<String> detailList = td.getDetailList();
@@ -62,6 +63,14 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		mxGraphComponent menuGraghComponent = new mxGraphComponent(menuGraph);
 		menuGraghComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		graphComponent.setColumnHeaderView(menuGraghComponent);
+	}
+
+	public void expand(Set<Integer> set) {
+		content.expand(set);
+	}
+
+	public void foldAll() {
+		content.foldAll();
 	}
 
 	@Override
@@ -88,7 +97,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			return;
 		// - PaneConstants.OUTLINE_SIZE
 		// TODO Auto-generated method stub
-		//System.out.println("resize" + this.getWidth());
+		// System.out.println("resize" + this.getWidth());
 
 		int newWidth = (int) (Math
 				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.START_SIZE - 65) / numOfThreads));

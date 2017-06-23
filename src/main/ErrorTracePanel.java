@@ -14,8 +14,16 @@ import java.awt.Dimension;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Basic output panel that divides new trace printer's results into browseable
@@ -36,6 +44,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private ProgressTrackerUI tracker = new ProgressTrackerUI();
 	private CardLayout layout = new CardLayout();
 	private Path path;
+	private TraceData td = null;
 
 	public ErrorTracePanel() {
 		super("Error Trace", null, "View JPF's Output");
@@ -45,8 +54,48 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
 		tablePanel.add(statusLabel);
 
+		String[] selectionList = new String[] { "table", "wait/notify" };
+		JList list = new JList(selectionList);
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		list.setSelectedIndex(0);
+		list.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent evt) {
+				// Make sure this doesn't get called multiple times for one
+				// event
+				//System.out.println("yyy");
+
+				if (evt.getValueIsAdjusting() == false) {
+
+					String topic = (String) list.getSelectedValue();
+					if (topic.equals("wait/notify")) {
+						if (td == null)
+							return;
+						Set<Integer> set = td.getWaitNotify();
+						errorTrace.expand(set);
+						System.out.println("wait/notify");
+
+//						for (int i : set) {
+//							System.out.println(i);
+//						}
+					}
+					if (topic.equals("table")) {
+						errorTrace.foldAll();
+					}
+
+				}
+
+			}
+		});
+
+		JScrollPane listScrollPane = new JScrollPane(list);
+		listScrollPane.setMinimumSize(new Dimension(100, 50));
+
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScrollPane, errorTrace);
+		splitPane.setOneTouchExpandable(true);
+		splitPane.setDividerLocation(100);
+
 		tablePanel.setBackground(Color.white);
-		tablePanel.add(errorTrace);
+		tablePanel.add(splitPane);
 		setLayout(layout);
 
 		add(tablePanel, TOPICS);
@@ -117,8 +166,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			}
 		}
 		if (found) {
-
-			errorTrace.draw(path);
+			td = new TraceData(path);
+			errorTrace.draw(td);
 			layout.show(this, TOPICS);
 
 			getShell().requestFocus(this);

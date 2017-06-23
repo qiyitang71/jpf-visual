@@ -1,9 +1,16 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 //import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import gov.nasa.jpf.jvm.bytecode.EXECUTENATIVE;
+import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
 import gov.nasa.jpf.vm.Step;
 import gov.nasa.jpf.vm.Transition;
@@ -31,8 +38,8 @@ public class TraceData {
 		int start = -1;
 
 		// group the transition range
-		group = new ArrayList<>(); 
-		threadNames = new ArrayList<>(); 
+		group = new ArrayList<>();
+		threadNames = new ArrayList<>();
 		numOfThreads = -1;
 		// first pass of the trace
 		for (Transition t : path) {
@@ -134,5 +141,109 @@ public class TraceData {
 
 	public List<Pair<Integer, Integer>> getGroup() {
 		return group;
+	}
+
+	public Set<Integer> getWaitNotify() {
+		Set<Integer> hasInfo = new HashSet<>();
+		for (int pi = 0; pi < group.size(); pi++) {
+			Pair<Integer, Integer> p = group.get(pi);
+			MethodInfo lastMi = null;
+			int start = p._1;
+			int end = p._2;
+			for (int i = start; i <= end; i++) {
+				Transition t = path.get(i);
+				for (Step s : t) {
+					Instruction insn = s.getInstruction();
+					if (insn instanceof EXECUTENATIVE) {
+						MethodInfo mi = insn.getMethodInfo();
+						if (mi != lastMi) {
+							ClassInfo mci = mi.getClassInfo();
+							// System.out.println(mci.getName());
+
+							if (mci != null && mci.getName().contains("java.lang.Object")) {
+							//	System.out.println("object");
+
+								if (mi.getUniqueName().contains("wait()") || mi.getUniqueName().contains("notify()")
+										|| mi.getUniqueName().contains("notifyAll()")) {
+									//System.out.println(mi.getUniqueName());
+									hasInfo.add(pi);
+									break;
+								}
+							}
+							lastMi = mi;
+						}
+					}
+				}
+				if (hasInfo.size() > 0 && hasInfo.contains(pi)) {
+					break;
+				}
+			}
+		}
+		return new HashSet<Integer>(hasInfo);
+
+		// for (Transition t : path) {
+		//
+		// if (showCG){
+		// out.println(t.getChoiceGenerator());
+		// }
+		//
+		// if (showSteps) {
+		// String lastLine = null;
+		// MethodInfo lastMi = null;
+		// int nNoSrc=0;
+		//
+		// for (Step s : t) {
+		// if (showSource) {
+		// String line = s.getLineString();
+		// if (line != null) {
+		// if (!line.equals(lastLine)) {
+		// if (nNoSrc > 0){
+		// out.println(" [" + nNoSrc + " insn w/o sources]");
+		// }
+		//
+		// out.print(" ");
+		// if (showLocation) {
+		// out.print(Left.format(s.getLocationString(),30));
+		// out.print(" : ");
+		// }
+		// out.println(line.trim());
+		// nNoSrc = 0;
+		//
+		// }
+		// } else { // no source
+		// nNoSrc++;
+		// }
+		//
+		// lastLine = line;
+		// }
+		//
+		// /*more information of the trace*/
+		// if (showCode) {
+		// Instruction insn = s.getInstruction();
+		// if (showMethod){
+		// MethodInfo mi = insn.getMethodInfo();
+		// if (mi != lastMi) {
+		// ClassInfo mci = mi.getClassInfo();
+		// out.print(" ");
+		// if (mci != null) {
+		// out.print(mci.getName());
+		// out.print(".");
+		// }
+		// out.println(mi.getUniqueName());
+		// lastMi = mi;
+		// }
+		// }
+		// out.print(" ");
+		// out.println(insn);
+		// }
+		// }
+		//
+		// if (showSource && !showCode && (nNoSrc > 0)) {
+		// out.println(" [" + nNoSrc + " insn w/o sources]");
+		// }
+		// }
+		// }
+		// }
+
 	}
 }

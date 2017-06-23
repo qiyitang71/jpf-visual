@@ -10,6 +10,6 @@ public class PaneConstants {
 	public static final int CELL_HEIGHT = 45;
 	public static final int SIGN_SIZE = 15;
 	public static final int RANGE_SIZE = 60;
-	public static final int DEFAULT_CELL_WIDTH = 235;
+	public static final int DEFAULT_CELL_WIDTH = 180;
 
 }
