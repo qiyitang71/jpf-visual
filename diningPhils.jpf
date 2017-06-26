@@ -7,14 +7,14 @@ native_classpath+=./bin/
 #search.class=.search.heuristic.BFSHeuristic
 
 # register console trace printer as a publisher
-report.publisher+=, consoleTracePrinter
-report.consoleTracePrinter.class=TraceVisualPrinter
+report.publisher+=, errorTracePrinter
+report.errorTracePrinter.class=ErrorTracePrinter
 # print trace when property is violated
-report.consoleTracePrinter.property_violation=trace
+report.errorTracePrinter.property_violation=trace
 
 shell=.shell.basicshell.BasicShell
-shell.panels+= ,traceServer
-shell.panels.traceServer=TraceVisualPanel
+shell.panels+= ,errorTrace
+shell.panels.errorTrace=ErrorTracePanel
 
 #suppress console output
 #report.console.finished=

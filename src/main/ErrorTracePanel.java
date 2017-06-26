@@ -56,7 +56,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		tablePanel.add(statusLabel);
 		//tablePanel.setBorder(BorderFactory.createEmptyBorder());
 
-		String[] selectionList = new String[] { "table", "wait/notify" };
+		String[] selectionList = new String[] { "table", "wait/notify", "lock/unlock" };
 		JList list = new JList(selectionList);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setSelectedIndex(0);
@@ -73,16 +73,26 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 						if (td == null)
 							return;
 						Set<Pair<Integer, Integer>> set = td.getWaitNotify();
-						errorTrace.expand(set);
+						errorTrace.expand(set, "yellow");
 						System.out.println("wait/notify");
 
 						// for (int i : set) {
 						// System.out.println(i);
 						// }
 					}
+					
+					if(topic.equals("lock/unlock")){
+						if (td == null)
+							return;
+						Set<Pair<Integer, Integer>> set = td.getLocks();
+						errorTrace.expand(set,"red");
+						System.out.println("lock/unlock");
+					}
+					
 					if (topic.equals("table")) {
 						errorTrace.foldAll();
 					}
+
 
 				}
 

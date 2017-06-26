@@ -68,8 +68,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		graphComponent.setColumnHeaderView(menuGraghComponent);
 	}
 
-	public void expand(Set<Pair<Integer, Integer>> set) {
-		content.expand(set);
+	public void expand(Set<Pair<Integer, Integer>> set, String color) {
+		content.expand(set, color);
 	}
 
 	public void foldAll() {

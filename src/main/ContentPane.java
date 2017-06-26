@@ -340,7 +340,7 @@ public class ContentPane {
 		graph.refresh();
 	}
 
-	public void expand(Set<Pair<Integer, Integer>> set) {
+	public void expand(Set<Pair<Integer, Integer>> set, String color) {
 		// System.out.println("xxxx");
 
 		Set<Integer> expandedRows = new HashSet<>();
@@ -388,7 +388,7 @@ public class ContentPane {
 									if (map.get(id).contains(cid)) {
 										Map<String, Object> hlStyle = new HashMap<>(
 												graph.getStylesheet().getStyles().get(contentCell.getStyle()));
-										hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, "yellow");
+										hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
 										graph.getStylesheet().putCellStyle("highlight", hlStyle);
 										contentCell.setStyle("highlight");
 									}

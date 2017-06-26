@@ -309,7 +309,8 @@ public class TraceVisualPrinter extends Publisher {
 								}
 							}
 							out.print("      ");
-							out.println("insn: " + insn);
+							
+							out.println("insn: " + insn + ", class =" + insn.getClass());
 						}
 					}
 

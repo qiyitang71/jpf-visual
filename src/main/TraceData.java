@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import gov.nasa.jpf.jvm.bytecode.EXECUTENATIVE;
+import gov.nasa.jpf.jvm.bytecode.MONITORENTER;
 import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
@@ -214,6 +215,57 @@ public class TraceData {
 				// if (hasInfo.size() > 0 && hasInfo.contains(pi)) {
 				// break;
 				// }
+			}
+			System.out.println("height = " + height);
+		}
+		return new HashSet<>(hasInfos);
+	}
+
+	// pair of <group num, line num>
+	public Set<Pair<Integer, Integer>> getLocks() {
+		Set<Integer> hasInfo = new HashSet<>();
+		Set<Pair<Integer, Integer>> hasInfos = new HashSet<>();
+		for (int pi = 0; pi < group.size(); pi++) {
+			Pair<Integer, Integer> p = group.get(pi);
+			MethodInfo lastMi = null;
+			int start = p._1;
+			int end = p._2;
+			int height = 0;
+
+			for (int i = start; i <= end; i++) {
+				Transition t = path.get(i);
+				String lastLine = null;
+				int nNoSrc = 0;
+				// tempStr.append(t.getChoiceGenerator() + "\n");
+				height++;
+				for (int ithStep = 0; ithStep < t.getStepCount(); ithStep++) {
+					Step s = t.getStep(ithStep);
+					String line = s.getLineString();
+					if (line != null) {
+						String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$", "")
+								.replaceAll("/\\*.*$", "").replaceAll("^.*?\\*/", "").replaceAll("\\*.*$", "").trim();
+
+						if (!line.equals(lastLine) && src.length() > 1) {
+							if (nNoSrc > 0) {
+								height++;
+
+							}
+							height++;
+							nNoSrc = 0;
+						}
+					} else { // no source
+						nNoSrc++;
+					}
+					lastLine = line;
+
+					Instruction insn = s.getInstruction();
+
+					if (insn instanceof MONITORENTER) {
+						hasInfos.add(new Pair<>(pi, height - 1));
+						hasInfo.add(pi);
+						System.out.println("row = " + pi + " height =" + height);
+					}
+				}
 			}
 			System.out.println("height = " + height);
 		}
