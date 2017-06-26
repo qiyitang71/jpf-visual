@@ -54,6 +54,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		JPanel tablePanel = new JPanel();
 		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
 		tablePanel.add(statusLabel);
+		//tablePanel.setBorder(BorderFactory.createEmptyBorder());
 
 		String[] selectionList = new String[] { "table", "wait/notify" };
 		JList list = new JList(selectionList);
@@ -94,7 +95,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScrollPane, errorTrace);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(100);
-
+		splitPane.setBorder(BorderFactory.createEmptyBorder());
+		
 		tablePanel.setBackground(Color.white);
 		tablePanel.add(splitPane);
 		setLayout(layout);

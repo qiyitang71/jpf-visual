@@ -5,6 +5,7 @@ import java.awt.event.ComponentListener;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
@@ -33,6 +34,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		graphComponent = new mxGraphComponent(new mxGraph());
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		graphComponent.addComponentListener(this);
+		graphComponent.setBorder(BorderFactory.createEmptyBorder());
 		// this.add(graphComponent);
 		mxGraphOutline outln = new mxGraphOutline(graphComponent);
 		// this.add(outln);
@@ -40,7 +42,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		splitPane.setOneTouchExpandable(false);
 		splitPane.setDividerLocation(700);
 		this.add(splitPane);
-
+		//this.setBorder(BorderFactory.createEmptyBorder());
 		// graphComponent.setMinimumSize(new Dimension(200, 50));
 		// outln.setMinimumSize(new Dimension(100, 50));
 
@@ -62,6 +64,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		mxGraph menuGraph = menu.getGraph();
 		mxGraphComponent menuGraghComponent = new mxGraphComponent(menuGraph);
 		menuGraghComponent.getGraphHandler().setRemoveCellsFromParent(false);
+		menuGraghComponent.setBorder(BorderFactory.createEmptyBorder());
 		graphComponent.setColumnHeaderView(menuGraghComponent);
 	}
 
