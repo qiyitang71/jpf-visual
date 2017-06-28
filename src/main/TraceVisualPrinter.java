@@ -24,6 +24,7 @@ import gov.nasa.jpf.report.Statistics;
 import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.vm.ClassInfo;
 import gov.nasa.jpf.vm.ClassLoaderInfo;
+import gov.nasa.jpf.vm.FieldInfo;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.VM;
 import gov.nasa.jpf.vm.MethodInfo;
@@ -303,13 +304,25 @@ public class TraceVisualPrinter extends Publisher {
 									if (mci != null) {
 										out.print(mci.getName());
 										out.print(" uniquename:");
+										FieldInfo[] fi = mci.getInstanceFields();
+										out.println("FieldInfos: ");
+										if(fi != null && fi.length > 0){
+											for(int ii = 0;  ii < fi.length; ii++){
+												out.print(fi[ii].getName() + ",");
+											}
+											out.println();
+
+										}
+
 									}
 									out.println(mi.getUniqueName());
 									lastMi = mi;
 								}
 							}
 							out.print("      ");
-							
+							out.print("insn Mnemonic = " + insn.getMnemonic());
+							out.print("post exec = " + insn.toPostExecString());
+
 							out.println("insn: " + insn + ", class =" + insn.getClass());
 						}
 					}

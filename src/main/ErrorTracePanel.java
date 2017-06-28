@@ -11,9 +11,13 @@ import gov.nasa.jpf.vm.Path;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -54,10 +58,42 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		JPanel tablePanel = new JPanel();
 		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
 		tablePanel.add(statusLabel);
-		//tablePanel.setBorder(BorderFactory.createEmptyBorder());
+		// tablePanel.setBorder(BorderFactory.createEmptyBorder());
+
+		JCheckBox foldButton = new JCheckBox("Fold All");
+		foldButton.setMnemonic(KeyEvent.VK_F);
+		foldButton.setSelected(true);
+
+		JCheckBox waitButton = new JCheckBox("wait/notify");
+		waitButton.setMnemonic(KeyEvent.VK_W);
+		waitButton.setSelected(false);
+
+		ItemListener listener = new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Auto-generated method stub
+				Object source = e.getItemSelectable();
+				if (source == foldButton) {
+					
+				} else if (source == waitButton) {
+					
+				} else {
+
+				}
+				// Now that we know which button was pushed, find out
+				// whether it was selected or deselected.
+				if (e.getStateChange() == ItemEvent.DESELECTED) {
+					
+				}
+
+
+			}
+
+		};
 
 		String[] selectionList = new String[] { "table", "wait/notify", "lock/unlock" };
-		JList list = new JList(selectionList);
+		JList<String> list = new JList<>(selectionList);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setSelectedIndex(0);
 		list.addListSelectionListener(new ListSelectionListener() {
@@ -80,19 +116,18 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 						// System.out.println(i);
 						// }
 					}
-					
-					if(topic.equals("lock/unlock")){
+
+					if (topic.equals("lock/unlock")) {
 						if (td == null)
 							return;
 						Set<Pair<Integer, Integer>> set = td.getLocks();
-						errorTrace.expand(set,"red");
+						errorTrace.expand(set, "red");
 						System.out.println("lock/unlock");
 					}
-					
+
 					if (topic.equals("table")) {
 						errorTrace.foldAll();
 					}
-
 
 				}
 
@@ -106,7 +141,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(100);
 		splitPane.setBorder(BorderFactory.createEmptyBorder());
-		
+
 		tablePanel.setBackground(Color.white);
 		tablePanel.add(splitPane);
 		setLayout(layout);
