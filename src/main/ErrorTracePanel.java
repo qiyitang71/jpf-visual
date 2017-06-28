@@ -11,6 +11,7 @@ import gov.nasa.jpf.vm.Path;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -27,7 +28,12 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -50,6 +56,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private CardLayout layout = new CardLayout();
 	private Path path;
 	private TraceData td = null;
+	private JPanel checkPanel = new JPanel(new GridLayout(0, 1));
+	private Set<JCheckBox> checkButtons = new HashSet<>();
+	private Set<String> fieldNames = null;
+	private ItemListener listener = null;
+	private Map<String, String> colors = new HashMap<>();
 
 	public ErrorTracePanel() {
 		super("Error Trace", null, "View JPF's Output");
@@ -60,37 +71,67 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		tablePanel.add(statusLabel);
 		// tablePanel.setBorder(BorderFactory.createEmptyBorder());
 
-		JCheckBox foldButton = new JCheckBox("Fold All");
-		foldButton.setMnemonic(KeyEvent.VK_F);
-		foldButton.setSelected(true);
-
-		JCheckBox waitButton = new JCheckBox("wait/notify");
-		waitButton.setMnemonic(KeyEvent.VK_W);
-		waitButton.setSelected(false);
-
-		ItemListener listener = new ItemListener() {
+		listener = new ItemListener() {
 
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// TODO Auto-generated method stub
 				Object source = e.getItemSelectable();
-				if (source == foldButton) {
-					
-				} else if (source == waitButton) {
-					
-				} else {
+				boolean isWait = false;
+				String str = null;
+				if (source instanceof JCheckBox) {
 
+					JCheckBox cb = (JCheckBox) source;
+					System.out.println("################" + cb.getText());
+
+					if (cb.getText() == "wait/notify") {
+						if (td == null)
+							return;
+						Set<Pair<Integer, Integer>> set = td.getWaitNotify();
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+							errorTrace.expand(set, "yellow");
+						} else {
+							errorTrace.expand(set, "white");
+						}
+					} else {
+						if (td == null)
+							return;
+						str = cb.getText().replace("(un)lock: ", "");
+						Set<Pair<Integer, Integer>> set = td.getLocks(str);
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+							errorTrace.expand(set, colors.get(str));
+						} else {
+							errorTrace.expand(set, "white");
+						}
+					}
 				}
+				// if (source == ) {
+				//
+				// } else if (source == ) {
+				//
+				// } else {
+				//
+				// }
 				// Now that we know which button was pushed, find out
 				// whether it was selected or deselected.
-				if (e.getStateChange() == ItemEvent.DESELECTED) {
-					
-				}
-
 
 			}
 
 		};
+
+		// JCheckBox foldButton = new JCheckBox("Fold All");
+		// foldButton.setMnemonic(KeyEvent.VK_F);
+		// foldButton.setSelected(true);
+		// foldButton.addItemListener(listener);
+
+		JCheckBox waitButton = new JCheckBox("wait/notify");
+		waitButton.setMnemonic(KeyEvent.VK_W);
+		waitButton.setSelected(false);
+		waitButton.addItemListener(listener);
+
+		// checkButtons.add(foldButton);
+		checkButtons.add(waitButton);
+		checkPanel.add(waitButton);
 
 		String[] selectionList = new String[] { "table", "wait/notify", "lock/unlock" };
 		JList<String> list = new JList<>(selectionList);
@@ -123,6 +164,9 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 						Set<Pair<Integer, Integer>> set = td.getLocks();
 						errorTrace.expand(set, "red");
 						System.out.println("lock/unlock");
+						Set<String> fieldNames = td.getFieldNames();
+						System.out.println(fieldNames);
+
 					}
 
 					if (topic.equals("table")) {
@@ -137,9 +181,9 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		JScrollPane listScrollPane = new JScrollPane(list);
 		listScrollPane.setMinimumSize(new Dimension(100, 50));
 
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScrollPane, errorTrace);
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, checkPanel, errorTrace);
 		splitPane.setOneTouchExpandable(true);
-		splitPane.setDividerLocation(100);
+		splitPane.setDividerLocation(200);
 		splitPane.setBorder(BorderFactory.createEmptyBorder());
 
 		tablePanel.setBackground(Color.white);
@@ -215,9 +259,23 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		}
 		if (found) {
 			td = new TraceData(path);
+			fieldNames = td.getFieldNames();
 			errorTrace.draw(td);
-			layout.show(this, TOPICS);
+			for (String s : fieldNames) {
+				JCheckBox cb = new JCheckBox("(un)lock: " + s);
+				cb.setSelected(false);
+				cb.addItemListener(listener);
+				int nextInt = new Random().nextInt(256 * 256 * 256);
+				// format it as hexadecimal string (with hashtag and leading
+				// zeros)
+				String colorCode = String.format("#%06x", nextInt);
+				colors.put(s, colorCode);
 
+				checkButtons.add(cb);
+				checkPanel.add(cb);
+			}
+
+			layout.show(this, TOPICS);
 			getShell().requestFocus(this);
 
 		} else {

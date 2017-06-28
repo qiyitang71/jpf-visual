@@ -320,8 +320,8 @@ public class TraceVisualPrinter extends Publisher {
 								}
 							}
 							out.print("      ");
-							out.print("insn Mnemonic = " + insn.getMnemonic());
-							out.print("post exec = " + insn.toPostExecString());
+							//out.print("insn Mnemonic = " + insn.getMnemonic());
+							//out.print("post exec = " + insn.toPostExecString());
 
 							out.println("insn: " + insn + ", class =" + insn.getClass());
 						}

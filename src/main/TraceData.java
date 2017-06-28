@@ -1,9 +1,10 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 //import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
 
 //import gov.nasa.jpf.jvm.bytecode.EXECUTENATIVE;
 import gov.nasa.jpf.jvm.bytecode.MONITORENTER;
@@ -32,6 +33,7 @@ public class TraceData {
 	private Set<String> fieldNames = new HashSet<>();
 	private Set<Pair<Integer, Integer>> waitSet = new HashSet<>();
 	private Set<Pair<Integer, Integer>> lockSet = new HashSet<>();
+	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
 
 	public TraceData(Path path) {
 		this.path = path;
@@ -82,6 +84,8 @@ public class TraceData {
 			int height = 0;
 			StringBuilder tempStr = new StringBuilder();
 
+			String fieldName = "";
+
 			for (int i = from; i <= to; i++) {
 				Transition t = path.get(i);
 				String lastLine = null;
@@ -123,11 +127,24 @@ public class TraceData {
 							// break;
 						}
 					}
-					
-					if(insn instanceof GETFIELD){
-						
+
+					if (insn instanceof GETFIELD) {
+						fieldName = ((GETFIELD) insn).getClassName() + "." + ((GETFIELD) insn).getFieldName();
+						fieldName = fieldName.replaceAll("^.*\\$", "");
 					}
+
 					if (insn instanceof MONITORENTER) {
+
+						Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
+						if (fieldNames.contains(fieldName)) {
+							lockTable.get(fieldName).add(pair);
+						} else {
+							fieldNames.add(fieldName);
+							Set<Pair<Integer, Integer>> newSet = new HashSet<>();
+							newSet.add(pair);
+							lockTable.put(fieldName, newSet);
+						}
+
 						lockSet.add(new Pair<>(pi, height - 1));
 						System.out.println("row = " + pi + " height =" + height);
 					}
@@ -178,52 +195,67 @@ public class TraceData {
 
 	// pair of <group num, line num>
 	public Set<Pair<Integer, Integer>> getLocks() {
-//		Set<Integer> hasInfo = new HashSet<>();
-//		Set<Pair<Integer, Integer>> hasInfos = new HashSet<>();
-//		for (int pi = 0; pi < group.size(); pi++) {
-//			Pair<Integer, Integer> p = group.get(pi);
-//			MethodInfo lastMi = null;
-//			int start = p._1;
-//			int end = p._2;
-//			int height = 0;
-//
-//			for (int i = start; i <= end; i++) {
-//				Transition t = path.get(i);
-//				String lastLine = null;
-//				int nNoSrc = 0;
-//				// tempStr.append(t.getChoiceGenerator() + "\n");
-//				height++;
-//				for (int ithStep = 0; ithStep < t.getStepCount(); ithStep++) {
-//					Step s = t.getStep(ithStep);
-//					String line = s.getLineString();
-//					if (line != null) {
-//						String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$", "")
-//								.replaceAll("/\\*.*$", "").replaceAll("^.*?\\*/", "").replaceAll("\\*.*$", "").trim();
-//
-//						if (!line.equals(lastLine) && src.length() > 1) {
-//							if (nNoSrc > 0) {
-//								height++;
-//
-//							}
-//							height++;
-//							nNoSrc = 0;
-//						}
-//					} else { // no source
-//						nNoSrc++;
-//					}
-//					lastLine = line;
-//
-//					Instruction insn = s.getInstruction();
-//
-//					if (insn instanceof MONITORENTER) {
-//						hasInfos.add(new Pair<>(pi, height - 1));
-//						hasInfo.add(pi);
-//						System.out.println("row = " + pi + " height =" + height);
-//					}
-//				}
-//			}
-//			System.out.println("height = " + height);
-//		}
+		// Set<Integer> hasInfo = new HashSet<>();
+		// Set<Pair<Integer, Integer>> hasInfos = new HashSet<>();
+		// for (int pi = 0; pi < group.size(); pi++) {
+		// Pair<Integer, Integer> p = group.get(pi);
+		// MethodInfo lastMi = null;
+		// int start = p._1;
+		// int end = p._2;
+		// int height = 0;
+		//
+		// for (int i = start; i <= end; i++) {
+		// Transition t = path.get(i);
+		// String lastLine = null;
+		// int nNoSrc = 0;
+		// // tempStr.append(t.getChoiceGenerator() + "\n");
+		// height++;
+		// for (int ithStep = 0; ithStep < t.getStepCount(); ithStep++) {
+		// Step s = t.getStep(ithStep);
+		// String line = s.getLineString();
+		// if (line != null) {
+		// String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$",
+		// "")
+		// .replaceAll("/\\*.*$", "").replaceAll("^.*?\\*/",
+		// "").replaceAll("\\*.*$", "").trim();
+		//
+		// if (!line.equals(lastLine) && src.length() > 1) {
+		// if (nNoSrc > 0) {
+		// height++;
+		//
+		// }
+		// height++;
+		// nNoSrc = 0;
+		// }
+		// } else { // no source
+		// nNoSrc++;
+		// }
+		// lastLine = line;
+		//
+		// Instruction insn = s.getInstruction();
+		//
+		// if (insn instanceof MONITORENTER) {
+		// hasInfos.add(new Pair<>(pi, height - 1));
+		// hasInfo.add(pi);
+		// System.out.println("row = " + pi + " height =" + height);
+		// }
+		// }
+		// }
+		// System.out.println("height = " + height);
+		// }
 		return new HashSet<>(lockSet);
+	}
+
+	public Set<String> getFieldNames() {
+		return new HashSet<>(fieldNames);
+	}
+
+	public Set<Pair<Integer, Integer>> getLocks(String field) {
+		System.out.print(field + ": ");
+		for(Pair<Integer, Integer> p: lockTable.get(field)){
+			System.out.print("(" + p._1 + ", " + p._2 + ")" + ", ");
+		}
+		System.out.println();
+		return new HashSet<>(lockTable.get(field));
 	}
 }

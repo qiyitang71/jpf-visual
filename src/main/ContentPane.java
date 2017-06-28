@@ -389,8 +389,8 @@ public class ContentPane {
 										Map<String, Object> hlStyle = new HashMap<>(
 												graph.getStylesheet().getStyles().get(contentCell.getStyle()));
 										hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
-										graph.getStylesheet().putCellStyle("highlight", hlStyle);
-										contentCell.setStyle("highlight");
+										graph.getStylesheet().putCellStyle("highlight"+color, hlStyle);
+										contentCell.setStyle("highlight"+color);
 									}
 
 								}
@@ -400,9 +400,7 @@ public class ContentPane {
 
 					}
 
-				} else {
-					graph.foldCells(true, false, new Object[] { cell }, true);
-				}
+				} 
 
 				// System.out.println("alter2 = " +
 				// model.getGeometry(cell).getAlternateBounds());
