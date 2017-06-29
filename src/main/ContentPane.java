@@ -25,7 +25,7 @@ import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
 public class ContentPane {
-	private int cellWidth = PaneConstants.DEFAULT_CELL_WIDTH;
+	private int cellWidth = 0;// PaneConstants.DEFAULT_CELL_WIDTH;
 	private mxGraph graph;
 	private mxIGraphModel model;
 
@@ -35,12 +35,12 @@ public class ContentPane {
 	// private List<String> detailList = new ArrayList<>();
 	// private List<Integer> heightList = new ArrayList<>();
 
-	public ContentPane(int numOfThreads, Path path, List<Pair<Integer, Integer>> group, List<String> detailList,
-			List<Integer> heightList) {
+	public ContentPane(int width, int numOfThreads, Path path, List<Pair<Integer, Integer>> group,
+			List<String> detailList, List<Integer> heightList) {
 		this.numOfThreads = numOfThreads;
 		this.group = group;
 		this.path = path;
-
+		this.cellWidth = width;
 		int numOfRows = group.size();
 		/**
 		 * begin draw table contents
@@ -389,8 +389,8 @@ public class ContentPane {
 										Map<String, Object> hlStyle = new HashMap<>(
 												graph.getStylesheet().getStyles().get(contentCell.getStyle()));
 										hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
-										graph.getStylesheet().putCellStyle("highlight"+color, hlStyle);
-										contentCell.setStyle("highlight"+color);
+										graph.getStylesheet().putCellStyle("highlight" + color, hlStyle);
+										contentCell.setStyle("highlight" + color);
 									}
 
 								}
@@ -400,7 +400,7 @@ public class ContentPane {
 
 					}
 
-				} 
+				}
 
 				// System.out.println("alter2 = " +
 				// model.getGeometry(cell).getAlternateBounds());
@@ -469,7 +469,8 @@ public class ContentPane {
 				// model.getGeometry(cell).getAlternateBounds());
 
 				if (expandedRows.contains(id)) {
-					//graph.foldCells(false, false, new Object[] { cell }, true);
+					// graph.foldCells(false, false, new Object[] { cell },
+					// true);
 					for (Object rowChild : graph.getChildCells(cell)) {
 						mxCell rowChildCell = (mxCell) rowChild;
 						if (rowChildCell.getStyle() != "range") {
@@ -492,7 +493,7 @@ public class ContentPane {
 
 					}
 
-				} 
+				}
 
 				// System.out.println("alter2 = " +
 				// model.getGeometry(cell).getAlternateBounds());

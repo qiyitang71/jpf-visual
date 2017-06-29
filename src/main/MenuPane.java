@@ -12,13 +12,13 @@ import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxLayoutManager;
 
 public class MenuPane {
-	private int cellWidth = PaneConstants.DEFAULT_CELL_WIDTH;
+	private int cellWidth = 0;//PaneConstants.DEFAULT_CELL_WIDTH;
 	private mxGraph menuGraph;
 	private mxIGraphModel menuModel;
 	private int numOfThreads = -1;
 
-	public MenuPane(List<String> threadNames) {
-
+	public MenuPane(int width, List<String> threadNames) {
+		this.cellWidth = width;
 		this.numOfThreads = threadNames.size();
 		menuGraph = new mxGraph();
 		menuModel = menuGraph.getModel();
