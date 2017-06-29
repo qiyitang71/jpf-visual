@@ -32,6 +32,7 @@ import javax.swing.event.ListSelectionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -60,6 +61,9 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private JPanel checkPanel = new JPanel(new GridLayout(0, 1));
 	private ItemListener listener = null;
 	private Map<String, String> colors = new HashMap<>();
+	private JCheckBox foldAllButton;
+	private JCheckBox expandAllButton;
+	private Map<JCheckBox, Boolean> selectTable = new LinkedHashMap<>();
 
 	public ErrorTracePanel() {
 		super("Error Trace", null, "View JPF's Output");
@@ -80,47 +84,48 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				if (source instanceof JCheckBox) {
 
 					JCheckBox cb = (JCheckBox) source;
-					System.out.println("################" + cb.getText());
+					// System.out.println("################" + cb.getText());
+
 					if (cb.getText() == "summary") {
-						if (td == null)
-							return;
+
 						if (e.getStateChange() == ItemEvent.SELECTED) {
-							errorTrace.foldAll();
+							selectTable.put(cb, true);
+							expandAllButton.setSelected(false);
+							selectTable.put(expandAllButton, false);
+						}else{
+							selectTable.put(cb, false);
 						}
-					} else if (cb.getText() == "wait/notify") {
-						if (td == null)
-							return;
-						Set<Pair<Integer, Integer>> set = td.getWaitNotify();
+					} else if (cb.getText() == "Expand All") {
 						if (e.getStateChange() == ItemEvent.SELECTED) {
-							errorTrace.expand(set, "yellow");
-						} else {
-							errorTrace.resetContent(set);
+							foldAllButton.setSelected(false);
+							selectTable.put(cb, true);
+							selectTable.put(foldAllButton, false);
+						}else{
+							selectTable.put(cb, false);
 						}
 					} else {
-						if (td == null)
-							return;
-						String str = cb.getText().replace("(un)lock: ", "");
-						Set<Pair<Integer, Integer>> set = td.getLocks(str);
 						if (e.getStateChange() == ItemEvent.SELECTED) {
-							errorTrace.expand(set, colors.get(str));
+							selectTable.put(cb, true);
 						} else {
-							errorTrace.resetContent(set);
+							selectTable.put(cb, false);
 						}
 					}
+					updateGraph();
 				}
-				// if (source == ) {
-				//
-				// } else if (source == ) {
-				//
-				// } else {
-				//
-				// }
-				// Now that we know which button was pushed, find out
-				// whether it was selected or deselected.
 
 			}
 
 		};
+
+		foldAllButton = new JCheckBox("summary");
+		foldAllButton.setMnemonic(KeyEvent.VK_S);
+		foldAllButton.setSelected(true);
+		foldAllButton.addItemListener(listener);
+
+		expandAllButton = new JCheckBox("Expand All");
+		expandAllButton.setMnemonic(KeyEvent.VK_E);
+		expandAllButton.setSelected(false);
+		expandAllButton.addItemListener(listener);
 
 		// JCheckBox foldButton = new JCheckBox("Fold All");
 		// foldButton.setMnemonic(KeyEvent.VK_F);
@@ -139,6 +144,35 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		add(tracker, PROGRESS);
 		layout.show(this, PROGRESS);
 
+	}
+
+	public void updateGraph() {
+		errorTrace.foldAll(true);
+		for (JCheckBox cb : selectTable.keySet()) {
+			if (cb.getText() == "summary") {
+				if (selectTable.get(cb)){
+					errorTrace.foldAll(true);
+				}
+			} else if (cb.getText() == "Expand All") {
+				if (selectTable.get(cb)){
+					errorTrace.foldAll(false);
+				}
+			} else if (cb.getText() == "wait/notify") {
+				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
+				if (selectTable.get(cb))
+					errorTrace.expand(set, "yellow");
+				else
+					errorTrace.resetContent(set);
+			} else if (selectTable.get(cb)) {
+				String str = cb.getText().replace("(un)lock: ", "");
+				Set<Pair<Integer, Integer>> set = td.getLocks(str);
+				errorTrace.expand(set, colors.get(str));
+			} else {
+				String str = cb.getText().replace("(un)lock: ", "");
+				Set<Pair<Integer, Integer>> set = td.getLocks(str);
+				errorTrace.resetContent(set);
+			}
+		}
 	}
 
 	String publishers = null;
@@ -207,17 +241,20 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			Set<String> fieldNames = td.getFieldNames();
 			errorTrace.draw(td);
 			checkPanel.removeAll();
-			JCheckBox foldAllButton = new JCheckBox("summary");
-			foldAllButton.setMnemonic(KeyEvent.VK_S);
-			foldAllButton.setSelected(false);
-			foldAllButton.addItemListener(listener);
+			selectTable = new HashMap<>();
+			foldAllButton.setSelected(true);
+			expandAllButton.setSelected(false);
 			checkPanel.add(foldAllButton);
+			checkPanel.add(expandAllButton);
+			selectTable.put(foldAllButton, true);
+			selectTable.put(expandAllButton, false);
 
 			JCheckBox waitButton = new JCheckBox("wait/notify");
 			waitButton.setMnemonic(KeyEvent.VK_W);
 			waitButton.setSelected(false);
 			waitButton.addItemListener(listener);
 
+			selectTable.put(waitButton, false);
 			// checkButtons.add(foldButton);
 			checkPanel.add(waitButton);
 			for (String s : fieldNames) {
@@ -234,6 +271,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					String colorCode = String.format("#%06x", nextInt);
 					colors.put(s, colorCode);
 				}
+				selectTable.put(cb, false);
 				checkPanel.add(cb);
 			}
 

@@ -77,8 +77,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	}
 
-	public void foldAll() {
-		content.foldAll();
+	public void foldAll(boolean b) {
+		content.foldAll(b);
 	}
 
 	@Override
@@ -108,7 +108,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		int newWidth = (int) (Math
 				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.START_SIZE - 65) / numOfThreads));
-		System.out.println("resize" + newWidth);
+		//System.out.println("resize" + newWidth);
 
 		content.resize(newWidth);
 		menu.resize(newWidth);

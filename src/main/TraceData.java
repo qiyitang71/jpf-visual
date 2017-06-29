@@ -32,7 +32,6 @@ public class TraceData {
 	private List<Integer> heightList = new ArrayList<>();
 	private Set<String> fieldNames = new HashSet<>();
 	private Set<Pair<Integer, Integer>> waitSet = new HashSet<>();
-	private Set<Pair<Integer, Integer>> lockSet = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
 
 	public TraceData(Path path) {
@@ -118,12 +117,12 @@ public class TraceData {
 					Instruction insn = s.getInstruction();
 
 					if (insn instanceof VirtualInvocation) {
-						System.out.println("insn = " + insn);
+						//System.out.println("insn = " + insn);
 						String insnStr = insn.toString();
 						if (insnStr.contains("java.lang.Object.wait()") || insnStr.contains("java.lang.Object.notify()")
 								|| insnStr.contains("java.lang.Object.notifyAll()")) {
 							waitSet.add(new Pair<>(pi, height - 1));
-							System.out.println("row = " + pi + " height =" + height);
+							//System.out.println("row = " + pi + " height =" + height);
 							// break;
 						}
 					}
@@ -145,8 +144,8 @@ public class TraceData {
 							lockTable.put(fieldName, newSet);
 						}
 
-						lockSet.add(new Pair<>(pi, height - 1));
-						System.out.println("row = " + pi + " height =" + height);
+						//lockSet.add(new Pair<>(pi, height - 1));
+						//System.out.println("row = " + pi + " height =" + height);
 					}
 
 				}
@@ -193,69 +192,17 @@ public class TraceData {
 		return new HashSet<>(waitSet);
 	}
 
-	// pair of <group num, line num>
-	public Set<Pair<Integer, Integer>> getLocks() {
-		// Set<Integer> hasInfo = new HashSet<>();
-		// Set<Pair<Integer, Integer>> hasInfos = new HashSet<>();
-		// for (int pi = 0; pi < group.size(); pi++) {
-		// Pair<Integer, Integer> p = group.get(pi);
-		// MethodInfo lastMi = null;
-		// int start = p._1;
-		// int end = p._2;
-		// int height = 0;
-		//
-		// for (int i = start; i <= end; i++) {
-		// Transition t = path.get(i);
-		// String lastLine = null;
-		// int nNoSrc = 0;
-		// // tempStr.append(t.getChoiceGenerator() + "\n");
-		// height++;
-		// for (int ithStep = 0; ithStep < t.getStepCount(); ithStep++) {
-		// Step s = t.getStep(ithStep);
-		// String line = s.getLineString();
-		// if (line != null) {
-		// String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$",
-		// "")
-		// .replaceAll("/\\*.*$", "").replaceAll("^.*?\\*/",
-		// "").replaceAll("\\*.*$", "").trim();
-		//
-		// if (!line.equals(lastLine) && src.length() > 1) {
-		// if (nNoSrc > 0) {
-		// height++;
-		//
-		// }
-		// height++;
-		// nNoSrc = 0;
-		// }
-		// } else { // no source
-		// nNoSrc++;
-		// }
-		// lastLine = line;
-		//
-		// Instruction insn = s.getInstruction();
-		//
-		// if (insn instanceof MONITORENTER) {
-		// hasInfos.add(new Pair<>(pi, height - 1));
-		// hasInfo.add(pi);
-		// System.out.println("row = " + pi + " height =" + height);
-		// }
-		// }
-		// }
-		// System.out.println("height = " + height);
-		// }
-		return new HashSet<>(lockSet);
-	}
 
 	public Set<String> getFieldNames() {
 		return new HashSet<>(fieldNames);
 	}
 
 	public Set<Pair<Integer, Integer>> getLocks(String field) {
-		System.out.print(field + ": ");
-		for(Pair<Integer, Integer> p: lockTable.get(field)){
-			System.out.print("(" + p._1 + ", " + p._2 + ")" + ", ");
-		}
-		System.out.println();
+		//System.out.print(field + ": ");
+//		for(Pair<Integer, Integer> p: lockTable.get(field)){
+//			System.out.print("(" + p._1 + ", " + p._2 + ")" + ", ");
+//		}
+//		System.out.println();
 		return new HashSet<>(lockTable.get(field));
 	}
 }

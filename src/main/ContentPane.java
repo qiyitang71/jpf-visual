@@ -409,13 +409,13 @@ public class ContentPane {
 		graph.refresh();
 	}
 
-	public void foldAll() {
+	public void foldAll(boolean b) {
 		// set the collapsed height i.e. the folded height
 		Object parent = graph.getDefaultParent();
 		for (Object o : graph.getChildCells(parent)) {
 			mxCell cell = (mxCell) o;
 			if (cell != null && cell.getId() != null) {
-				graph.foldCells(true, false, new Object[] { cell }, true);
+				graph.foldCells(b, false, new Object[] { cell }, true);
 				// /**
 				// * reset the highlight
 				// */
