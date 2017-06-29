@@ -42,7 +42,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		splitPane.setOneTouchExpandable(false);
 		splitPane.setDividerLocation(700);
 		this.add(splitPane);
-		//this.setBorder(BorderFactory.createEmptyBorder());
+		// this.setBorder(BorderFactory.createEmptyBorder());
 		// graphComponent.setMinimumSize(new Dimension(200, 50));
 		// outln.setMinimumSize(new Dimension(100, 50));
 
@@ -70,6 +70,11 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
 		content.expand(set, color);
+	}
+
+	public void resetContent(Set<Pair<Integer, Integer>> set) {
+		content.resetContent(set);
+
 	}
 
 	public void foldAll() {

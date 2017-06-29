@@ -416,24 +416,88 @@ public class ContentPane {
 			mxCell cell = (mxCell) o;
 			if (cell != null && cell.getId() != null) {
 				graph.foldCells(true, false, new Object[] { cell }, true);
-				/**
-				 * reset the highlight
-				 */
-				for (Object rowChild : graph.getChildCells(cell)) {
-					mxCell rowChildCell = (mxCell) rowChild;
-					if (rowChildCell.getStyle() != "range") {
-						for (Object contentObj : graph.getChildCells(rowChildCell)) {
-							mxCell contentCell = (mxCell) contentObj;
-							if (contentCell != null && contentCell.getId() != null) {
-								contentCell.setStyle("content");
-							}
-						}
-					}
-				}
+				// /**
+				// * reset the highlight
+				// */
+				// for (Object rowChild : graph.getChildCells(cell)) {
+				// mxCell rowChildCell = (mxCell) rowChild;
+				// if (rowChildCell.getStyle() != "range") {
+				// for (Object contentObj : graph.getChildCells(rowChildCell)) {
+				// mxCell contentCell = (mxCell) contentObj;
+				// if (contentCell != null && contentCell.getId() != null) {
+				// contentCell.setStyle("content");
+				// }
+				// }
+				// }
+				// }
 			}
 		}
 		graph.refresh();
 
 	}
 
+	public void resetContent(Set<Pair<Integer, Integer>> set) {
+		// System.out.println("xxxx");
+
+		Set<Integer> expandedRows = new HashSet<>();
+		for (Pair<Integer, Integer> p : set) {
+			expandedRows.add(p._1);
+		}
+		Map<Integer, Set<Integer>> map = new HashMap<>();
+		for (Pair<Integer, Integer> p : set) {
+			int rowNum = p._1;
+			if (map.containsKey(rowNum)) {
+				map.get(rowNum).add(p._2);
+			} else {
+				Set<Integer> newSet = new HashSet<>();
+				newSet.add(p._2);
+				map.put(rowNum, newSet);
+			}
+		}
+
+		Object parent = graph.getDefaultParent();
+		for (Object o : graph.getChildCells(parent)) {
+			mxCell cell = (mxCell) o;
+			// System.out.println(cell.getId());
+
+			if (cell != null && cell.getId() != null) {
+				// System.out.println("row");
+				int id = Integer.parseInt(cell.getId());
+
+				// System.out.println("origi = " + model.getGeometry(cell));
+				// System.out.println("alter = " +
+				// model.getGeometry(cell).getAlternateBounds());
+
+				if (expandedRows.contains(id)) {
+					//graph.foldCells(false, false, new Object[] { cell }, true);
+					for (Object rowChild : graph.getChildCells(cell)) {
+						mxCell rowChildCell = (mxCell) rowChild;
+						if (rowChildCell.getStyle() != "range") {
+							for (Object contentObj : graph.getChildCells(rowChildCell)) {
+								mxCell contentCell = (mxCell) contentObj;
+								if (contentCell != null && contentCell.getId() != null) {
+									int cid = Integer.parseInt(contentCell.getId());
+									// System.out.println("hl in progress" +
+									// cid);
+									// System.out.println("map contains: " +
+									// map.get(id));
+									if (map.get(id).contains(cid)) {
+										contentCell.setStyle("content");
+									}
+
+								}
+							}
+
+						}
+
+					}
+
+				} 
+
+				// System.out.println("alter2 = " +
+				// model.getGeometry(cell).getAlternateBounds());
+			}
+		}
+		graph.refresh();
+	}
 }
