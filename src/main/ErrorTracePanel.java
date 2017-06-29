@@ -8,20 +8,23 @@ import gov.nasa.jpf.shell.util.ProgressTrackerUI;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
-import java.awt.BorderLayout;
+//import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Dimension;
+//import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
-import javax.swing.JList;
+//import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -29,11 +32,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+//import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
+//import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -60,10 +63,18 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private TraceData td = null;
 	private JPanel checkPanel = new JPanel(new GridLayout(0, 1));
 	private ItemListener listener = null;
+	// private ItemListener buttonListener = null;
 	private Map<String, String> colors = new HashMap<>();
-	private JCheckBox foldAllButton;
-	private JCheckBox expandAllButton;
-	private Map<JCheckBox, Boolean> selectTable = new LinkedHashMap<>();
+	// private JCheckBox foldAllButton;
+	private JButton foldAllButton;
+	private boolean isFoldSelected;
+	// private JCheckBox expandAllButton;
+
+	private JButton expandAllButton;
+	private boolean isExpandSelected;
+
+	private JCheckBox waitButton;
+	private Map<JCheckBox, Boolean> selectTable;// = new LinkedHashMap<>();
 
 	public ErrorTracePanel() {
 		super("Error Trace", null, "View JPF's Output");
@@ -81,56 +92,147 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			public void itemStateChanged(ItemEvent e) {
 				// TODO Auto-generated method stub
 				Object source = e.getItemSelectable();
-				if (source instanceof JCheckBox) {
+				assert (source instanceof JCheckBox);
+				// if (source instanceof JCheckBox) {
 
-					JCheckBox cb = (JCheckBox) source;
-					// System.out.println("################" + cb.getText());
-
-					if (cb.getText() == "summary") {
-
-						if (e.getStateChange() == ItemEvent.SELECTED) {
-							selectTable.put(cb, true);
-							expandAllButton.setSelected(false);
-							selectTable.put(expandAllButton, false);
-						}else{
-							selectTable.put(cb, false);
-						}
-					} else if (cb.getText() == "Expand All") {
-						if (e.getStateChange() == ItemEvent.SELECTED) {
-							foldAllButton.setSelected(false);
-							selectTable.put(cb, true);
-							selectTable.put(foldAllButton, false);
-						}else{
-							selectTable.put(cb, false);
-						}
-					} else {
-						if (e.getStateChange() == ItemEvent.SELECTED) {
-							selectTable.put(cb, true);
-						} else {
-							selectTable.put(cb, false);
-						}
-					}
-					updateGraph();
+				JCheckBox cb = (JCheckBox) source;
+				// System.out.println("################" + cb.getText());
+				//
+				// if (cb.getText() == "summary") {
+				// //
+				// // if (e.getStateChange() == ItemEvent.SELECTED) {
+				// // selectTable.put(cb, true);
+				// // expandAllButton.setSelected(false);
+				// // selectTable.put(expandAllButton, false);
+				// // }else{
+				// // selectTable.put(cb, false);
+				// // }
+				// // } else if (cb.getText() == "Expand All") {
+				// // if (e.getStateChange() == ItemEvent.SELECTED) {
+				// // foldAllButton.setSelected(false);
+				// // selectTable.put(cb, true);
+				// // selectTable.put(foldAllButton, false);
+				// // }else{
+				// // selectTable.put(cb, false);
+				// // }
+				// } else {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					selectTable.put(cb, true);
+				} else {
+					selectTable.put(cb, false);
 				}
+				// }
+				updateGraph();
+				// }
+			}
+		};
 
+		// buttonListener = new ItemListener() {
+		// @Override
+		// public void itemStateChanged(ItemEvent e) {
+		// // TODO Auto-generated method stub
+		// System.out.println("buttonListener");
+		//
+		// Object source = e.getItemSelectable();
+		// assert (source instanceof JButton);
+		// // if (source instanceof JCheckBox) {
+		//
+		// JButton button = (JButton) source;
+		// if (button == foldAllButton) {
+		// System.out.println("foldAllButton");
+		//
+		// if (e.getStateChange() == ItemEvent.SELECTED) {
+		// expandAllButton.setEnabled(false);
+		// errorTrace.foldAll(true);
+		// System.out.println("selected");
+		// } else {
+		// System.out.println("diselect");
+		// expandAllButton.setEnabled(true);
+		// }
+		// } else {
+		// if (e.getStateChange() == ItemEvent.SELECTED) {
+		// foldAllButton.setEnabled(false);
+		// errorTrace.foldAll(false);
+		// } else {
+		// foldAllButton.setEnabled(true);
+		// }
+		// }
+		// }
+		// };
+		ActionListener buttonListener = new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				if ("foldAll".equals(e.getActionCommand())) {
+					if (isFoldSelected) {
+						foldAllButton.setSelected(false);
+						expandAllButton.setEnabled(true);
+					} else {
+						foldAllButton.setSelected(true);
+						expandAllButton.setEnabled(false);
+						errorTrace.foldAll(true);
+					}
+					isFoldSelected = !isFoldSelected;
+				} else {
+					System.out.println(isExpandSelected + " expandAllButton");
+					if (isExpandSelected) {
+						expandAllButton.setSelected(false);
+						foldAllButton.setEnabled(true);
+					} else {
+						expandAllButton.setSelected(true);
+						foldAllButton.setEnabled(false);
+						errorTrace.foldAll(false);
+					}
+					isExpandSelected = !isExpandSelected;
+					// foldAllButton.setEnabled(false);
+					// expandAllButton.setEnabled(true);
+				}
+				// if (e.getSource() == foldAllButton) {
+				// }
+				updateGraph();
 			}
 
 		};
 
-		foldAllButton = new JCheckBox("summary");
-		foldAllButton.setMnemonic(KeyEvent.VK_S);
-		foldAllButton.setSelected(true);
-		foldAllButton.addItemListener(listener);
+		foldAllButton = new JButton("Collapse all");
+		// b1.setVerticalTextPosition(AbstractButton.CENTER);
+		// b1.setHorizontalTextPosition(AbstractButton.LEADING); //aka LEFT, for
+		// left-to-right locales
+		foldAllButton.setMnemonic(KeyEvent.VK_C);
+		foldAllButton.setActionCommand("foldAll");
+		foldAllButton.addActionListener(buttonListener);
+		// foldAllButton.add
+		// foldAllButton.addItemListener(buttonListener);
 
-		expandAllButton = new JCheckBox("Expand All");
+		// foldAllButton = new JCheckBox("summary");
+		// foldAllButton.setMnemonic(KeyEvent.VK_S);
+		// foldAllButton.setSelected(true);
+		// foldAllButton.addItemListener(listener);
+
+		expandAllButton = new JButton("Expand all");
+		// b1.setVerticalTextPosition(AbstractButton.CENTER);
+		// b1.setHorizontalTextPosition(AbstractButton.LEADING); //aka LEFT, for
+		// left-to-right locales
 		expandAllButton.setMnemonic(KeyEvent.VK_E);
-		expandAllButton.setSelected(false);
-		expandAllButton.addItemListener(listener);
+		// `expandAllButton.addItemListener(buttonListener);
+		expandAllButton.setActionCommand("expandAll");
+		expandAllButton.addActionListener(buttonListener);
+		// expandAllButton.addActionListener(buttonListener);
+		// expandAllButton = new JCheckBox("Expand All");
+		// expandAllButton.setMnemonic(KeyEvent.VK_E);
+		// expandAllButton.setSelected(false);
+		// expandAllButton.addItemListener(listener);
 
 		// JCheckBox foldButton = new JCheckBox("Fold All");
 		// foldButton.setMnemonic(KeyEvent.VK_F);
 		// foldButton.setSelected(true);
 		// foldButton.addItemListener(listener);
+		waitButton = new JCheckBox("wait/notify");
+		waitButton.setMnemonic(KeyEvent.VK_W);
+		waitButton.setSelected(false);
+		waitButton.addItemListener(listener);
+
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, checkPanel, errorTrace);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(200);
@@ -149,15 +251,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	public void updateGraph() {
 		errorTrace.foldAll(true);
 		for (JCheckBox cb : selectTable.keySet()) {
-			if (cb.getText() == "summary") {
-				if (selectTable.get(cb)){
-					errorTrace.foldAll(true);
-				}
-			} else if (cb.getText() == "Expand All") {
-				if (selectTable.get(cb)){
-					errorTrace.foldAll(false);
-				}
-			} else if (cb.getText() == "wait/notify") {
+			if (cb == waitButton) {
 				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
 				if (selectTable.get(cb))
 					errorTrace.expand(set, "yellow");
@@ -173,6 +267,13 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				errorTrace.resetContent(set);
 			}
 		}
+		if(isFoldSelected){
+			errorTrace.foldAll(true);
+		}
+		else if(isExpandSelected){
+			errorTrace.foldAll(false);
+		}
+		
 	}
 
 	String publishers = null;
@@ -241,18 +342,20 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			Set<String> fieldNames = td.getFieldNames();
 			errorTrace.draw(td);
 			checkPanel.removeAll();
-			selectTable = new HashMap<>();
-			foldAllButton.setSelected(true);
-			expandAllButton.setSelected(false);
+			selectTable = new LinkedHashMap<>();
+			// foldAllButton.setEnabled(true);
+			// foldAllButton.setSelected(true);
+			// expandAllButton.setEnabled(false);
 			checkPanel.add(foldAllButton);
 			checkPanel.add(expandAllButton);
-			selectTable.put(foldAllButton, true);
-			selectTable.put(expandAllButton, false);
-
-			JCheckBox waitButton = new JCheckBox("wait/notify");
-			waitButton.setMnemonic(KeyEvent.VK_W);
-			waitButton.setSelected(false);
-			waitButton.addItemListener(listener);
+			foldAllButton.setEnabled(true);
+			foldAllButton.setSelected(true);
+			isFoldSelected = true;
+			expandAllButton.setSelected(false);
+			expandAllButton.setEnabled(false);
+			isExpandSelected = false;
+			// selectTable.put(foldAllButton, true);
+			// selectTable.put(expandAllButton, false);
 
 			selectTable.put(waitButton, false);
 			// checkButtons.add(foldButton);
