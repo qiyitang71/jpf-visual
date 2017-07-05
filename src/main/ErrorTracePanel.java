@@ -263,28 +263,28 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
 				if (selectTable.get(cb)) {
 					errorTrace.expand(set, PaneConstants.COLOR_TABLE[0]);
-					System.out.println("wait expand");
+					//System.out.println("wait expand");
 
 				} else {
-					System.out.println("wait reset");
+					//System.out.println("wait reset");
 					errorTrace.resetContent(set);
 				}
 			} else if (selectTable.get(cb)) {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
 				errorTrace.expand(set, colors.get(str));
-				System.out.println("expand " + "(un)lock " + str);
+				//System.out.println("expand " + "(un)lock " + str);
 
 			} else {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
 				errorTrace.resetContent(set);
-				System.out.println("reset " + "(un)lock " + str);
+				//System.out.println("reset " + "(un)lock " + str);
 
 			}
 		}
-		System.out.println("isFoldSelected = " + isFoldSelected);
-		System.out.println("isExpandSelected = " + isExpandSelected);
+		//System.out.println("isFoldSelected = " + isFoldSelected);
+		//System.out.println("isExpandSelected = " + isExpandSelected);
 
 		if (isFoldSelected) {
 			errorTrace.foldAll(true);

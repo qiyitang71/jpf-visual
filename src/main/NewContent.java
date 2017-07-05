@@ -187,7 +187,7 @@ public class NewContent {
 				 */
 				String rangeStr = null;
 				if (from != to) {
-					rangeStr = from + "⋮" + to;
+					rangeStr = from + "-" + to;
 				} else {
 					rangeStr = "" + from;
 				}
@@ -349,13 +349,13 @@ public class NewContent {
 									graph.foldCells(false, false, new Object[] { swimCell }, true);
 								}
 								for (Object contentObj : graph.getChildCells(swimCell)) {
-									System.out.println("content style" + model.getStyle(contentObj));
+									//System.out.println("content style" + model.getStyle(contentObj));
 									if (model.getStyle(contentObj) != null && (model.getStyle(contentObj) == "content"
 											|| model.getStyle(contentObj).contains("highlight"))) {
 										mxCell contentCell = (mxCell) contentObj;
 										int lineNum = Integer.parseInt(contentCell.getId());
 										if (map.get(ithRow).contains(lineNum)) {
-											System.out.println("content style" + model.getStyle(contentObj));
+											//System.out.println("content style" + model.getStyle(contentObj));
 											if (reset) {
 												contentCell.setStyle("content");
 											} else {
