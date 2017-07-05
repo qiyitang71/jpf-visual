@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -317,7 +318,63 @@ public class NewContent {
 
 	}
 
-	public void expand(Set<Pair<Integer, Integer>> set, String color) {
+	public void expand(Set<Pair<Integer, Integer>> set, String color, boolean reset) {
+
+		Set<Integer> expandedRows = new HashSet<>();
+		for (Pair<Integer, Integer> p : set) {
+			expandedRows.add(p._1);
+		}
+		Map<Integer, Set<Integer>> map = new HashMap<>();
+		for (Pair<Integer, Integer> p : set) {
+			int rowNum = p._1;
+			if (map.containsKey(rowNum)) {
+				map.get(rowNum).add(p._2);
+			} else {
+				Set<Integer> newSet = new HashSet<>();
+				newSet.add(p._2);
+				map.put(rowNum, newSet);
+			}
+		}
+
+		Object parent = graph.getDefaultParent();
+		for (Object rowCell : graph.getChildCells(parent)) {
+			for (Object rightCell : graph.getChildCells(rowCell)) {
+				if (model.getStyle(rightCell) != "range") {
+					for (Object swimCell : graph.getChildCells(rightCell)) {
+						if (model.getStyle(swimCell).contains("swim")) {
+							int ithRow = Integer.parseInt(((mxCell) swimCell).getId());
+							if (expandedRows.contains(ithRow)) {
+								if (!reset) {
+									// not reset, expand
+									graph.foldCells(false, false, new Object[] { swimCell }, true);
+								}
+								for (Object contentObj : graph.getChildCells(swimCell)) {
+									System.out.println("content style" + model.getStyle(contentObj));
+									if (model.getStyle(contentObj) != null && (model.getStyle(contentObj) == "content"
+											|| model.getStyle(contentObj).contains("highlight"))) {
+										mxCell contentCell = (mxCell) contentObj;
+										int lineNum = Integer.parseInt(contentCell.getId());
+										if (map.get(ithRow).contains(lineNum)) {
+											System.out.println("content style" + model.getStyle(contentObj));
+											if (reset) {
+												contentCell.setStyle("content");
+											} else {
+												Map<String, Object> hlStyle = new HashMap<>(
+														graph.getStylesheet().getStyles().get(contentCell.getStyle()));
+												hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
+												graph.getStylesheet().putCellStyle("highlight" + color, hlStyle);
+												contentCell.setStyle("highlight" + color);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		graph.refresh();
 	}
 
 	public void foldAll(boolean b) {
@@ -327,7 +384,7 @@ public class NewContent {
 				if (model.getStyle(rightCell) != "range") {
 					for (Object swimCell : graph.getChildCells(rightCell)) {
 						if (model.getStyle(swimCell).contains("swim")) {
-							graph.foldCells(true, false, new Object[] { swimCell }, true);
+							graph.foldCells(b, false, new Object[] { swimCell }, true);
 						}
 					}
 				}

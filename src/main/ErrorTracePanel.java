@@ -170,6 +170,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 						foldAllButton.setSelected(false);
 						expandAllButton.setEnabled(true);
 						isFoldSelected = false;
+						isExpandSelected = false;
 					} else {
 						foldAllButton.setSelected(true);
 						expandAllButton.setEnabled(false);
@@ -183,6 +184,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 						expandAllButton.setSelected(false);
 						foldAllButton.setEnabled(true);
 						isExpandSelected = false;
+						isFoldSelected = false;
 					} else {
 						expandAllButton.setSelected(true);
 						foldAllButton.setEnabled(false);
@@ -259,20 +261,31 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		for (JCheckBox cb : selectTable.keySet()) {
 			if (cb == waitButton) {
 				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
-				if (selectTable.get(cb))
+				if (selectTable.get(cb)) {
 					errorTrace.expand(set, PaneConstants.COLOR_TABLE[0]);
-				else
+					System.out.println("wait expand");
+
+				} else {
+					System.out.println("wait reset");
 					errorTrace.resetContent(set);
+				}
 			} else if (selectTable.get(cb)) {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
 				errorTrace.expand(set, colors.get(str));
+				System.out.println("expand " + "(un)lock " + str);
+
 			} else {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
 				errorTrace.resetContent(set);
+				System.out.println("reset " + "(un)lock " + str);
+
 			}
 		}
+		System.out.println("isFoldSelected = " + isFoldSelected);
+		System.out.println("isExpandSelected = " + isExpandSelected);
+
 		if (isFoldSelected) {
 			errorTrace.foldAll(true);
 		} else if (isExpandSelected) {

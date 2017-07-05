@@ -24,7 +24,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private static final long serialVersionUID = 1L;
 	private mxGraphComponent graphComponent;
 	private int numOfThreads = -1;
-	//private ContentPane content;
+	// private ContentPane content;
 	private NewContent content;
 
 	private MenuPane menu;
@@ -61,9 +61,10 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		int cellWidth = (int) (Math
 				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.START_SIZE - 65) / numOfThreads));
 
-		//content = new ContentPane(cellWidth, numOfThreads, path, group, detailList, heightList);
+		// content = new ContentPane(cellWidth, numOfThreads, path, group,
+		// detailList, heightList);
 		content = new NewContent(cellWidth, numOfThreads, path, group, detailList, heightList);
-		
+
 		mxGraph graph = content.getGraph();
 		graphComponent.setGraph(graph);
 
@@ -76,16 +77,16 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
-		//content.expand(set, color);
+		content.expand(set, color, false);
 	}
 
 	public void resetContent(Set<Pair<Integer, Integer>> set) {
-		//content.resetContent(set);
+		content.expand(set, null, true);
 
 	}
 
 	public void foldAll(boolean b) {
-		//content.foldAll(b);
+		content.foldAll(b);
 	}
 
 	@Override
@@ -117,7 +118,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.START_SIZE - 65) / numOfThreads));
 		// System.out.println("resize" + newWidth);
 
-		//content.resize(newWidth);
+		// content.resize(newWidth);
 		menu.resize(newWidth);
 
 	}
