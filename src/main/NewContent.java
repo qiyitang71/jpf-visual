@@ -65,10 +65,10 @@ public class NewContent {
 		};
 
 		model = graph.getModel();
-		graph.setCellsEditable(true);
-		graph.setCellsSelectable(false);
+		graph.setCellsEditable(false);
+		graph.setCellsSelectable(true);
 		graph.setCellsResizable(false);
-		//graph.setCellsLocked(value);
+		// graph.setCellsLocked(value);
 
 		Map<String, Object> style = graph.getStylesheet().getDefaultVertexStyle();
 
@@ -81,8 +81,16 @@ public class NewContent {
 		style.put(mxConstants.STYLE_STROKECOLOR, "black");
 		style.put(mxConstants.STYLE_ALIGN, "left");
 		style.put(mxConstants.STYLE_FOLDABLE, false);
+        style.put(mxConstants.STYLE_FILL_OPACITY, 0);
+
+        style.put(mxConstants.STYLE_FILLCOLOR, "none");
+
 		// style.put(mxConstants.STYLE_SHAPE, mxConstants.PERIMETER_RECTANGLE);
-		style.remove(mxConstants.STYLE_FILLCOLOR);
+		//style.remove(mxConstants.STYLE_FILLCOLOR);
+
+		Map<String, Object> rightStyle = new HashMap<>(style);
+        //rightStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
+		graph.getStylesheet().putCellStyle("right", rightStyle);
 
 		Map<String, Object> borderStyle = new HashMap<>(style);
 		graph.getStylesheet().putCellStyle("border", borderStyle);
@@ -105,7 +113,11 @@ public class NewContent {
 
 		Map<String, Object> contentStyle = new HashMap<String, Object>(style);
 		contentStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
+		contentStyle.put(mxConstants.STYLE_OPACITY, 0);
+		contentStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
+		contentStyle.put(mxConstants.STYLE_SPACING_TOP, PaneConstants.TOP_SPACE);
 		contentStyle.remove(mxConstants.STYLE_VERTICAL_ALIGN);
+
 		graph.getStylesheet().putCellStyle("content", contentStyle);
 
 		mxIEventListener foldingHandler = new mxIEventListener() {
@@ -138,7 +150,7 @@ public class NewContent {
 						mxCell rightCell = (mxCell) c.getParent();
 						int ithRow = Integer.parseInt(rightCell.getId());
 						int htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(contentStyle)).getHeight();
-						int currHt = (heightList.get(ithRow) + 1) * htPerLine + 5 + 10;
+						int currHt = (heightList.get(ithRow) + 1) * htPerLine + 7 + 10;
 						graph.resizeCell(rightCell,
 								new mxRectangle(0, 0, graph.getCellGeometry(rightCell).getWidth(), currHt));
 						mxCell rowCell = (mxCell) rightCell.getParent();
@@ -200,7 +212,7 @@ public class NewContent {
 				 * The big box outside the swimlane
 				 */
 				mxCell rightCell = (mxCell) graph.insertVertex(rowCell, null, null, 0, 0,
-						PaneConstants.SIGN_SIZE + numOfThreads * cellWidth, 0);
+						PaneConstants.SIGN_SIZE + numOfThreads * cellWidth, 0, "right");
 				rightCell.setId("" + ithRow);
 				rightCell.setConnectable(false);
 
@@ -214,8 +226,8 @@ public class NewContent {
 						numOfThreads * cellWidth + PaneConstants.SIGN_SIZE, currHt, "swim" + ithRow);
 				swimCell.setConnectable(false);
 				swimCell.setId("" + ithRow);
-				model.getGeometry(swimCell).setAlternateBounds(new mxRectangle(0, 0,
-						numOfThreads * cellWidth + PaneConstants.SIGN_SIZE, PaneConstants.SIGN_SIZE));
+				model.getGeometry(swimCell)
+						.setAlternateBounds(new mxRectangle(0, 0, PaneConstants.SIGN_SIZE, PaneConstants.ALTER_SIZE));
 				graph.foldCells(true, false, new Object[] { swimCell }, true);
 
 				/**
@@ -247,8 +259,8 @@ public class NewContent {
 				/**
 				 * draw summary line one at a time hide those lines
 				 */
-				mxCell summaryCell = (mxCell) graph.insertVertex(rightCell, null, null, 0, 0,
-						numOfThreads * cellWidth + PaneConstants.SIGN_SIZE, PaneConstants.ALTER_SIZE, "content");
+				mxCell summaryCell = (mxCell) graph.insertVertex(rightCell, null, null, 0, 0, numOfThreads * cellWidth,
+						PaneConstants.ALTER_SIZE, "content");
 				summaryCell.setConnectable(false);
 				summaryCell.setId("" + ithRow);
 
@@ -264,13 +276,11 @@ public class NewContent {
 						Map<String, Object> summaryContentStyle = new HashMap<String, Object>(contentStyle);
 						// summaryContentStyle.put(mxConstants.STYLE_SPACING_LEFT,
 						// PaneConstants.SIGN_SIZE);
-						summaryContentStyle.put(mxConstants.STYLE_SPACING_LEFT,
-								threadIdx * cellWidth + PaneConstants.SIGN_SIZE);
+						summaryContentStyle.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth);
 						// threadLabel.put(mxConstants.STYLE_SPACING_TOP, 3);
 						graph.getStylesheet().putCellStyle("summaryContent" + ithRow + ":" + i, summaryContentStyle);
 						mxCell summaryContent = (mxCell) graph.insertVertex(summaryCell, null, "...", 0, 0,
-								numOfThreads * cellWidth + PaneConstants.SIGN_SIZE, htPerLine,
-								"summaryContent" + ithRow + ":" + i);
+								numOfThreads * cellWidth, htPerLine, "summaryContent" + ithRow + ":" + i);
 						summaryContent.setConnectable(false);
 						continue;
 					} else if (i == 2) {
@@ -283,13 +293,12 @@ public class NewContent {
 					Map<String, Object> summaryContentStyle = new HashMap<String, Object>(contentStyle);
 					// summaryContentStyle.put(mxConstants.STYLE_SPACING_LEFT,
 					// PaneConstants.SIGN_SIZE);
-					summaryContentStyle.put(mxConstants.STYLE_SPACING_LEFT,
-							threadIdx * cellWidth + PaneConstants.SIGN_SIZE);
+					summaryContentStyle.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth);
+                    summaryContentStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
 					// threadLabel.put(mxConstants.STYLE_SPACING_TOP, 3);
 					graph.getStylesheet().putCellStyle("summaryContent" + ithRow + ":" + i, summaryContentStyle);
 					mxCell summaryContent = (mxCell) graph.insertVertex(summaryCell, null, st, 0, 0,
-							numOfThreads * cellWidth + PaneConstants.SIGN_SIZE, htPerLine,
-							"summaryContent" + ithRow + ":" + i);
+							numOfThreads * cellWidth, htPerLine, "summaryContent" + ithRow + ":" + i);
 					summaryContent.setConnectable(false);
 				}
 				summaryCell.setVisible(false);
@@ -316,7 +325,7 @@ public class NewContent {
 	}
 
 	public void resize(int newCellWidth) {
-		
+
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color, boolean reset) {
@@ -350,13 +359,16 @@ public class NewContent {
 									graph.foldCells(false, false, new Object[] { swimCell }, true);
 								}
 								for (Object contentObj : graph.getChildCells(swimCell)) {
-									//System.out.println("content style" + model.getStyle(contentObj));
+									// System.out.println("content style" +
+									// model.getStyle(contentObj));
 									if (model.getStyle(contentObj) != null && (model.getStyle(contentObj) == "content"
 											|| model.getStyle(contentObj).contains("highlight"))) {
 										mxCell contentCell = (mxCell) contentObj;
 										int lineNum = Integer.parseInt(contentCell.getId());
 										if (map.get(ithRow).contains(lineNum)) {
-											//System.out.println("content style" + model.getStyle(contentObj));
+											// System.out.println("content
+											// style" +
+											// model.getStyle(contentObj));
 											if (reset) {
 												contentCell.setStyle("content");
 											} else {

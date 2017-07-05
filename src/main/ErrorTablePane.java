@@ -2,8 +2,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.BitSet;
 import java.util.EventObject;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.text.JTextComponent;
 
+import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.swing.mxGraphOutline;
 import com.mxgraph.swing.view.mxCellEditor;
@@ -45,70 +52,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		graphComponent.addComponentListener(this);
 		graphComponent.setBorder(BorderFactory.createEmptyBorder());
-		graphComponent.setCellEditor(new mxCellEditor(graphComponent) {
-			public void startEditing(Object cell, EventObject evt) {
-				if (editingCell != null) {
-					stopEditing(true);
-				}
-
-				mxCellState state = graphComponent.getGraph().getView().getState(cell);
-
-				if (state != null) {
-					editingCell = cell;
-					trigger = evt;
-
-					double scale = Math.max(minimumEditorScale, graphComponent.getGraph().getView().getScale());
-					scrollPane.setBounds(getEditorBounds(state, scale));
-					scrollPane.setVisible(true);
-
-					String value = getInitialValue(state, evt);
-					JTextComponent currentEditor = null;
-
-					// Configures the style of the in-place editor
-					if (graphComponent.getGraph().isHtmlLabel(cell)) {
-						if (isExtractHtmlBody()) {
-							value = mxUtils.getBodyMarkup(value, isReplaceHtmlLinefeeds());
-						}
-
-						editorPane.setDocument(mxUtils.createHtmlDocumentObject(state.getStyle(), scale));
-						editorPane.setText(value);
-
-						// Workaround for wordwrapping in editor pane
-						// FIXME: Cursor not visible at end of line
-						JPanel wrapper = new JPanel(new BorderLayout());
-						wrapper.setOpaque(false);
-						wrapper.add(editorPane, BorderLayout.CENTER);
-						scrollPane.setViewportView(wrapper);
-
-						currentEditor = editorPane;
-					} else {
-						textArea.setFont(mxUtils.getFont(state.getStyle(), scale));
-						Color fontColor = mxUtils.getColor(state.getStyle(), mxConstants.STYLE_FONTCOLOR, Color.black);
-						textArea.setForeground(fontColor);
-						textArea.setText(value);
-
-						scrollPane.setViewportView(textArea);
-						currentEditor = textArea;
-					}
-
-					graphComponent.getGraphControl().add(scrollPane, 0);
-
-					if (isHideLabel(state)) {
-						graphComponent.redraw(state);
-					}
-
-					currentEditor.revalidate();
-					currentEditor.requestFocusInWindow();
-					currentEditor.selectAll();
-					// if(!editable){
-					currentEditor.setEditable(false);
-					// }
-
-					configureActionMaps();
-				}
-			}
-		});
-		// this.add(graphComponent);
 		mxGraphOutline outln = new mxGraphOutline(graphComponent);
 		// this.add(outln);
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphComponent, outln);
@@ -138,6 +81,50 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		mxGraph graph = content.getGraph();
 		graphComponent.setGraph(graph);
+		KeyListener keyListener = new KeyListener() {
+			private BitSet keyBits = new BitSet(256);
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+				// System.out.println(e.getKeyCode());
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				// TODO Auto-generated method stub
+				// System.out.println(e.getKeyCode());
+				int keyCode = e.getKeyCode();
+				System.out.println(e.getKeyCode());
+
+				keyBits.set(keyCode);
+
+				if (keyBits.get(KeyEvent.VK_C) && keyBits.get(KeyEvent.VK_META)) {
+					System.out.println("copy???????");
+					Object[] cells = graph.getSelectionCells();
+
+					if (cells == null)
+						return;
+
+					StringBuilder myString = new StringBuilder();
+					for (Object o : cells) {
+						myString.append(((mxCell) o).getValue() + "\n");
+					}
+					StringSelection stringSelection = new StringSelection(myString.toString());
+					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+					clipboard.setContents(stringSelection, null);
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+				int keyCode = e.getKeyCode();
+				keyBits.clear(keyCode);
+			}
+		};
+		graphComponent.addKeyListener(keyListener);
 
 		menu = new MenuPane(cellWidth, threadNames);
 		mxGraph menuGraph = menu.getGraph();
