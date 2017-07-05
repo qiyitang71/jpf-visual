@@ -32,10 +32,10 @@ public class NewContent {
 	private Path path;
 	private List<Pair<Integer, Integer>> group = new ArrayList<>();
 
-	public NewContent(int width, int nThreads, Path p, List<Pair<Integer, Integer>> group, List<String> detailList,
+	public NewContent(int width, int nThreads, Path p, List<Pair<Integer, Integer>> grp, List<String> detailList,
 			List<Integer> heightList) {
 		this.numOfThreads = nThreads;
-		this.group = group;
+		this.group = grp;
 		this.path = p;
 		this.cellWidth = width;
 		int numOfRows = group.size();
@@ -81,15 +81,15 @@ public class NewContent {
 		style.put(mxConstants.STYLE_STROKECOLOR, "black");
 		style.put(mxConstants.STYLE_ALIGN, "left");
 		style.put(mxConstants.STYLE_FOLDABLE, false);
-        style.put(mxConstants.STYLE_FILL_OPACITY, 0);
+		style.put(mxConstants.STYLE_FILL_OPACITY, 0);
 
-        style.put(mxConstants.STYLE_FILLCOLOR, "none");
+		style.put(mxConstants.STYLE_FILLCOLOR, "none");
 
 		// style.put(mxConstants.STYLE_SHAPE, mxConstants.PERIMETER_RECTANGLE);
-		//style.remove(mxConstants.STYLE_FILLCOLOR);
+		// style.remove(mxConstants.STYLE_FILLCOLOR);
 
 		Map<String, Object> rightStyle = new HashMap<>(style);
-        //rightStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
+		// rightStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
 		graph.getStylesheet().putCellStyle("right", rightStyle);
 
 		Map<String, Object> borderStyle = new HashMap<>(style);
@@ -163,6 +163,7 @@ public class NewContent {
 		};
 		graph.addListener(mxEvent.FOLD_CELLS, foldingHandler);
 
+		@SuppressWarnings("unused")
 		mxLayoutManager layoutMng = new mxLayoutManager(graph) {
 			public mxIGraphLayout getLayout(Object parent) {
 				String st = model.getStyle(parent);
@@ -242,6 +243,7 @@ public class NewContent {
 
 				mxCell threadRow = (mxCell) graph.insertVertex(swimCell, null, "" + threadIdx, 0, 0,
 						numOfThreads * cellWidth, htPerLine + 10, "thread" + ithRow);
+				threadRow.setId("" + threadIdx);
 				threadRow.setConnectable(false);
 
 				/**
@@ -281,6 +283,7 @@ public class NewContent {
 						graph.getStylesheet().putCellStyle("summaryContent" + ithRow + ":" + i, summaryContentStyle);
 						mxCell summaryContent = (mxCell) graph.insertVertex(summaryCell, null, "...", 0, 0,
 								numOfThreads * cellWidth, htPerLine, "summaryContent" + ithRow + ":" + i);
+						summaryContent.setId(threadIdx + "");
 						summaryContent.setConnectable(false);
 						continue;
 					} else if (i == 2) {
@@ -294,11 +297,13 @@ public class NewContent {
 					// summaryContentStyle.put(mxConstants.STYLE_SPACING_LEFT,
 					// PaneConstants.SIGN_SIZE);
 					summaryContentStyle.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth);
-                    summaryContentStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
+					summaryContentStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
+
 					// threadLabel.put(mxConstants.STYLE_SPACING_TOP, 3);
 					graph.getStylesheet().putCellStyle("summaryContent" + ithRow + ":" + i, summaryContentStyle);
 					mxCell summaryContent = (mxCell) graph.insertVertex(summaryCell, null, st, 0, 0,
 							numOfThreads * cellWidth, htPerLine, "summaryContent" + ithRow + ":" + i);
+					summaryContent.setId(threadIdx + "");
 					summaryContent.setConnectable(false);
 				}
 				summaryCell.setVisible(false);
@@ -325,7 +330,51 @@ public class NewContent {
 	}
 
 	public void resize(int newCellWidth) {
+		this.cellWidth = newCellWidth;
+		Object parent = graph.getDefaultParent();
+		for (Object rowCell : graph.getChildCells(parent)) {
+			model.getGeometry(rowCell)
+					.setWidth(PaneConstants.SIGN_SIZE + PaneConstants.RANGE_SIZE + numOfThreads * cellWidth);
+			for (Object rightCell : graph.getChildCells(rowCell)) {
 
+				if (model.getStyle(rightCell) != "range") {
+					model.getGeometry(rightCell).setWidth(PaneConstants.SIGN_SIZE + numOfThreads * cellWidth);
+					for (Object swimCell : graph.getChildCells(rightCell)) {
+						// swim cell
+						if (model.getStyle(swimCell).contains("swim")) {
+							if (!graph.isCellCollapsed(swimCell)) {
+								model.getGeometry(swimCell)
+										.setWidth(numOfThreads * cellWidth + PaneConstants.SIGN_SIZE);
+							} else {
+								model.getGeometry(swimCell).getAlternateBounds()
+										.setWidth(numOfThreads * cellWidth + PaneConstants.SIGN_SIZE);
+							}
+							for (Object swimContent : graph.getChildCells(swimCell)) {
+								model.getGeometry(swimContent).setWidth(numOfThreads * cellWidth);
+								String st = model.getStyle(swimContent);
+								if (st.contains("thread")) {
+									Map<String, Object> tmpStyle = graph.getStylesheet().getStyles().get(st);
+									int threadIdx = Integer.parseInt(((mxCell) swimContent).getId());
+									tmpStyle.put(mxConstants.STYLE_SPACING_LEFT,
+											cellWidth * threadIdx + cellWidth / 2 - PaneConstants.LEFT_SPACE / 2);
+								}
+							}
+						} else {
+							// summary cell
+							model.getGeometry(swimCell).setWidth(numOfThreads * cellWidth);
+							for (Object summaryContent : graph.getChildCells(swimCell)) {
+								String tmpStr = model.getStyle(summaryContent);
+								int threadIdx = Integer.parseInt(((mxCell) summaryContent).getId());
+								Map<String, Object> tmpStyle = graph.getStylesheet().getStyles().get(tmpStr);
+								tmpStyle.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth);
+								model.getGeometry(summaryContent).setWidth(numOfThreads * cellWidth);
+							}
+						}
+					}
+				}
+			}
+		}
+		graph.refresh();
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color, boolean reset) {
