@@ -1,3 +1,4 @@
+
 //import java.awt.BorderLayout;
 //import java.awt.Color;
 
@@ -71,8 +72,9 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		List<Integer> heightList = td.getHeightList();
 		List<String> threadNames = td.getThreadNames();
 
-		int cellWidth = (int) (Math
-				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE) / numOfThreads));
+		int cellWidth = (int) (Math.floor(
+				(splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE)
+						/ numOfThreads));
 
 		// content = new ContentPane(cellWidth, numOfThreads, path, group,
 		// detailList, heightList);
@@ -81,25 +83,17 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		mxGraph graph = content.getGraph();
 		graphComponent.setGraph(graph);
 		KeyListener keyListener = new KeyListener() {
-			private BitSet keyBits = new BitSet(256);
 
 			@Override
 			public void keyTyped(KeyEvent e) {
 				// TODO Auto-generated method stub
-				// System.out.println(e.getKeyCode());
-
 			}
 
 			@Override
 			public void keyPressed(KeyEvent e) {
 				// TODO Auto-generated method stub
-				// System.out.println(e.getKeyCode());
-				int keyCode = e.getKeyCode();
-				System.out.println(e.getKeyCode());
-
-				keyBits.set(keyCode);
-
-				if (keyBits.get(KeyEvent.VK_C) && keyBits.get(KeyEvent.VK_META)) {
+				if ((e.getKeyCode() == KeyEvent.VK_C) && (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)
+						|| (e.getModifiers() & KeyEvent.META_MASK) != 0)) {
 					System.out.println("copy???????");
 					Object[] cells = graph.getSelectionCells();
 
@@ -119,8 +113,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				// TODO Auto-generated method stub
-				int keyCode = e.getKeyCode();
-				keyBits.clear(keyCode);
 			}
 		};
 		graphComponent.addKeyListener(keyListener);
@@ -171,8 +163,9 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		// - PaneConstants.OUTLINE_SIZE
 		// TODO Auto-generated method stub
 
-		int newWidth = (int) (Math
-				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE) / numOfThreads));
+		int newWidth = (int) (Math.floor(
+				(splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE)
+						/ numOfThreads));
 		// System.out.println("resize" + newWidth);
 
 		content.resize(newWidth);
