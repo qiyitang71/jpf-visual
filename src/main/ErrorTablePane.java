@@ -1,7 +1,10 @@
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.util.EventObject;
 import java.util.List;
 import java.util.Set;
 
@@ -9,9 +12,14 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.text.JTextComponent;
 
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.swing.mxGraphOutline;
+import com.mxgraph.swing.view.mxCellEditor;
+import com.mxgraph.util.mxConstants;
+import com.mxgraph.util.mxUtils;
+import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 
 import gov.nasa.jpf.util.Pair;
@@ -37,6 +45,69 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		graphComponent.addComponentListener(this);
 		graphComponent.setBorder(BorderFactory.createEmptyBorder());
+		graphComponent.setCellEditor(new mxCellEditor(graphComponent) {
+			public void startEditing(Object cell, EventObject evt) {
+				if (editingCell != null) {
+					stopEditing(true);
+				}
+
+				mxCellState state = graphComponent.getGraph().getView().getState(cell);
+
+				if (state != null) {
+					editingCell = cell;
+					trigger = evt;
+
+					double scale = Math.max(minimumEditorScale, graphComponent.getGraph().getView().getScale());
+					scrollPane.setBounds(getEditorBounds(state, scale));
+					scrollPane.setVisible(true);
+
+					String value = getInitialValue(state, evt);
+					JTextComponent currentEditor = null;
+
+					// Configures the style of the in-place editor
+					if (graphComponent.getGraph().isHtmlLabel(cell)) {
+						if (isExtractHtmlBody()) {
+							value = mxUtils.getBodyMarkup(value, isReplaceHtmlLinefeeds());
+						}
+
+						editorPane.setDocument(mxUtils.createHtmlDocumentObject(state.getStyle(), scale));
+						editorPane.setText(value);
+
+						// Workaround for wordwrapping in editor pane
+						// FIXME: Cursor not visible at end of line
+						JPanel wrapper = new JPanel(new BorderLayout());
+						wrapper.setOpaque(false);
+						wrapper.add(editorPane, BorderLayout.CENTER);
+						scrollPane.setViewportView(wrapper);
+
+						currentEditor = editorPane;
+					} else {
+						textArea.setFont(mxUtils.getFont(state.getStyle(), scale));
+						Color fontColor = mxUtils.getColor(state.getStyle(), mxConstants.STYLE_FONTCOLOR, Color.black);
+						textArea.setForeground(fontColor);
+						textArea.setText(value);
+
+						scrollPane.setViewportView(textArea);
+						currentEditor = textArea;
+					}
+
+					graphComponent.getGraphControl().add(scrollPane, 0);
+
+					if (isHideLabel(state)) {
+						graphComponent.redraw(state);
+					}
+
+					currentEditor.revalidate();
+					currentEditor.requestFocusInWindow();
+					currentEditor.selectAll();
+					// if(!editable){
+					currentEditor.setEditable(false);
+					// }
+
+					configureActionMaps();
+				}
+			}
+		});
 		// this.add(graphComponent);
 		mxGraphOutline outln = new mxGraphOutline(graphComponent);
 		// this.add(outln);

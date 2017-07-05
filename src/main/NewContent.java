@@ -65,9 +65,10 @@ public class NewContent {
 		};
 
 		model = graph.getModel();
-		// graph.setCellsEditable(false);
-		// graph.setCellsSelectable(false);
-		graph.setCellsResizable(true);
+		graph.setCellsEditable(true);
+		graph.setCellsSelectable(false);
+		graph.setCellsResizable(false);
+		//graph.setCellsLocked(value);
 
 		Map<String, Object> style = graph.getStylesheet().getDefaultVertexStyle();
 
@@ -315,7 +316,7 @@ public class NewContent {
 	}
 
 	public void resize(int newCellWidth) {
-
+		
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color, boolean reset) {
