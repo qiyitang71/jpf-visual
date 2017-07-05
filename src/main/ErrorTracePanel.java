@@ -65,6 +65,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private ItemListener listener = null;
 	// private ItemListener buttonListener = null;
 	private Map<String, String> colors = new HashMap<>();
+	private int colorID = 1;
 	// private JCheckBox foldAllButton;
 	private JButton foldAllButton;
 	private boolean isFoldSelected;
@@ -168,29 +169,34 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					if (isFoldSelected) {
 						foldAllButton.setSelected(false);
 						expandAllButton.setEnabled(true);
+						isFoldSelected = false;
 					} else {
 						foldAllButton.setSelected(true);
 						expandAllButton.setEnabled(false);
 						errorTrace.foldAll(true);
+						isFoldSelected = true;
+						isExpandSelected = false;
 					}
-					isFoldSelected = !isFoldSelected;
 				} else {
 					System.out.println(isExpandSelected + " expandAllButton");
 					if (isExpandSelected) {
 						expandAllButton.setSelected(false);
 						foldAllButton.setEnabled(true);
+						isExpandSelected = false;
 					} else {
 						expandAllButton.setSelected(true);
 						foldAllButton.setEnabled(false);
 						errorTrace.foldAll(false);
+						isExpandSelected = true;
+						isFoldSelected = false;
+						// updateGraph();
 					}
-					isExpandSelected = !isExpandSelected;
 					// foldAllButton.setEnabled(false);
 					// expandAllButton.setEnabled(true);
 				}
+				updateGraph();
 				// if (e.getSource() == foldAllButton) {
 				// }
-				updateGraph();
 			}
 
 		};
@@ -254,7 +260,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			if (cb == waitButton) {
 				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
 				if (selectTable.get(cb))
-					errorTrace.expand(set, "yellow");
+					errorTrace.expand(set, PaneConstants.COLOR_TABLE[0]);
 				else
 					errorTrace.resetContent(set);
 			} else if (selectTable.get(cb)) {
@@ -267,13 +273,12 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				errorTrace.resetContent(set);
 			}
 		}
-		if(isFoldSelected){
+		if (isFoldSelected) {
 			errorTrace.foldAll(true);
-		}
-		else if(isExpandSelected){
+		} else if (isExpandSelected) {
 			errorTrace.foldAll(false);
 		}
-		
+
 	}
 
 	String publishers = null;
@@ -365,14 +370,16 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				cb.setSelected(false);
 				cb.addItemListener(listener);
 				if (!colors.containsKey(s)) {
-					int nextInt = new Random().nextInt(256 * 256 * 256);
-					while (nextInt < 100000) {
-						nextInt = new Random().nextInt(256 * 256 * 256);
-					}
-					// format it as hexadecimal string (with hashtag and leading
-					// zeros)
-					String colorCode = String.format("#%06x", nextInt);
-					colors.put(s, colorCode);
+					// int nextInt = new Random().nextInt(256 * 256 * 256);
+					// while (nextInt < 100000) {
+					// nextInt = new Random().nextInt(256 * 256 * 256);
+					// }
+					// // format it as hexadecimal string (with hashtag and
+					// leading
+					// // zeros)
+					// String colorCode = String.format("#%06x", nextInt);
+
+					colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
 				}
 				selectTable.put(cb, false);
 				checkPanel.add(cb);

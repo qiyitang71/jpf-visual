@@ -12,7 +12,7 @@ import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxLayoutManager;
 
 public class MenuPane {
-	private int cellWidth = 0;//PaneConstants.DEFAULT_CELL_WIDTH;
+	private int cellWidth = 0;// PaneConstants.DEFAULT_CELL_WIDTH;
 	private mxGraph menuGraph;
 	private mxIGraphModel menuModel;
 	private int numOfThreads = -1;
@@ -44,7 +44,7 @@ public class MenuPane {
 
 		// menu style not foldable
 		menuStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
-		menuStyle.put(mxConstants.STYLE_STARTSIZE, PaneConstants.SIGN_SIZE + PaneConstants.RANGE_SIZE);
+		menuStyle.put(mxConstants.STYLE_STARTSIZE, PaneConstants.RANGE_SIZE);
 		menuStyle.put(mxConstants.STYLE_HORIZONTAL, false);
 		menuStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 		menuStyle.put(mxConstants.STYLE_FOLDABLE, false);
@@ -71,15 +71,17 @@ public class MenuPane {
 		try {
 			// draw the menu
 			// int numOfThreads = threadNames.size();
-			mxCell menu = (mxCell) menuGraph.insertVertex(menuParent, null, "Trans.", 0, 0,
-					numOfThreads * cellWidth , 0, "menu");
+			mxCell menu = (mxCell) menuGraph.insertVertex(menuParent, null, "Trans.", 0, 0, numOfThreads * cellWidth, 0,
+					"menu");
 			menu.setConnectable(false);
 			System.out.println("menu lane cellWidth = " + menuModel.getGeometry(menu));
 
-			
 			for (int i = 0; i < numOfThreads; i++) {
-
-				((mxCell) menuGraph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, cellWidth,
+				int cw = cellWidth;
+				if (i == 0) {
+					cw = cellWidth + PaneConstants.SIGN_SIZE;
+				}
+				((mxCell) menuGraph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, cw,
 						PaneConstants.CELL_HEIGHT)).setConnectable(false);
 
 			}
@@ -94,12 +96,20 @@ public class MenuPane {
 		Object parent = menuGraph.getDefaultParent();
 		for (Object obj : menuGraph.getChildCells(parent)) {
 			if (obj != null) {
-				menuGraph.resizeCell(obj, new mxRectangle(0, 0, numOfThreads * cellWidth + PaneConstants.START_SIZE,
-						menuGraph.getCellGeometry(obj).getHeight()));
-				for (Object subObj : menuGraph.getChildCells(obj)) {
-					if (subObj != null) {
+				menuGraph.resizeCell(obj,
+						new mxRectangle(0, 0,
+								numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE,
+								menuGraph.getCellGeometry(obj).getHeight()));
+				Object[] children = menuGraph.getChildCells(obj);
+				for (int i = 0; i < children.length; i++) {
+					Object subObj = children[i];
+					if (subObj != null && ((mxCell) subObj).getStyle() != "blank") {
+						int cw = cellWidth;
+						if (i == 0) {
+							cw = cellWidth + PaneConstants.SIGN_SIZE;
+						}
 						menuGraph.resizeCell(subObj,
-								new mxRectangle(0, 0, cellWidth, menuGraph.getCellGeometry(subObj).getHeight()));
+								new mxRectangle(0, 0, cw, menuGraph.getCellGeometry(subObj).getHeight()));
 					}
 				}
 			}
