@@ -1,7 +1,6 @@
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Rectangle;
+//import java.awt.BorderLayout;
+//import java.awt.Color;
+
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -10,7 +9,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.BitSet;
-import java.util.EventObject;
+//import java.util.EventObject;
 import java.util.List;
 import java.util.Set;
 
@@ -18,15 +17,15 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.text.JTextComponent;
+//import javax.swing.text.JTextComponent;
 
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.swing.mxGraphOutline;
-import com.mxgraph.swing.view.mxCellEditor;
-import com.mxgraph.util.mxConstants;
-import com.mxgraph.util.mxUtils;
-import com.mxgraph.view.mxCellState;
+//import com.mxgraph.swing.view.mxCellEditor;
+//import com.mxgraph.util.mxConstants;
+//import com.mxgraph.util.mxUtils;
+//import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 
 import gov.nasa.jpf.util.Pair;
@@ -73,7 +72,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		List<String> threadNames = td.getThreadNames();
 
 		int cellWidth = (int) (Math
-				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.START_SIZE - 65) / numOfThreads));
+				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE) / numOfThreads));
 
 		// content = new ContentPane(cellWidth, numOfThreads, path, group,
 		// detailList, heightList);
@@ -173,7 +172,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		// TODO Auto-generated method stub
 
 		int newWidth = (int) (Math
-				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.START_SIZE - 65) / numOfThreads));
+				.floor((splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE) / numOfThreads));
 		// System.out.println("resize" + newWidth);
 
 		content.resize(newWidth);

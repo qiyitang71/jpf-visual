@@ -12,9 +12,9 @@ import gov.nasa.jpf.jvm.bytecode.GETFIELD;
 import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
-import gov.nasa.jpf.vm.ClassInfo;
+//import gov.nasa.jpf.vm.ClassInfo;
 import gov.nasa.jpf.vm.Instruction;
-import gov.nasa.jpf.vm.MethodInfo;
+//import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
 import gov.nasa.jpf.vm.Step;
 import gov.nasa.jpf.vm.Transition;
@@ -117,12 +117,13 @@ public class TraceData {
 					Instruction insn = s.getInstruction();
 
 					if (insn instanceof VirtualInvocation) {
-						//System.out.println("insn = " + insn);
+						// System.out.println("insn = " + insn);
 						String insnStr = insn.toString();
 						if (insnStr.contains("java.lang.Object.wait()") || insnStr.contains("java.lang.Object.notify()")
 								|| insnStr.contains("java.lang.Object.notifyAll()")) {
 							waitSet.add(new Pair<>(pi, height - 1));
-							//System.out.println("row = " + pi + " height =" + height);
+							// System.out.println("row = " + pi + " height =" +
+							// height);
 							// break;
 						}
 					}
@@ -144,8 +145,9 @@ public class TraceData {
 							lockTable.put(fieldName, newSet);
 						}
 
-						//lockSet.add(new Pair<>(pi, height - 1));
-						//System.out.println("row = " + pi + " height =" + height);
+						// lockSet.add(new Pair<>(pi, height - 1));
+						// System.out.println("row = " + pi + " height =" +
+						// height);
 					}
 
 				}
@@ -192,17 +194,16 @@ public class TraceData {
 		return new HashSet<>(waitSet);
 	}
 
-
 	public Set<String> getFieldNames() {
 		return new HashSet<>(fieldNames);
 	}
 
 	public Set<Pair<Integer, Integer>> getLocks(String field) {
-		//System.out.print(field + ": ");
-//		for(Pair<Integer, Integer> p: lockTable.get(field)){
-//			System.out.print("(" + p._1 + ", " + p._2 + ")" + ", ");
-//		}
-//		System.out.println();
+		// System.out.print(field + ": ");
+		// for(Pair<Integer, Integer> p: lockTable.get(field)){
+		// System.out.print("(" + p._1 + ", " + p._2 + ")" + ", ");
+		// }
+		// System.out.println();
 		return new HashSet<>(lockTable.get(field));
 	}
 }

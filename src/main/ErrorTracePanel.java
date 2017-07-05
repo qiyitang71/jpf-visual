@@ -26,19 +26,18 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 //import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+//import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+//import javax.swing.ListSelectionModel;
+//import javax.swing.event.ListSelectionEvent;
+//import javax.swing.event.ListSelectionListener;
 
 //import java.util.ArrayList;
 import java.util.HashMap;
 //import java.util.HashSet;
 import java.util.LinkedHashMap;
-//import java.util.List;
 import java.util.Map;
-import java.util.Random;
+//import java.util.Random;
 import java.util.Set;
 
 /**
@@ -237,8 +236,9 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		// foldButton.setSelected(true);
 		// foldButton.addItemListener(listener);
 		waitButton = new JCheckBox("wait/notify");
+		waitButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[0]));
+		waitButton.setOpaque(true);
 		waitButton.setMnemonic(KeyEvent.VK_W);
-		waitButton.setSelected(false);
 		waitButton.addItemListener(listener);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, checkPanel, errorTrace);
@@ -263,28 +263,28 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
 				if (selectTable.get(cb)) {
 					errorTrace.expand(set, PaneConstants.COLOR_TABLE[0]);
-					//System.out.println("wait expand");
+					// System.out.println("wait expand");
 
 				} else {
-					//System.out.println("wait reset");
+					// System.out.println("wait reset");
 					errorTrace.resetContent(set);
 				}
 			} else if (selectTable.get(cb)) {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
 				errorTrace.expand(set, colors.get(str));
-				//System.out.println("expand " + "(un)lock " + str);
+				// System.out.println("expand " + "(un)lock " + str);
 
 			} else {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
 				errorTrace.resetContent(set);
-				//System.out.println("reset " + "(un)lock " + str);
+				// System.out.println("reset " + "(un)lock " + str);
 
 			}
 		}
-		//System.out.println("isFoldSelected = " + isFoldSelected);
-		//System.out.println("isExpandSelected = " + isExpandSelected);
+		// System.out.println("isFoldSelected = " + isFoldSelected);
+		// System.out.println("isExpandSelected = " + isExpandSelected);
 
 		if (isFoldSelected) {
 			errorTrace.foldAll(true);
@@ -374,7 +374,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			isExpandSelected = false;
 			// selectTable.put(foldAllButton, true);
 			// selectTable.put(expandAllButton, false);
-
+			waitButton.setSelected(false);
 			selectTable.put(waitButton, false);
 			// checkButtons.add(foldButton);
 			checkPanel.add(waitButton);
@@ -382,6 +382,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				JCheckBox cb = new JCheckBox("(un)lock: " + s);
 				cb.setSelected(false);
 				cb.addItemListener(listener);
+
 				if (!colors.containsKey(s)) {
 					// int nextInt = new Random().nextInt(256 * 256 * 256);
 					// while (nextInt < 100000) {
@@ -394,6 +395,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 					colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
 				}
+				cb.setBackground(Color.decode(colors.get(s)));
+				cb.setOpaque(true);
 				selectTable.put(cb, false);
 				checkPanel.add(cb);
 			}

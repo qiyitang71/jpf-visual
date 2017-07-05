@@ -52,6 +52,7 @@ public class MenuPane {
 		menuGraph.getStylesheet().putCellStyle("menu", menuStyle);
 
 		// while folding, the lower cells goes up
+		@SuppressWarnings("unused")
 		mxLayoutManager menuLayoutMng = new mxLayoutManager(menuGraph) {
 			public mxIGraphLayout getLayout(Object parent) {
 
