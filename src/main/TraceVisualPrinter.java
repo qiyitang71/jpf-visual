@@ -27,6 +27,7 @@ import gov.nasa.jpf.vm.ClassLoaderInfo;
 import gov.nasa.jpf.vm.FieldInfo;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.VM;
+import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
 import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
 import gov.nasa.jpf.vm.Step;
@@ -257,6 +258,10 @@ public class TraceVisualPrinter extends Publisher {
 
 			if (showCG) {
 				out.println(t.getChoiceGenerator());
+				out.println(t.getChoiceGenerator().getId());
+				if( t.getChoiceGenerator() instanceof ThreadChoiceFromSet){
+					
+				}
 			}
 
 			if (showSteps) {
@@ -298,11 +303,16 @@ public class TraceVisualPrinter extends Publisher {
 							Instruction insn = s.getInstruction();
 							if (true) {
 								MethodInfo mi = insn.getMethodInfo();
-								if (mi != lastMi) {
+							//	if (mi != lastMi) {
 									ClassInfo mci = mi.getClassInfo();
+									out.println("mi: " + mi.isSynchronized());
+									out.println("mi: stacktrace " + mi.getStackTraceName());
+									out.println("mi:  " + mi);
+
 									out.print("mci:    ");
 									if (mci != null) {
 										out.print(mci.getName());
+
 										out.print(" uniquename:");
 										FieldInfo[] fi = mci.getInstanceFields();
 										out.println("FieldInfos: ");
@@ -317,7 +327,7 @@ public class TraceVisualPrinter extends Publisher {
 									}
 									out.println(mi.getUniqueName());
 									lastMi = mi;
-								}
+							//	}
 							}
 							out.print("      ");
 							//out.print("insn Mnemonic = " + insn.getMnemonic());

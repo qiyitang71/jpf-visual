@@ -64,7 +64,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private ItemListener listener = null;
 	// private ItemListener buttonListener = null;
 	private Map<String, String> colors = new HashMap<>();
-	private int colorID = 1;
+	private int colorID = 3;
 	// private JCheckBox foldAllButton;
 	private JButton foldAllButton;
 	private boolean isFoldSelected;
@@ -74,6 +74,9 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private boolean isExpandSelected;
 
 	private JCheckBox waitButton;
+	private JCheckBox threadStartButton;
+	private JCheckBox threadTerminateButton;
+
 	private Map<JCheckBox, Boolean> selectTable;// = new LinkedHashMap<>();
 
 	public ErrorTracePanel() {
@@ -241,6 +244,18 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		waitButton.setMnemonic(KeyEvent.VK_W);
 		waitButton.addItemListener(listener);
 
+		threadStartButton = new JCheckBox("thread start");
+		threadStartButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[1]));
+		threadStartButton.setOpaque(true);
+		threadStartButton.setMnemonic(KeyEvent.VK_S);
+		threadStartButton.addItemListener(listener);
+
+		threadTerminateButton = new JCheckBox("thread terminate");
+		threadTerminateButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[2]));
+		threadTerminateButton.setOpaque(true);
+		threadTerminateButton.setMnemonic(KeyEvent.VK_T);
+		threadTerminateButton.addItemListener(listener);
+
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, checkPanel, errorTrace);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(200);
@@ -263,6 +278,26 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
 				if (selectTable.get(cb)) {
 					errorTrace.expand(set, PaneConstants.COLOR_TABLE[0]);
+					// System.out.println("wait expand");
+
+				} else {
+					// System.out.println("wait reset");
+					errorTrace.resetContent(set);
+				}
+			} else if (cb == threadStartButton) {
+				Set<Pair<Integer, Integer>> set = td.getThreadStart();
+				if (selectTable.get(cb)) {
+					errorTrace.expand(set, PaneConstants.COLOR_TABLE[1]);
+					// System.out.println("wait expand");
+
+				} else {
+					// System.out.println("wait reset");
+					errorTrace.resetContent(set);
+				}
+			} else if (cb == threadTerminateButton) {
+				Set<Pair<Integer, Integer>> set = td.getThreadTerminate();
+				if (selectTable.get(cb)) {
+					errorTrace.expand(set, PaneConstants.COLOR_TABLE[2]);
 					// System.out.println("wait expand");
 
 				} else {
@@ -376,8 +411,15 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			// selectTable.put(expandAllButton, false);
 			waitButton.setSelected(false);
 			selectTable.put(waitButton, false);
+			threadStartButton.setSelected(false);
+			selectTable.put(threadStartButton, false);
+			threadTerminateButton.setSelected(false);
+			selectTable.put(threadTerminateButton, false);
 			// checkButtons.add(foldButton);
 			checkPanel.add(waitButton);
+			checkPanel.add(threadStartButton);
+			checkPanel.add(threadTerminateButton);
+
 			for (String s : fieldNames) {
 				JCheckBox cb = new JCheckBox("(un)lock: " + s);
 				cb.setSelected(false);
@@ -393,7 +435,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					// // zeros)
 					// String colorCode = String.format("#%06x", nextInt);
 
-					colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
+					if (colorID < 14)
+						colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
+					else
+						colors.put(s, PaneConstants.COLOR_TABLE[14]);
+
 				}
 				cb.setBackground(Color.decode(colors.get(s)));
 				cb.setOpaque(true);

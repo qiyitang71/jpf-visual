@@ -12,12 +12,14 @@ import gov.nasa.jpf.jvm.bytecode.GETFIELD;
 import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
+import gov.nasa.jpf.vm.ChoiceGenerator;
 //import gov.nasa.jpf.vm.ClassInfo;
 import gov.nasa.jpf.vm.Instruction;
-//import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
 import gov.nasa.jpf.vm.Step;
 import gov.nasa.jpf.vm.Transition;
+import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
 
 public class TraceData {
 
@@ -33,7 +35,10 @@ public class TraceData {
 	private Set<String> fieldNames = new HashSet<>();
 	private Set<Pair<Integer, Integer>> waitSet = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
+	private Set<Pair<Integer, Integer>> threadStartSet = new HashSet<>();
+	private Set<Pair<Integer, Integer>> threadTerminateSet = new HashSet<>();
 
+	
 	public TraceData(Path path) {
 		this.path = path;
 		if (path.size() == 0) {
@@ -88,8 +93,23 @@ public class TraceData {
 			for (int i = from; i <= to; i++) {
 				Transition t = path.get(i);
 				String lastLine = null;
+				//MethodInfo lastMi = null;
+
 				int nNoSrc = 0;
-				tempStr.append(t.getChoiceGenerator() + "\n");
+				ChoiceGenerator<?> cg = t.getChoiceGenerator();
+		
+				if(cg instanceof ThreadChoiceFromSet){
+					if(cg.getId() == "START"){
+						threadStartSet.add(new Pair<>(pi, height - 1));
+					}
+					if(cg.getId() == "TERMINATE"){
+						threadTerminateSet.add(new Pair<>(pi, height - 1));
+					}
+				}
+				
+				tempStr.append(cg + "\n");
+
+					
 				height++;
 				for (Step s : t) {
 					String line = s.getLineString();
@@ -115,6 +135,7 @@ public class TraceData {
 					lastLine = line;
 
 					Instruction insn = s.getInstruction();
+					MethodInfo mi = insn.getMethodInfo();
 
 					if (insn instanceof VirtualInvocation) {
 						// System.out.println("insn = " + insn);
@@ -149,6 +170,7 @@ public class TraceData {
 						// System.out.println("row = " + pi + " height =" +
 						// height);
 					}
+
 
 				}
 
@@ -194,6 +216,16 @@ public class TraceData {
 		return new HashSet<>(waitSet);
 	}
 
+	public Set<Pair<Integer, Integer>> getThreadStart() {
+		return new HashSet<>(threadStartSet);
+	}
+	
+	public Set<Pair<Integer, Integer>> getThreadTerminate() {
+		return new HashSet<>(threadTerminateSet);
+	}
+	
+
+	
 	public Set<String> getFieldNames() {
 		return new HashSet<>(fieldNames);
 	}
@@ -206,4 +238,6 @@ public class TraceData {
 		// System.out.println();
 		return new HashSet<>(lockTable.get(field));
 	}
+	
+	
 }
