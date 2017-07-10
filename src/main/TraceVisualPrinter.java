@@ -18,6 +18,8 @@
  */
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.Error;
+import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
+import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.Reporter;
 import gov.nasa.jpf.report.Statistics;
@@ -259,8 +261,8 @@ public class TraceVisualPrinter extends Publisher {
 			if (showCG) {
 				out.println(t.getChoiceGenerator());
 				out.println(t.getChoiceGenerator().getId());
-				if( t.getChoiceGenerator() instanceof ThreadChoiceFromSet){
-					
+				if (t.getChoiceGenerator() instanceof ThreadChoiceFromSet) {
+
 				}
 			}
 
@@ -288,7 +290,7 @@ public class TraceVisualPrinter extends Publisher {
 								nNoSrc = 0;
 
 							}
-							
+
 						} else { // no source
 							nNoSrc++;
 						}
@@ -303,37 +305,47 @@ public class TraceVisualPrinter extends Publisher {
 							Instruction insn = s.getInstruction();
 							if (true) {
 								MethodInfo mi = insn.getMethodInfo();
-							//	if (mi != lastMi) {
-									ClassInfo mci = mi.getClassInfo();
-									out.println("mi: " + mi.isSynchronized());
-									out.println("mi: stacktrace " + mi.getStackTraceName());
-									out.println("mi:  " + mi);
+								// if (mi != lastMi) {
+								ClassInfo mci = mi.getClassInfo();
 
-									out.print("mci:    ");
-									if (mci != null) {
-										out.print(mci.getName());
+								if (mi.isSynchronized()) {
+									out.print("mi synchronized : " + mi.isSynchronized());
+								}
+								out.println("classinfo object: " + mi.getClassInfo().getClassObject());
+								out.print("mci:    ");
+								if (mci != null) {
+									out.print(" className: " + mci.getName());
 
-										out.print(" uniquename:");
-										FieldInfo[] fi = mci.getInstanceFields();
-										out.println("FieldInfos: ");
-										if(fi != null && fi.length > 0){
-											for(int ii = 0;  ii < fi.length; ii++){
-												out.print(fi[ii].getName() + ",");
-											}
-											out.println();
+									// out.print(" uniquename:");
+									// FieldInfo[] fi = mci.getInstanceFields();
+									// out.println("FieldInfos: ");
+									// if (fi != null && fi.length > 0) {
+									// for (int ii = 0; ii < fi.length; ii++) {
+									// out.print(fi[ii].getName() + ",");
+									// }
+									// out.println();
+									//
+									// }
 
-										}
-
-									}
-									out.println(mi.getUniqueName());
-									lastMi = mi;
-							//	}
+								}
+								out.println(" mi uniqueName: " + mi.getUniqueName());
+								lastMi = mi;
+								// }
 							}
 							out.print("      ");
-							//out.print("insn Mnemonic = " + insn.getMnemonic());
-							//out.print("post exec = " + insn.toPostExecString());
+							// out.print("insn Mnemonic = " +
+							// insn.getMnemonic());
+							// out.print("post exec = " +
+							// insn.toPostExecString());
+							out.println("insn: " + insn);
+							if (insn instanceof VirtualInvocation) {
+								out.println("invoke: " + ((VirtualInvocation) insn).getInvokedMethodClassName() + "."
+										+((VirtualInvocation) insn).getInvokedMethodName());
 
-							out.println("insn: " + insn + ", class =" + insn.getClass());
+							}
+
+							// out.println("insn: " + insn + ", class =" +
+							// insn.getClass());
 						}
 					}
 

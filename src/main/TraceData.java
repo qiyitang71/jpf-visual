@@ -13,6 +13,7 @@ import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.ChoiceGenerator;
+import gov.nasa.jpf.vm.ClassInfo;
 //import gov.nasa.jpf.vm.ClassInfo;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.MethodInfo;
@@ -36,9 +37,11 @@ public class TraceData {
 	private Set<Pair<Integer, Integer>> waitSet = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
 	private Set<Pair<Integer, Integer>> threadStartSet = new HashSet<>();
-	//private Set<Pair<Integer, Integer>> threadTerminateSet = new HashSet<>();
+	private Map<Integer, List<TextLine>> lineTable = new HashMap<>();
+	private Set<String> lockMethodName = new HashSet<>();
 
-	
+	// private Set<Pair<Integer, Integer>> threadTerminateSet = new HashSet<>();
+
 	public TraceData(Path path) {
 		this.path = path;
 		if (path.size() == 0) {
@@ -87,28 +90,35 @@ public class TraceData {
 			int to = p._2;
 			int height = 0;
 			StringBuilder tempStr = new StringBuilder();
-
 			String fieldName = "";
+
+			ArrayList<TextLine> lineList = new ArrayList<>();
+			lineTable.put(pi, lineList);
 
 			for (int i = from; i <= to; i++) {
 				Transition t = path.get(i);
 				String lastLine = null;
-				//MethodInfo lastMi = null;
+				// MethodInfo lastMi = null;
 
 				int nNoSrc = 0;
 				ChoiceGenerator<?> cg = t.getChoiceGenerator();
-		
-				if(cg instanceof ThreadChoiceFromSet){
-					if(cg.getId() == "START" || cg.getId() == "JOIN"){
+
+				if (cg instanceof ThreadChoiceFromSet) {
+					if (cg.getId() == "START" || cg.getId() == "JOIN") {
 						threadStartSet.add(new Pair<>(pi, height - 1));
 					}
 				}
-				
-				tempStr.append(cg + "\n");
 
-					
+				tempStr.append(cg + "\n");
+				TextLine txt = new TextLine(cg.toString(), true, false, t, pi, height);
+				lineList.add(txt);
+
 				height++;
-				for (Step s : t) {
+				boolean isFirst = true;
+				TextLine txtSrc = null;
+				int lastSi = 0;
+				for (int si = 0; si < t.getStepCount(); si++) {
+					Step s = t.getStep(si);
 					String line = s.getLineString();
 					if (line != null) {
 						String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$", "")
@@ -116,13 +126,25 @@ public class TraceData {
 
 						if (!line.equals(lastLine) && src.length() > 1) {
 							if (nNoSrc > 0) {
-								tempStr.append(" [" + nNoSrc + " insn w/o sources]" + "\n");
+								String noSrc = " [" + nNoSrc + " insn w/o sources]";
+								tempStr.append(noSrc + "\n");
+								txtSrc = new TextLine(noSrc, false, false, t, pi, height);
+								lineList.add(txtSrc);
 								height++;
 							}
 							tempStr.append(" ");
 							tempStr.append(Left.format(s.getLocationString(), 30));
 							tempStr.append(": ");
 							tempStr.append(src + "\n");
+
+							txtSrc = new TextLine(src, false, true, t, pi, height);
+							txtSrc.setStartStep(si);
+							if (isFirst) {
+								isFirst = false;
+								txtSrc.setFirst();
+							}
+							lineList.add(txtSrc);
+
 							height++;
 							nNoSrc = 0;
 						}
@@ -131,8 +153,19 @@ public class TraceData {
 					}
 					lastLine = line;
 
+					if (line != null && txtSrc != null) {
+						txtSrc.setEndStep(si);
+					}
+
 					Instruction insn = s.getInstruction();
 					MethodInfo mi = insn.getMethodInfo();
+
+					if (line != null && mi.isSynchronized()) {
+						ClassInfo mci = mi.getClassInfo();
+						if (mci != null && mi.getUniqueName() != null) {
+							lockMethodName.add(mci.getName() + "." + mi.getUniqueName());
+						}
+					}
 
 					if (insn instanceof VirtualInvocation) {
 						// System.out.println("insn = " + insn);
@@ -168,7 +201,6 @@ public class TraceData {
 						// height);
 					}
 
-
 				}
 
 			}
@@ -176,6 +208,49 @@ public class TraceData {
 			detailList.add(tempStr.toString());
 			heightList.add(height);
 
+			/**
+			 * set last line
+			 */
+			for (int li = lineList.size() - 1; li >= 0; li--) {
+				if (lineList.get(li).isSrc()) {
+					lineList.get(li).setLast();
+					break;
+				}
+			}
+
+		}
+
+		/**
+		 * synchronized methods
+		 */
+		if (!lockMethodName.isEmpty()) {
+			for (List<TextLine> list : lineTable.values()) {
+				for (TextLine tl : list) {
+					if (tl.isSrc()) {
+						for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
+							Step s = tl.getTransition().getStep(si);
+							Instruction insn = s.getInstruction();
+							if (insn instanceof VirtualInvocation) {
+								VirtualInvocation vinsn = (VirtualInvocation) insn;
+								String cName = vinsn.getInvokedMethodClassName();
+								String tmp = cName + "." + vinsn.getInvokedMethodName();
+								Pair<Integer, Integer> pair = new Pair<>(tl.getGroupNum(), tl.getLineNum());
+
+								if (lockMethodName.contains(tmp)) {
+									if (fieldNames.contains(cName)) {
+										lockTable.get(cName).add(pair);
+									} else {
+										fieldNames.add(cName);
+										Set<Pair<Integer, Integer>> newSet = new HashSet<>();
+										newSet.add(pair);
+										lockTable.put(cName, newSet);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 
 	}
@@ -216,13 +291,11 @@ public class TraceData {
 	public Set<Pair<Integer, Integer>> getThreadStart() {
 		return new HashSet<>(threadStartSet);
 	}
-	
-//	public Set<Pair<Integer, Integer>> getThreadTerminate() {
-//		return new HashSet<>(threadTerminateSet);
-//	}
-	
 
-	
+	// public Set<Pair<Integer, Integer>> getThreadTerminate() {
+	// return new HashSet<>(threadTerminateSet);
+	// }
+
 	public Set<String> getFieldNames() {
 		return new HashSet<>(fieldNames);
 	}
@@ -233,8 +306,12 @@ public class TraceData {
 		// System.out.print("(" + p._1 + ", " + p._2 + ")" + ", ");
 		// }
 		// System.out.println();
+		if (!lockMethodName.isEmpty()) {
+			for (String str : lockMethodName) {
+				System.out.println(str);
+			}
+		}
 		return new HashSet<>(lockTable.get(field));
 	}
-	
-	
+
 }
