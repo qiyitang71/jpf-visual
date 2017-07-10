@@ -36,7 +36,7 @@ public class TraceData {
 	private Set<Pair<Integer, Integer>> waitSet = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
 	private Set<Pair<Integer, Integer>> threadStartSet = new HashSet<>();
-	private Set<Pair<Integer, Integer>> threadTerminateSet = new HashSet<>();
+	//private Set<Pair<Integer, Integer>> threadTerminateSet = new HashSet<>();
 
 	
 	public TraceData(Path path) {
@@ -99,11 +99,8 @@ public class TraceData {
 				ChoiceGenerator<?> cg = t.getChoiceGenerator();
 		
 				if(cg instanceof ThreadChoiceFromSet){
-					if(cg.getId() == "START"){
+					if(cg.getId() == "START" || cg.getId() == "JOIN"){
 						threadStartSet.add(new Pair<>(pi, height - 1));
-					}
-					if(cg.getId() == "TERMINATE"){
-						threadTerminateSet.add(new Pair<>(pi, height - 1));
 					}
 				}
 				
@@ -220,9 +217,9 @@ public class TraceData {
 		return new HashSet<>(threadStartSet);
 	}
 	
-	public Set<Pair<Integer, Integer>> getThreadTerminate() {
-		return new HashSet<>(threadTerminateSet);
-	}
+//	public Set<Pair<Integer, Integer>> getThreadTerminate() {
+//		return new HashSet<>(threadTerminateSet);
+//	}
 	
 
 	

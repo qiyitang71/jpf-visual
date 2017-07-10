@@ -32,6 +32,7 @@ import javax.swing.JSplitPane;
 //import javax.swing.event.ListSelectionEvent;
 //import javax.swing.event.ListSelectionListener;
 
+import java.util.ArrayList;
 //import java.util.ArrayList;
 import java.util.HashMap;
 //import java.util.HashSet;
@@ -64,7 +65,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private ItemListener listener = null;
 	// private ItemListener buttonListener = null;
 	private Map<String, String> colors = new HashMap<>();
-	private int colorID = 3;
+	private int colorID = 2;
 	// private JCheckBox foldAllButton;
 	private JButton foldAllButton;
 	private boolean isFoldSelected;
@@ -75,7 +76,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 	private JCheckBox waitButton;
 	private JCheckBox threadStartButton;
-	private JCheckBox threadTerminateButton;
+	//private JCheckBox threadTerminateButton;
 
 	private Map<JCheckBox, Boolean> selectTable;// = new LinkedHashMap<>();
 
@@ -244,17 +245,17 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		waitButton.setMnemonic(KeyEvent.VK_W);
 		waitButton.addItemListener(listener);
 
-		threadStartButton = new JCheckBox("thread start");
+		threadStartButton = new JCheckBox("thread start/join");
 		threadStartButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[1]));
 		threadStartButton.setOpaque(true);
 		threadStartButton.setMnemonic(KeyEvent.VK_S);
 		threadStartButton.addItemListener(listener);
 
-		threadTerminateButton = new JCheckBox("thread terminate");
-		threadTerminateButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[2]));
-		threadTerminateButton.setOpaque(true);
-		threadTerminateButton.setMnemonic(KeyEvent.VK_T);
-		threadTerminateButton.addItemListener(listener);
+//		threadTerminateButton = new JCheckBox("thread terminate");
+//		threadTerminateButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[2]));
+//		threadTerminateButton.setOpaque(true);
+//		threadTerminateButton.setMnemonic(KeyEvent.VK_T);
+//		threadTerminateButton.addItemListener(listener);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, checkPanel, errorTrace);
 		splitPane.setOneTouchExpandable(true);
@@ -294,17 +295,19 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					// System.out.println("wait reset");
 					errorTrace.resetContent(set);
 				}
-			} else if (cb == threadTerminateButton) {
-				Set<Pair<Integer, Integer>> set = td.getThreadTerminate();
-				if (selectTable.get(cb)) {
-					errorTrace.expand(set, PaneConstants.COLOR_TABLE[2]);
-					// System.out.println("wait expand");
-
-				} else {
-					// System.out.println("wait reset");
-					errorTrace.resetContent(set);
-				}
-			} else if (selectTable.get(cb)) {
+			} 
+//			else if (cb == threadTerminateButton) {
+//				Set<Pair<Integer, Integer>> set = td.getThreadTerminate();
+//				if (selectTable.get(cb)) {
+//					errorTrace.expand(set, PaneConstants.COLOR_TABLE[2]);
+//					// System.out.println("wait expand");
+//
+//				} else {
+//					// System.out.println("wait reset");
+//					errorTrace.resetContent(set);
+//				}
+//			} 
+			else if (selectTable.get(cb)) {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
 				errorTrace.expand(set, colors.get(str));
@@ -413,12 +416,12 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			selectTable.put(waitButton, false);
 			threadStartButton.setSelected(false);
 			selectTable.put(threadStartButton, false);
-			threadTerminateButton.setSelected(false);
-			selectTable.put(threadTerminateButton, false);
+			//threadTerminateButton.setSelected(false);
+			//selectTable.put(threadTerminateButton, false);
 			// checkButtons.add(foldButton);
 			checkPanel.add(waitButton);
 			checkPanel.add(threadStartButton);
-			checkPanel.add(threadTerminateButton);
+			//checkPanel.add(threadTerminateButton);
 
 			for (String s : fieldNames) {
 				JCheckBox cb = new JCheckBox("(un)lock: " + s);
