@@ -471,7 +471,8 @@ public class NewContent {
 
 								int summaryLineNum = 0;
 								boolean srcInBetween = false;
-
+								boolean cgInBetween = false;
+								String lastLine = null;
 								// System.out.println(sumContentStyle);
 								for (TextLine tl : lineTable.get(ithRow)) {
 
@@ -486,6 +487,10 @@ public class NewContent {
 											summaryContent.setId("-1");
 											summaryLineNum++;
 											srcInBetween = false;
+										} else if (cgInBetween && lastLine != null && lastLine.equals(tl.getText())) {
+											cgInBetween = false;
+											srcInBetween = true;
+											continue;
 										}
 
 										String styleStr = "summaryContent" + ithRow;
@@ -500,7 +505,7 @@ public class NewContent {
 										summaryContent.setId(lineNum + "");
 										summaryContent.setConnectable(false);
 										summaryLineNum++;
-
+										lastLine = tl.getText();
 									} else if (lineSet.contains(lineNum)) {
 										if (!reset) {
 											if (srcInBetween) {
@@ -511,6 +516,11 @@ public class NewContent {
 												summaryContent.setConnectable(false);
 												summaryLineNum++;
 												srcInBetween = false;
+											} else if (cgInBetween && lastLine.equals(tl.getText())) {
+												System.out.println("cg in between and ignore the line");
+												cgInBetween = false;
+												srcInBetween = true;
+												continue;
 											}
 											System.out.println("draw " + tl.getLineNum());
 											summaryLineNum++;
@@ -519,7 +529,7 @@ public class NewContent {
 													"sumhighlight" + ithRow + color);
 											summaryContent.setConnectable(false);
 											summaryContent.setId("" + lineNum);
-
+											lastLine = tl.getText();
 										} else {
 											srcInBetween = true;
 										}
@@ -529,13 +539,13 @@ public class NewContent {
 
 										((mxCell) swimCell).insert(removedCells.get(lineNum));
 										summaryLineNum++;
+										lastLine = tl.getText();
 
-										// graph.getStylesheet().getStyles()
-										// .get(removedCells.get(lineNum).getStyle()).put(mxConstants.STYLE_SPACING_LEFT,
-										// );
 										System.out.println("insert " + lineNum);
 									} else if (tl.isSrc()) {
 										srcInBetween = true;
+									} else if (tl.isCG()) {
+										cgInBetween = true;
 									}
 								}
 								double tmpHt = htPerLine * summaryLineNum + 10;
