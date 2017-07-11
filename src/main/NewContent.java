@@ -33,7 +33,7 @@ public class NewContent {
 	private Path path;
 	private List<Pair<Integer, Integer>> group = new ArrayList<>();
 	private Map<Integer, List<TextLine>> lineTable;
-	private int htPerLine;
+	private double htPerLine;
 
 	public NewContent(int width, int nThreads, Path p, List<Pair<Integer, Integer>> grp, List<String> detailList,
 			List<Integer> heightList, Map<Integer, List<TextLine>> lt) {
@@ -162,8 +162,8 @@ public class NewContent {
 						// swim's parent is rightCell
 						mxCell rightCell = (mxCell) c.getParent();
 						int ithRow = Integer.parseInt(rightCell.getId());
-						htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(contentStyle)).getHeight();
-						int currHt = (heightList.get(ithRow) + 1) * htPerLine + 7 + 10;
+						htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(contentStyle)).getHeight() + 5;
+						double currHt = (heightList.get(ithRow) + 1) * htPerLine + 7 + 10;
 						model.getGeometry(rightCell).setHeight(currHt);
 
 						// graph.resizeCell(rightCell,
@@ -206,8 +206,8 @@ public class NewContent {
 			for (int ithRow = 0; ithRow < numOfRows; ithRow++) {
 				int from = group.get(ithRow)._1;
 				int to = group.get(ithRow)._2;
-				htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(contentStyle)).getHeight();
-				int currHt = (heightList.get(ithRow) + 1) * htPerLine + 5 + 10;
+				htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(contentStyle)).getHeight() + 5;
+				double currHt = (heightList.get(ithRow) + 1) * htPerLine + 5 + 10;
 
 				/**
 				 * The big box around the first row
@@ -309,7 +309,7 @@ public class NewContent {
 						srcInBetween = true;
 					}
 				}
-				int sumHt = sumNum * htPerLine + 10;
+				double sumHt = sumNum * htPerLine + 10;
 				model.getGeometry(summaryCell).setHeight(sumHt);
 				summaryCell.setVisible(false);
 
@@ -474,9 +474,7 @@ public class NewContent {
 
 								// System.out.println(sumContentStyle);
 								for (TextLine tl : lineTable.get(ithRow)) {
-									if (!tl.isSrc()) {
-										continue;
-									}
+
 									int lineNum = tl.getLineNum();
 									if (tl.isFirst() || tl.isLast()) {
 										System.out.println("draw " + tl.getLineNum());
@@ -493,14 +491,12 @@ public class NewContent {
 										String styleStr = "summaryContent" + ithRow;
 										if (!reset && lineSet.contains(lineNum)) {
 											styleStr = "sumhighlight" + ithRow + color;
-										}else if( !lineSet.contains(lineNum) && removedCells.containsKey(lineNum)){
+										} else if (!lineSet.contains(lineNum) && removedCells.containsKey(lineNum)) {
 											styleStr = removedCells.get(lineNum).getStyle();
 										}
 										mxCell summaryContent = (mxCell) graph.insertVertex(swimCell, null,
 												tl.getText(), 0, 0, numOfThreads * cellWidth, htPerLine, styleStr);
 
-										
-										
 										summaryContent.setId(lineNum + "");
 										summaryContent.setConnectable(false);
 										summaryLineNum++;
@@ -524,8 +520,11 @@ public class NewContent {
 											summaryContent.setConnectable(false);
 											summaryContent.setId("" + lineNum);
 
+										} else {
+											srcInBetween = true;
 										}
 									} else if (removedCells.containsKey(lineNum)) {
+
 										System.out.println("draw " + tl.getLineNum());
 
 										((mxCell) swimCell).insert(removedCells.get(lineNum));
@@ -539,7 +538,7 @@ public class NewContent {
 										srcInBetween = true;
 									}
 								}
-								int tmpHt = htPerLine * summaryLineNum + 10;
+								double tmpHt = htPerLine * summaryLineNum + 10;
 
 								model.getGeometry(swimCell).setHeight(tmpHt);
 								if (((mxCell) swimCell).isVisible()) {
