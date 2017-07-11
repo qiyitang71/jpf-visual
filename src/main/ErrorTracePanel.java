@@ -76,7 +76,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 	private JCheckBox waitButton;
 	private JCheckBox threadStartButton;
-	//private JCheckBox threadTerminateButton;
+	// private JCheckBox threadTerminateButton;
 
 	private Map<JCheckBox, Boolean> selectTable;// = new LinkedHashMap<>();
 
@@ -251,11 +251,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		threadStartButton.setMnemonic(KeyEvent.VK_S);
 		threadStartButton.addItemListener(listener);
 
-//		threadTerminateButton = new JCheckBox("thread terminate");
-//		threadTerminateButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[2]));
-//		threadTerminateButton.setOpaque(true);
-//		threadTerminateButton.setMnemonic(KeyEvent.VK_T);
-//		threadTerminateButton.addItemListener(listener);
+		// threadTerminateButton = new JCheckBox("thread terminate");
+		// threadTerminateButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[2]));
+		// threadTerminateButton.setOpaque(true);
+		// threadTerminateButton.setMnemonic(KeyEvent.VK_T);
+		// threadTerminateButton.addItemListener(listener);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, checkPanel, errorTrace);
 		splitPane.setOneTouchExpandable(true);
@@ -278,12 +278,15 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			if (cb == waitButton) {
 				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
 				if (selectTable.get(cb)) {
-					errorTrace.expand(set, PaneConstants.COLOR_TABLE[0]);
-					// System.out.println("wait expand");
+					System.out.println("wait start expand");
 
+					errorTrace.expand(set, PaneConstants.COLOR_TABLE[0]);
+					System.out.println("wait end expand");
 				} else {
-					// System.out.println("wait reset");
+					System.out.println("wait start reset");
 					errorTrace.resetContent(set);
+					System.out.println("wait end reset");
+
 				}
 			} else if (cb == threadStartButton) {
 				Set<Pair<Integer, Integer>> set = td.getThreadStart();
@@ -295,29 +298,22 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					// System.out.println("wait reset");
 					errorTrace.resetContent(set);
 				}
-			} 
-//			else if (cb == threadTerminateButton) {
-//				Set<Pair<Integer, Integer>> set = td.getThreadTerminate();
-//				if (selectTable.get(cb)) {
-//					errorTrace.expand(set, PaneConstants.COLOR_TABLE[2]);
-//					// System.out.println("wait expand");
-//
-//				} else {
-//					// System.out.println("wait reset");
-//					errorTrace.resetContent(set);
-//				}
-//			} 
-			else if (selectTable.get(cb)) {
+			} else if (selectTable.get(cb)) {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
+				System.out.println("expand start " + "(un)lock " + str);
+
 				errorTrace.expand(set, colors.get(str));
-				// System.out.println("expand " + "(un)lock " + str);
+				System.out.println("expand end " + "(un)lock " + str);
 
 			} else {
 				String str = cb.getText().replace("(un)lock: ", "");
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
+				System.out.println("reset start " + "(un)lock " + str);
+
+
 				errorTrace.resetContent(set);
-				// System.out.println("reset " + "(un)lock " + str);
+				System.out.println("reset end " + "(un)lock " + str);
 
 			}
 		}
@@ -416,12 +412,12 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			selectTable.put(waitButton, false);
 			threadStartButton.setSelected(false);
 			selectTable.put(threadStartButton, false);
-			//threadTerminateButton.setSelected(false);
-			//selectTable.put(threadTerminateButton, false);
+			// threadTerminateButton.setSelected(false);
+			// selectTable.put(threadTerminateButton, false);
 			// checkButtons.add(foldButton);
 			checkPanel.add(waitButton);
 			checkPanel.add(threadStartButton);
-			//checkPanel.add(threadTerminateButton);
+			// checkPanel.add(threadTerminateButton);
 
 			for (String s : fieldNames) {
 				JCheckBox cb = new JCheckBox("(un)lock: " + s);

@@ -94,7 +94,8 @@ public class TraceData {
 
 			ArrayList<TextLine> lineList = new ArrayList<>();
 			lineTable.put(pi, lineList);
-
+			
+			boolean isFirst = true;
 			for (int i = from; i <= to; i++) {
 				Transition t = path.get(i);
 				String lastLine = null;
@@ -114,7 +115,6 @@ public class TraceData {
 				lineList.add(txt);
 
 				height++;
-				boolean isFirst = true;
 				TextLine txtSrc = null;
 				int lastSi = 0;
 				for (int si = 0; si < t.getStepCount(); si++) {
@@ -306,12 +306,16 @@ public class TraceData {
 		// System.out.print("(" + p._1 + ", " + p._2 + ")" + ", ");
 		// }
 		// System.out.println();
-		if (!lockMethodName.isEmpty()) {
-			for (String str : lockMethodName) {
-				System.out.println(str);
-			}
-		}
+		// if (!lockMethodName.isEmpty()) {
+		// for (String str : lockMethodName) {
+		// System.out.println(str);
+		// }
+		// }
 		return new HashSet<>(lockTable.get(field));
+	}
+	
+	public Map<Integer, List<TextLine>> getLineTable(){
+		return new HashMap<>(lineTable);
 	}
 
 }

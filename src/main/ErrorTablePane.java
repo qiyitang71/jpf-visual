@@ -12,6 +12,7 @@ import java.awt.event.KeyListener;
 import java.util.BitSet;
 //import java.util.EventObject;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -71,6 +72,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		List<String> detailList = td.getDetailList();
 		List<Integer> heightList = td.getHeightList();
 		List<String> threadNames = td.getThreadNames();
+		Map<Integer, List<TextLine>> lineTable = td.getLineTable();
 
 		int cellWidth = (int) (Math.floor(
 				(splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE)
@@ -78,7 +80,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		// content = new ContentPane(cellWidth, numOfThreads, path, group,
 		// detailList, heightList);
-		content = new NewContent(cellWidth, numOfThreads, path, group, detailList, heightList);
+		content = new NewContent(cellWidth, numOfThreads, path, group, detailList, heightList, lineTable);
 
 		mxGraph graph = content.getGraph();
 		graphComponent.setGraph(graph);
