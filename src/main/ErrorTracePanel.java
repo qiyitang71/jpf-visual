@@ -8,22 +8,33 @@ import gov.nasa.jpf.shell.util.ProgressTrackerUI;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
+import java.awt.BorderLayout;
 //import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
 //import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 //import javax.swing.JList;
 import javax.swing.JPanel;
 //import javax.swing.JScrollPane;
@@ -31,6 +42,7 @@ import javax.swing.JSplitPane;
 //import javax.swing.ListSelectionModel;
 //import javax.swing.event.ListSelectionEvent;
 //import javax.swing.event.ListSelectionListener;
+import javax.swing.ListCellRenderer;
 
 import java.util.ArrayList;
 //import java.util.ArrayList;
@@ -61,7 +73,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private CardLayout layout = new CardLayout();
 	private Path path;
 	private TraceData td = null;
-	private JPanel checkPanel = new JPanel(new GridLayout(0, 1));
+	private JPanel checkPanel = new JPanel();// new GridLayout(0, 1)
 	private ItemListener listener = null;
 	// private ItemListener buttonListener = null;
 	private Map<String, String> colors = new HashMap<>();
@@ -311,7 +323,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				Set<Pair<Integer, Integer>> set = td.getLocks(str);
 				System.out.println("reset start " + "(un)lock " + str);
 
-
 				errorTrace.resetContent(set);
 				System.out.println("reset end " + "(un)lock " + str);
 
@@ -446,6 +457,63 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				checkPanel.add(cb);
 			}
 
+			int remainColors = 15 - colorID;
+
+			/**
+			 * add drop down list
+			 */
+
+			JLabel dropDownLabel = new JLabel("Highlight other");
+			//checkPanel.add(dropDownLabel);
+			String[] dropDownStrs = { "Class.field", "Class.method", };
+			ImageIcon removeIcon = null;
+			File f = new File("remove.png");
+			if (f.exists() && !f.isDirectory()) {
+				removeIcon = new ImageIcon("remove.png");
+			} else {
+				System.err.println("Couldn't find file: " + "remove.png");
+			}
+
+			// double scale = 0.001;
+			// if (removeIcon != null) {
+			// Image src = removeIcon.getImage();
+			// int w = 10;
+			// int h = 10;
+			// int type = BufferedImage.TYPE_INT_RGB;
+			// BufferedImage dst = new BufferedImage(w, h, type);
+			// Graphics2D g2 = dst.createGraphics();
+			// g2.drawImage(src, 0, 0, w, h, this);
+			// g2.dispose();
+			// removeIcon = new ImageIcon(dst);
+			// }
+
+			// final ImageIcon icon = removeIcon;
+
+			Integer[] intArray = new Integer[2];
+			for (int i = 0; i < 2; i++) {
+				intArray[i] = i;
+			}
+			JComboBox highlightList = new JComboBox(intArray) {
+				@Override
+				public Dimension getMaximumSize() {
+					Dimension max = super.getMaximumSize();
+					max.height = getPreferredSize().height;
+					return max;
+				}
+
+			};
+
+			highlightList.getRenderer();
+			ComboBoxRenderer renderer = new ComboBoxRenderer(removeIcon, dropDownStrs);
+			renderer.setPreferredSize(new Dimension(50, 30));
+			highlightList.setRenderer(renderer);
+			highlightList.setMaximumRowCount(remainColors);
+			highlightList.setAlignmentX(0);
+			highlightList.setAlignmentY(0);
+			;
+
+			checkPanel.add(highlightList);
+
 			layout.show(this, TOPICS);
 			getShell().requestFocus(this);
 
@@ -453,6 +521,64 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			ShellManager.getManager().getConfig().put("report.publisher", publishers);
 			publishers = null;
 		}
+	}
+
+	@SuppressWarnings("serial")
+	class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+		private Font uhOhFont;
+		ImageIcon removeIcon;
+		String[] dropDownStrs;
+
+		public ComboBoxRenderer(ImageIcon removeIcon, String[] dropDownStrs) {
+			this.removeIcon = removeIcon;
+			this.dropDownStrs = dropDownStrs;
+			setOpaque(true);
+			setHorizontalAlignment(LEFT);
+			setVerticalAlignment(TOP);
+		}
+
+		/*
+		 * This method finds the image and text corresponding to the selected
+		 * value and returns the label, set up to display the text and image.
+		 */
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+				boolean cellHasFocus) {
+			// Get the selected index. (The index param isn't
+			// always valid, so just use the value.)
+			// System.out.println(value);
+
+			int selectedIndex = ((Integer) value).intValue();
+			System.out.println(selectedIndex);
+			if (isSelected) {
+				setBackground(list.getSelectionBackground());
+				setForeground(list.getSelectionForeground());
+			} else {
+				setBackground(list.getBackground());
+				setForeground(list.getForeground());
+			}
+
+			// Set the icon and text. If icon was null, say so.
+			String item = dropDownStrs[selectedIndex];
+			setIcon(removeIcon);
+			if (removeIcon != null) {
+				setText(item);
+				setFont(list.getFont());
+			} else {
+				setUhOhText(item + " (no image available)", list.getFont());
+			}
+
+			return this;
+		}
+
+		// Set the font and text when no image was found.
+		protected void setUhOhText(String uhOhText, Font normalFont) {
+			if (uhOhFont == null) { // lazily create this font
+				uhOhFont = normalFont.deriveFont(Font.ITALIC);
+			}
+			setFont(uhOhFont);
+			setText(uhOhText);
+		}
+
 	}
 
 	public void exceptionDuringVerify(Exception ex) {
