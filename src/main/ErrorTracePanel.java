@@ -24,6 +24,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -464,7 +466,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			 */
 
 			JLabel dropDownLabel = new JLabel("Highlight other");
-			//checkPanel.add(dropDownLabel);
+			// checkPanel.add(dropDownLabel);
 			String[] dropDownStrs = { "Class.field", "Class.method", };
 			ImageIcon removeIcon = null;
 			File f = new File("remove.png");
@@ -489,11 +491,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 			// final ImageIcon icon = removeIcon;
 
-			Integer[] intArray = new Integer[2];
-			for (int i = 0; i < 2; i++) {
-				intArray[i] = i;
-			}
-			JComboBox highlightList = new JComboBox(intArray) {
+//			Integer[] intArray = new Integer[2];
+//			for (int i = 0; i < 2; i++) {
+//				intArray[i] = i;
+//			}
+			JComboBox highlightList = new JComboBox(dropDownStrs) {
 				@Override
 				public Dimension getMaximumSize() {
 					Dimension max = super.getMaximumSize();
@@ -503,14 +505,14 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 			};
 
-			highlightList.getRenderer();
-			ComboBoxRenderer renderer = new ComboBoxRenderer(removeIcon, dropDownStrs);
-			renderer.setPreferredSize(new Dimension(50, 30));
-			highlightList.setRenderer(renderer);
+			//ComboBoxRenderer renderer = new ComboBoxRenderer(removeIcon, dropDownStrs, highlightList);
+			//renderer.setPreferredSize(new Dimension(50, 30));
 			highlightList.setMaximumRowCount(remainColors);
 			highlightList.setAlignmentX(0);
 			highlightList.setAlignmentY(0);
-			;
+			highlightList.setRenderer(new ComboBoxRenderer(removeIcon, highlightList));
+
+			
 
 			checkPanel.add(highlightList);
 
@@ -524,18 +526,37 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	}
 
 	@SuppressWarnings("serial")
-	class ComboBoxRenderer extends JLabel implements ListCellRenderer {
-		private Font uhOhFont;
+	class ComboBoxRenderer extends JPanel implements ListCellRenderer {
+		//private Font uhOhFont;
 		ImageIcon removeIcon;
-		String[] dropDownStrs;
+		JLabel label;
+		JButton button;
 
-		public ComboBoxRenderer(ImageIcon removeIcon, String[] dropDownStrs) {
+		public ComboBoxRenderer(ImageIcon removeIcon, final JComboBox combo) {
+			super(new BorderLayout());
 			this.removeIcon = removeIcon;
-			this.dropDownStrs = dropDownStrs;
-			setOpaque(true);
-			setHorizontalAlignment(LEFT);
-			setVerticalAlignment(TOP);
+	        this.label = new JLabel();
+			this.button = new JButton(removeIcon);
+			this.button.setPreferredSize(new Dimension(removeIcon.getIconWidth(), removeIcon.getIconHeight()));
+			this.button.setBorderPainted(false);
+			this.add(label);
+			this.add(button, BorderLayout.EAST);
+			this.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent e) {
+					if (button.getX() < e.getX()) {
+						System.out.println("button contains the click remove the item");
+						combo.removeItem(label.getText());
+					}
+				}
+			});
+			// setHorizontalTextPosition(LEFT);
+
+			// setHorizontalAlignment(LEFT);
+			// setVerticalAlignment(TOP);
 		}
+
+		boolean isFirst = true;
 
 		/*
 		 * This method finds the image and text corresponding to the selected
@@ -546,9 +567,20 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			// Get the selected index. (The index param isn't
 			// always valid, so just use the value.)
 			// System.out.println(value);
+			if (isFirst) {
+				isFirst = false;
+				list.addMouseListener(new MouseAdapter() {
 
-			int selectedIndex = ((Integer) value).intValue();
-			System.out.println(selectedIndex);
+					@Override
+					public void mousePressed(MouseEvent e) {
+						dispatchEvent(e);
+						e.consume();
+					}
+				});
+			}
+
+			//int selectedIndex = ((Integer) value).intValue();
+			// System.out.println(selectedIndex);
 			if (isSelected) {
 				setBackground(list.getSelectionBackground());
 				setForeground(list.getSelectionForeground());
@@ -558,26 +590,28 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			}
 
 			// Set the icon and text. If icon was null, say so.
-			String item = dropDownStrs[selectedIndex];
-			setIcon(removeIcon);
+			String item = (String) value; //dropDownStrs[selectedIndex];
+			button.setIcon(removeIcon);
 			if (removeIcon != null) {
-				setText(item);
-				setFont(list.getFont());
+				label.setText(item);
+				label.setFont(list.getFont());
 			} else {
-				setUhOhText(item + " (no image available)", list.getFont());
+				label.setText(item + " (no image available)");
+				label.setFont(list.getFont());
+
 			}
 
 			return this;
 		}
 
-		// Set the font and text when no image was found.
-		protected void setUhOhText(String uhOhText, Font normalFont) {
-			if (uhOhFont == null) { // lazily create this font
-				uhOhFont = normalFont.deriveFont(Font.ITALIC);
-			}
-			setFont(uhOhFont);
-			setText(uhOhText);
-		}
+		// // Set the font and text when no image was found.
+		// protected void setUhOhText(String uhOhText, Font normalFont) {
+		// if (uhOhFont == null) { // lazily create this font
+		// uhOhFont = normalFont.deriveFont(Font.ITALIC);
+		// }
+		// setFont(uhOhFont);
+		// setText(uhOhText);
+		// }
 
 	}
 
