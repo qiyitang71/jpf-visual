@@ -474,17 +474,40 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					if (e.getSource() instanceof JComboBox<?>) {
 						JComboBox<?> cb = (JComboBox<?>) e.getSource();
 						String newSelection = (String) cb.getSelectedItem();
+						String userInput;
+						boolean isField = true;
 						if (newSelection.contains("Field")) {
-							showDialog("field", checkPanel);
+							userInput = showDialog("field", checkPanel);
 						} else {
-							showDialog("method",checkPanel);
+							userInput = showDialog("method", checkPanel);
+							isField = false;
 						}
 						cb.setSelectedIndex(0);
+
+						if (!userInput.contains(".")) {
+							JOptionPane.showMessageDialog(checkPanel,
+									"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",
+									"Error message", JOptionPane.ERROR_MESSAGE);
+						} else {
+
+							String[] splitStr = userInput.split("\\.");
+							if (splitStr.length != 2 || splitStr[0].length() == 0 || splitStr[1].length() == 0) {
+								JOptionPane.showMessageDialog(checkPanel,
+										"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",
+										"Error message", JOptionPane.ERROR_MESSAGE);
+							} else {
+								String clsName = splitStr[0];
+								String fmName = splitStr[1];
+								//use trace data to find clsname.fmName
+
+							}
+						}
+
 					}
 
 				}
 			}
-			
+
 			String[] dropDownStrs = { "", "Field Access ...", "Method call ..." };
 			JComboBox highlightList = new JComboBox(dropDownStrs) {
 				@Override
@@ -496,14 +519,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 			};
 
-			
 			highlightList.setMaximumRowCount(3);
 			highlightList.setAlignmentX(0);
 			highlightList.setAlignmentY(0);
 			highlightList.addActionListener(new dropDownListener());
 			checkPanel.add(highlightList);
-
-
 
 			layout.show(this, TOPICS);
 			getShell().requestFocus(this);
@@ -514,32 +534,19 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		}
 	}
 
-	public void showDialog(String str, Component comp) {
-		 String userInput;
+	public String showDialog(String str, Component comp) {
+		String userInput;
 		if (str.equals("field")) {
-			  userInput = (String)JOptionPane.showInputDialog(
-                     comp,
-                     "Input:\n"
-                             + "Class.field",
-                     "Text input",
-                     JOptionPane.PLAIN_MESSAGE,
-                     null,
-                     null,
-                     "Class.field");
+			userInput = (String) JOptionPane.showInputDialog(comp, "Input:\n" + "Class.field", "Text input",
+					JOptionPane.PLAIN_MESSAGE, null, null, "Class.field");
 		} else {
-			 userInput = (String)JOptionPane.showInputDialog(
-                     comp,
-                     "Input:\n"
-                     + "Class.method",
-                     "Text input",
-                     JOptionPane.PLAIN_MESSAGE,
-                     null,
-                     null,
-                     "Class.method");
+			userInput = (String) JOptionPane.showInputDialog(comp, "Input:\n" + "Class.method", "Text input",
+					JOptionPane.PLAIN_MESSAGE, null, null, "Class.method");
 		}
-		
+		// do things with user input;
 		System.out.println(userInput);
-		
+		return userInput;
+
 	}
 
 	public void exceptionDuringVerify(Exception ex) {
