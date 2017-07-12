@@ -37,6 +37,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 //import javax.swing.JList;
 import javax.swing.JPanel;
 //import javax.swing.JScrollPane;
@@ -465,7 +466,26 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			 * add drop down list
 			 */
 
-			String[] dropDownStrs = {"",  "Class.field", "Class.method" };
+			class dropDownListener implements ActionListener {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					if (e.getSource() instanceof JComboBox<?>) {
+						JComboBox<?> cb = (JComboBox<?>) e.getSource();
+						String newSelection = (String) cb.getSelectedItem();
+						if (newSelection.contains("Field")) {
+							showDialog("field", checkPanel);
+						} else {
+							showDialog("method",checkPanel);
+						}
+						cb.setSelectedIndex(0);
+					}
+
+				}
+			}
+			
+			String[] dropDownStrs = { "", "Field Access ...", "Method call ..." };
 			JComboBox highlightList = new JComboBox(dropDownStrs) {
 				@Override
 				public Dimension getMaximumSize() {
@@ -480,8 +500,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			highlightList.setMaximumRowCount(3);
 			highlightList.setAlignmentX(0);
 			highlightList.setAlignmentY(0);
-
+			highlightList.addActionListener(new dropDownListener());
 			checkPanel.add(highlightList);
+
+
+
 			layout.show(this, TOPICS);
 			getShell().requestFocus(this);
 
@@ -491,7 +514,33 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		}
 	}
 
-
+	public void showDialog(String str, Component comp) {
+		 String userInput;
+		if (str.equals("field")) {
+			  userInput = (String)JOptionPane.showInputDialog(
+                     comp,
+                     "Input:\n"
+                             + "Class.field",
+                     "Text input",
+                     JOptionPane.PLAIN_MESSAGE,
+                     null,
+                     null,
+                     "Class.field");
+		} else {
+			 userInput = (String)JOptionPane.showInputDialog(
+                     comp,
+                     "Input:\n"
+                     + "Class.method",
+                     "Text input",
+                     JOptionPane.PLAIN_MESSAGE,
+                     null,
+                     null,
+                     "Class.method");
+		}
+		
+		System.out.println(userInput);
+		
+	}
 
 	public void exceptionDuringVerify(Exception ex) {
 	}
