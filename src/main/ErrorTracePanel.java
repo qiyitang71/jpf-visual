@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 //import java.util.Random;
 import java.util.Set;
@@ -314,20 +315,36 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					errorTrace.resetContent(set);
 				}
 			} else if (selectTable.get(cb)) {
-				String str = cb.getText().replace("(un)lock: ", "");
-				Set<Pair<Integer, Integer>> set = td.getLocks(str);
-				System.out.println("expand start " + "(un)lock " + str);
+				String str = cb.getText();
+				if (str.contains("(un)lock:")) {
+					str = str.replace("(un)lock: ", "");
+					Set<Pair<Integer, Integer>> set = td.getLocks(str);
+					System.out.println("expand start " + "(un)lock " + str);
 
-				errorTrace.expand(set, colors.get(str));
-				System.out.println("expand end " + "(un)lock " + str);
+					errorTrace.expand(set, colors.get(str));
+					System.out.println("expand end " + "(un)lock " + str);
+				} else {
+					String[] strs = str.split("\\.");
+					Set<Pair<Integer, Integer>> set = td.getClassField(strs[0], strs[1]);
+					errorTrace.expand(set, colors.get(str));
+				}
 
 			} else {
-				String str = cb.getText().replace("(un)lock: ", "");
-				Set<Pair<Integer, Integer>> set = td.getLocks(str);
-				System.out.println("reset start " + "(un)lock " + str);
+				String str = cb.getText();
+				if (str.contains("(un)lock:")) {
+					str = str.replace("(un)lock: ", "");
+					Set<Pair<Integer, Integer>> set = td.getLocks(str);
+					System.out.println("reset start " + "(un)lock " + str);
 
-				errorTrace.resetContent(set);
-				System.out.println("reset end " + "(un)lock " + str);
+					errorTrace.resetContent(set);
+					System.out.println("reset end " + "(un)lock " + str);
+				} else {
+
+					String[] strs = str.split("\\.");
+					Set<Pair<Integer, Integer>> set = td.getClassField(strs[0], strs[1]);
+					errorTrace.resetContent(set);
+
+				}
 
 			}
 		}
@@ -498,8 +515,47 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 							} else {
 								String clsName = splitStr[0];
 								String fmName = splitStr[1];
-								//use trace data to find clsname.fmName
+								// use trace data to find clsname.fmName
+								/**
+								 * field access
+								 */
+								Set<Pair<Integer, Integer>> targetList = td.getClassField(clsName, fmName);
+								if (targetList.isEmpty()) {
+									JOptionPane.showMessageDialog(checkPanel,
+											"Sorry, \"" + userInput + "\" " + "does not exist.\n" + "Please Try again",
+											"Error message", JOptionPane.ERROR_MESSAGE);
+								} else {
+									String s = clsName + "." + fmName;
+									JCheckBox fieldCheckBox = new JCheckBox(s);
+									fieldCheckBox.setSelected(true);
+									fieldCheckBox.addItemListener(listener);
 
+									if (!colors.containsKey(s)) {
+										// int nextInt = new
+										// Random().nextInt(256 * 256 * 256);
+										// while (nextInt < 100000) {
+										// nextInt = new Random().nextInt(256 *
+										// 256 * 256);
+										// }
+										// // format it as hexadecimal string
+										// (with hashtag and
+										// leading
+										// // zeros)
+										// String colorCode =
+										// String.format("#%06x", nextInt);
+
+										if (colorID < 14)
+											colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
+										else
+											colors.put(s, PaneConstants.COLOR_TABLE[14]);
+
+									}
+									fieldCheckBox.setBackground(Color.decode(colors.get(s)));
+									fieldCheckBox.setOpaque(true);
+									selectTable.put(fieldCheckBox, true);
+									checkPanel.add(fieldCheckBox);
+									updateGraph();
+								}
 							}
 						}
 

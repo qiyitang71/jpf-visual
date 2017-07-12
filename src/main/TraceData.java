@@ -20,6 +20,7 @@ import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
 import gov.nasa.jpf.vm.Step;
 import gov.nasa.jpf.vm.Transition;
+import gov.nasa.jpf.vm.bytecode.FieldInstruction;
 import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
 
 public class TraceData {
@@ -94,7 +95,7 @@ public class TraceData {
 
 			ArrayList<TextLine> lineList = new ArrayList<>();
 			lineTable.put(pi, lineList);
-			
+
 			boolean isFirst = true;
 			for (int i = from; i <= to; i++) {
 				Transition t = path.get(i);
@@ -255,6 +256,38 @@ public class TraceData {
 
 	}
 
+	public Set<Pair<Integer, Integer>> getClassField(String clsName, String fieldName) {
+		String target = clsName + "." + fieldName;
+		Set<String> srcSet = new HashSet<>();
+		Set<Pair<Integer, Integer>> targetSet = new HashSet<>();
+		for (List<TextLine> list : lineTable.values()) {
+			for (TextLine tl : list) {
+				if (tl.isSrc()) {
+					for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
+						Step step = tl.getTransition().getStep(si);
+						Instruction insn = step.getInstruction();
+						String cName = insn.getMethodInfo().getClassInfo().getName();
+						if (clsName.equals(cName) && srcSet.contains(insn.getFileLocation())) {
+							targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
+							break;
+						} else if (insn instanceof FieldInstruction) {
+							if (((FieldInstruction) insn).getVariableId().equals(target)) {
+								targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
+								srcSet.add(insn.getFileLocation());
+								break;
+							}
+						}
+						// if(insn instanceof )
+
+					}
+				}
+			}
+		}
+
+		return targetSet;
+
+	}
+
 	// getters
 	public int getNumberOfThreads() {
 		return this.numOfThreads;
@@ -313,8 +346,8 @@ public class TraceData {
 		// }
 		return new HashSet<>(lockTable.get(field));
 	}
-	
-	public Map<Integer, List<TextLine>> getLineTable(){
+
+	public Map<Integer, List<TextLine>> getLineTable() {
 		return new HashMap<>(lineTable);
 	}
 

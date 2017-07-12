@@ -29,6 +29,7 @@ import gov.nasa.jpf.vm.ClassLoaderInfo;
 import gov.nasa.jpf.vm.FieldInfo;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.VM;
+import gov.nasa.jpf.vm.bytecode.FieldInstruction;
 import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
 import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
@@ -311,7 +312,8 @@ public class TraceVisualPrinter extends Publisher {
 								if (mi.isSynchronized()) {
 									out.print("mi synchronized : " + mi.isSynchronized());
 								}
-								out.println("classinfo object: " + mi.getClassInfo().getClassObject());
+								// out.println("classinfo object: " +
+								// mi.getClassInfo().getClassObject());
 								out.print("mci:    ");
 								if (mci != null) {
 									out.print(" className: " + mci.getName());
@@ -338,11 +340,17 @@ public class TraceVisualPrinter extends Publisher {
 							// out.print("post exec = " +
 							// insn.toPostExecString());
 							out.println("insn: " + insn);
-							if (insn instanceof VirtualInvocation) {
-								out.println("invoke: " + ((VirtualInvocation) insn).getInvokedMethodClassName() + "."
-										+((VirtualInvocation) insn).getInvokedMethodName());
-
+							if (insn instanceof FieldInstruction) {
+								out.println("field insn: " + insn.getFileLocation() + ",  " + insn.getFilePos());
+								//out.println("field insn: " + ((FieldInstruction) insn).getVariableId());
 							}
+							// if (insn instanceof VirtualInvocation) {
+							// out.println("invoke: " + ((VirtualInvocation)
+							// insn).getInvokedMethodClassName() + "."
+							// +((VirtualInvocation)
+							// insn).getInvokedMethodName());
+							//
+							// }
 
 							// out.println("insn: " + insn + ", class =" +
 							// insn.getClass());
