@@ -465,36 +465,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			 * add drop down list
 			 */
 
-			JLabel dropDownLabel = new JLabel("Highlight other");
-			// checkPanel.add(dropDownLabel);
-			String[] dropDownStrs = { "Class.field", "Class.method", };
-			ImageIcon removeIcon = null;
-			File f = new File("remove.png");
-			if (f.exists() && !f.isDirectory()) {
-				removeIcon = new ImageIcon("remove.png");
-			} else {
-				System.err.println("Couldn't find file: " + "remove.png");
-			}
-
-			// double scale = 0.001;
-			// if (removeIcon != null) {
-			// Image src = removeIcon.getImage();
-			// int w = 10;
-			// int h = 10;
-			// int type = BufferedImage.TYPE_INT_RGB;
-			// BufferedImage dst = new BufferedImage(w, h, type);
-			// Graphics2D g2 = dst.createGraphics();
-			// g2.drawImage(src, 0, 0, w, h, this);
-			// g2.dispose();
-			// removeIcon = new ImageIcon(dst);
-			// }
-
-			// final ImageIcon icon = removeIcon;
-
-//			Integer[] intArray = new Integer[2];
-//			for (int i = 0; i < 2; i++) {
-//				intArray[i] = i;
-//			}
+			String[] dropDownStrs = {"",  "Class.field", "Class.method" };
 			JComboBox highlightList = new JComboBox(dropDownStrs) {
 				@Override
 				public Dimension getMaximumSize() {
@@ -505,17 +476,12 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 			};
 
-			//ComboBoxRenderer renderer = new ComboBoxRenderer(removeIcon, dropDownStrs, highlightList);
-			//renderer.setPreferredSize(new Dimension(50, 30));
-			highlightList.setMaximumRowCount(remainColors);
+			
+			highlightList.setMaximumRowCount(3);
 			highlightList.setAlignmentX(0);
 			highlightList.setAlignmentY(0);
-			highlightList.setRenderer(new ComboBoxRenderer(removeIcon, highlightList));
-
-			
 
 			checkPanel.add(highlightList);
-
 			layout.show(this, TOPICS);
 			getShell().requestFocus(this);
 
@@ -525,95 +491,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		}
 	}
 
-	@SuppressWarnings("serial")
-	class ComboBoxRenderer extends JPanel implements ListCellRenderer {
-		//private Font uhOhFont;
-		ImageIcon removeIcon;
-		JLabel label;
-		JButton button;
 
-		public ComboBoxRenderer(ImageIcon removeIcon, final JComboBox combo) {
-			super(new BorderLayout());
-			this.removeIcon = removeIcon;
-	        this.label = new JLabel();
-			this.button = new JButton(removeIcon);
-			this.button.setPreferredSize(new Dimension(removeIcon.getIconWidth(), removeIcon.getIconHeight()));
-			this.button.setBorderPainted(false);
-			this.add(label);
-			this.add(button, BorderLayout.EAST);
-			this.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mousePressed(MouseEvent e) {
-					if (button.getX() < e.getX()) {
-						System.out.println("button contains the click remove the item");
-						combo.removeItem(label.getText());
-					}
-				}
-			});
-			// setHorizontalTextPosition(LEFT);
-
-			// setHorizontalAlignment(LEFT);
-			// setVerticalAlignment(TOP);
-		}
-
-		boolean isFirst = true;
-
-		/*
-		 * This method finds the image and text corresponding to the selected
-		 * value and returns the label, set up to display the text and image.
-		 */
-		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-				boolean cellHasFocus) {
-			// Get the selected index. (The index param isn't
-			// always valid, so just use the value.)
-			// System.out.println(value);
-			if (isFirst) {
-				isFirst = false;
-				list.addMouseListener(new MouseAdapter() {
-
-					@Override
-					public void mousePressed(MouseEvent e) {
-						dispatchEvent(e);
-						e.consume();
-					}
-				});
-			}
-
-			//int selectedIndex = ((Integer) value).intValue();
-			// System.out.println(selectedIndex);
-			if (isSelected) {
-				setBackground(list.getSelectionBackground());
-				setForeground(list.getSelectionForeground());
-			} else {
-				setBackground(list.getBackground());
-				setForeground(list.getForeground());
-			}
-
-			// Set the icon and text. If icon was null, say so.
-			String item = (String) value; //dropDownStrs[selectedIndex];
-			button.setIcon(removeIcon);
-			if (removeIcon != null) {
-				label.setText(item);
-				label.setFont(list.getFont());
-			} else {
-				label.setText(item + " (no image available)");
-				label.setFont(list.getFont());
-
-			}
-
-			return this;
-		}
-
-		// // Set the font and text when no image was found.
-		// protected void setUhOhText(String uhOhText, Font normalFont) {
-		// if (uhOhFont == null) { // lazily create this font
-		// uhOhFont = normalFont.deriveFont(Font.ITALIC);
-		// }
-		// setFont(uhOhFont);
-		// setText(uhOhText);
-		// }
-
-	}
 
 	public void exceptionDuringVerify(Exception ex) {
 	}
