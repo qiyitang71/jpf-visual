@@ -131,8 +131,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		content.expand(set, color, false);
 	}
 
-	public void resetContent(Set<Pair<Integer, Integer>> set) {
-		content.expand(set, null, true);
+	public void resetContent(Set<Pair<Integer, Integer>> set, String color) {
+		content.expand(set, color, true);
 
 	}
 

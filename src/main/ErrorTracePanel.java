@@ -300,7 +300,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					System.out.println("wait end expand");
 				} else {
 					System.out.println("wait start reset");
-					errorTrace.resetContent(set);
+					errorTrace.resetContent(set, PaneConstants.COLOR_TABLE[0]);
 					System.out.println("wait end reset");
 
 				}
@@ -312,7 +312,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 				} else {
 					// System.out.println("wait reset");
-					errorTrace.resetContent(set);
+					errorTrace.resetContent(set, PaneConstants.COLOR_TABLE[1]);
 				}
 			} else if (selectTable.get(cb)) {
 				String str = cb.getText();
@@ -336,13 +336,13 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					Set<Pair<Integer, Integer>> set = td.getLocks(str);
 					System.out.println("reset start " + "(un)lock " + str);
 
-					errorTrace.resetContent(set);
+					errorTrace.resetContent(set, colors.get(str));
 					System.out.println("reset end " + "(un)lock " + str);
 				} else {
 
 					String[] strs = str.split("\\.");
 					Set<Pair<Integer, Integer>> set = td.getClassField(strs[0], strs[1]);
-					errorTrace.resetContent(set);
+					errorTrace.resetContent(set, colors.get(str));
 
 				}
 
@@ -500,7 +500,9 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 							isField = false;
 						}
 						cb.setSelectedIndex(0);
-
+						if(userInput == null){
+							return;
+						}
 						if (!userInput.contains(".")) {
 							JOptionPane.showMessageDialog(checkPanel,
 									"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",

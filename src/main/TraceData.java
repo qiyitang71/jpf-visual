@@ -134,7 +134,7 @@ public class TraceData {
 								height++;
 							}
 							tempStr.append(" ");
-							tempStr.append(Left.format(s.getLocationString(), 30));
+							tempStr.append(Left.format(s.getLocationString(), 20));
 							tempStr.append(": ");
 							tempStr.append(src + "\n");
 

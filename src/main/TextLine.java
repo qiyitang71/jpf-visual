@@ -1,4 +1,7 @@
 
+import java.util.HashSet;
+import java.util.Set;
+
 import gov.nasa.jpf.vm.Transition;
 
 public class TextLine {
@@ -12,6 +15,7 @@ public class TextLine {
 	private boolean isLast = false;
 	private int stepStart;
 	private int stepEnd;
+	private Set<String> highlight = new HashSet<>();
 
 	public TextLine(String text, boolean isCG, boolean isSrc, Transition tran, int groupNum, int lineNum) {
 		this.text = text;
@@ -76,6 +80,39 @@ public class TextLine {
 
 	public void setEndStep(int se) {
 		stepEnd = se;
+	}
+
+	// public void setHighlight(boolean b) {
+	// isHighlighted = b;
+	// }
+
+	public boolean isHighlighted() {
+		return highlight.size() > 0;
+	}
+
+	public boolean isHighlightedColor(String color) {
+		return highlight.contains(color);
+	}
+
+	public void setHighlight(String color) {
+		highlight.add(color);
+	}
+
+	public void resetHighlight(String color) {
+		highlight.remove(color);
+	}
+
+	public Set<String> getAllHighlight() {
+		return new HashSet<>(highlight);
+	}
+
+	public String getOneColor() {
+
+		for (String s : highlight) {
+			return s;
+		}
+
+		return null;
 	}
 
 }

@@ -34,6 +34,7 @@ public class NewContent {
 	private List<Pair<Integer, Integer>> group = new ArrayList<>();
 	private Map<Integer, List<TextLine>> lineTable;
 	private double htPerLine;
+	private double wtPerLine = 7;
 
 	public NewContent(int width, int nThreads, Path p, List<Pair<Integer, Integer>> grp, List<String> detailList,
 			List<Integer> heightList, Map<Integer, List<TextLine>> lt) {
@@ -122,7 +123,7 @@ public class NewContent {
 		contentStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
 		contentStyle.put(mxConstants.STYLE_SPACING_TOP, PaneConstants.TOP_SPACE);
 		contentStyle.remove(mxConstants.STYLE_VERTICAL_ALIGN);
-
+		contentStyle.put(mxConstants.STYLE_FONTFAMILY, "Courier");
 		graph.getStylesheet().putCellStyle("content", contentStyle);
 
 		mxIEventListener foldingHandler = new mxIEventListener() {
@@ -187,7 +188,8 @@ public class NewContent {
 		mxLayoutManager layoutMng = new mxLayoutManager(graph) {
 			public mxIGraphLayout getLayout(Object parent) {
 				String st = model.getStyle(parent);
-				if (model.getChildCount(parent) > 0 && (st == null || st.contains("swim") || st == "content")) {
+
+				if (model.getChildCount(parent) > 0 && (st == null || st.contains("swim") || st == "summary")) {
 					// vertical
 					return new mxStackLayout(graph, false);
 				} else {
@@ -267,11 +269,17 @@ public class NewContent {
 				/**
 				 * draw the detail line one at a time
 				 */
+
 				String javaCode = detailList.get(ithRow);
 				String[] contentLines = javaCode.split("\\n");
 				for (int ithLine = 0; ithLine < contentLines.length; ithLine++) {
-					mxCell content = (mxCell) graph.insertVertex(swimCell, "" + ithLine, contentLines[ithLine], 0, 0,
-							numOfThreads * cellWidth, htPerLine, "content");
+					mxCell contentBox = (mxCell) graph.insertVertex(swimCell, "" + ithLine, null, 0, 0,
+							numOfThreads * cellWidth, 0, "content");
+					contentBox.setConnectable(false);
+					contentBox.setId("" + ithLine);
+
+					mxCell content = (mxCell) graph.insertVertex(contentBox, "" + ithLine, contentLines[ithLine], 0, 0,
+							contentLines[ithLine].length() * wtPerLine, htPerLine, "content");
 					content.setConnectable(false);
 					content.setId("" + ithLine);
 				}
@@ -279,8 +287,10 @@ public class NewContent {
 				/**
 				 * draw summary line one at a time hide those lines
 				 */
+				Map<String, Object> summaryStyle = new HashMap<String, Object>(contentStyle);
+				graph.getStylesheet().putCellStyle("summary", summaryStyle);
 				mxCell summaryCell = (mxCell) graph.insertVertex(rightCell, null, null, 0, 0, numOfThreads * cellWidth,
-						PaneConstants.ALTER_SIZE, "content");
+						PaneConstants.ALTER_SIZE, "summary");
 				summaryCell.setConnectable(false);
 				summaryCell.setId("" + threadIdx);
 
@@ -291,6 +301,8 @@ public class NewContent {
 				boolean srcInBetween = false;
 				int sumNum = 0;
 				for (TextLine tl : lineTable.get(ithRow)) {
+					double sumWt = tl.getText().length() * wtPerLine + threadIdx * cellWidth;
+
 					if (tl.isFirst() || tl.isLast()) {
 						if (srcInBetween) {
 							mxCell summaryContent = (mxCell) graph.insertVertex(summaryCell, null, "...", 0, 0,
@@ -300,8 +312,12 @@ public class NewContent {
 							sumNum++;
 							srcInBetween = false;
 						}
-						mxCell summaryContent = (mxCell) graph.insertVertex(summaryCell, null, tl.getText(), 0, 0,
-								numOfThreads * cellWidth, htPerLine, "summaryContent" + ithRow);
+						mxCell summaryBox = (mxCell) graph.insertVertex(summaryCell, null, null, 0, 0,
+								numOfThreads * cellWidth, htPerLine, "content");
+						summaryBox.setId(tl.getLineNum() + "");
+						summaryBox.setConnectable(false);
+						mxCell summaryContent = (mxCell) graph.insertVertex(summaryBox, null, tl.getText(), 0, 0, sumWt,
+								htPerLine, "summaryContent" + ithRow);
 						summaryContent.setId(tl.getLineNum() + "");
 						summaryContent.setConnectable(false);
 						sumNum++;
@@ -361,13 +377,21 @@ public class NewContent {
 							int threadIdx = Integer.parseInt(((mxCell) swimCell).getId());
 							// summary cell
 							model.getGeometry(swimCell).setWidth(numOfThreads * cellWidth);
-							for (Object summaryContent : graph.getChildCells(swimCell)) {
-								String tmpStr = model.getStyle(summaryContent);
+							for (Object summaryBox : graph.getChildCells(swimCell)) {
+								String tmpStr = model.getStyle(summaryBox);
 								// int threadIdx = Integer.parseInt(((mxCell)
 								// summaryContent).getId());
-								Map<String, Object> tmpStyle = graph.getStylesheet().getStyles().get(tmpStr);
-								tmpStyle.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth);
-								model.getGeometry(summaryContent).setWidth(numOfThreads * cellWidth);
+								if (tmpStr.contains("summary")) {
+									Map<String, Object> tmpStyle = graph.getStylesheet().getStyles().get(tmpStr);
+									tmpStyle.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth);
+								}
+								model.getGeometry(summaryBox).setWidth(numOfThreads * cellWidth);
+								for (Object summaryContent : graph.getChildCells(summaryBox)) {
+									String tmpStr2 = model.getStyle(summaryContent);
+									Map<String, Object> tmpStyle = graph.getStylesheet().getStyles().get(tmpStr2);
+									tmpStyle.put(mxConstants.STYLE_SPACING_LEFT, threadIdx * cellWidth);
+
+								}
 							}
 						}
 					}
@@ -411,21 +435,66 @@ public class NewContent {
 									// not reset, expand
 									graph.foldCells(false, false, new Object[] { swimCell }, true);
 								}
-								for (Object contentObj : graph.getChildCells(swimCell)) {
+								for (Object contentBox : graph.getChildCells(swimCell)) {
 
-									if (model.getStyle(contentObj) != null && (model.getStyle(contentObj) == "content"
-											|| model.getStyle(contentObj).contains("highlight"))) {
-										mxCell contentCell = (mxCell) contentObj;
-										int lineNum = Integer.parseInt(contentCell.getId());
+									// deal with content lines
+
+									if (model.getStyle(contentBox) == "content") {
+										int lineNum = Integer.parseInt(((mxCell) contentBox).getId());
+
 										if (map.get(ithRow).contains(lineNum)) {
-											if (reset) {
-												contentCell.setStyle("content");
-											} else {
-												Map<String, Object> hlStyle = new HashMap<>(
-														graph.getStylesheet().getStyles().get(contentCell.getStyle()));
-												hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
-												graph.getStylesheet().putCellStyle("highlight" + color, hlStyle);
-												contentCell.setStyle("highlight" + color);
+
+											TextLine tl = lineTable.get(ithRow).get(lineNum);
+											if (!reset && tl.isHighlightedColor(color)) {
+												continue;
+											}
+											// the content
+
+											for (int cb1 = 0; cb1 < model.getChildCount(contentBox); cb1++) {
+												// content and color block
+
+												mxCell contentCell = (mxCell) model.getChildAt(contentBox, cb1);
+												System.out.println("contentCell.getId() = " + contentCell.getId());
+												if (((String) contentCell.getValue()).length() > 1) {
+													// the content
+													if (reset) {
+														tl.resetHighlight(color);
+														if (contentCell.getStyle().equals("highlight" + color)) {
+															if (!tl.isHighlighted()) {
+																contentCell.setStyle("content");
+															} else {
+																contentCell.setStyle("highlight" + tl.getOneColor());
+															}
+														}
+													} else {
+														if (tl.isHighlightedColor(color)) {
+															break;
+														}
+														Map<String, Object> hlStyle = new HashMap<>(
+																graph.getStylesheet().getStyles().get("content"));
+														hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
+														graph.getStylesheet().putCellStyle("highlight" + color,
+																hlStyle);
+														System.out.println("tl.set = " + tl.getAllHighlight()
+																+ tl.isHighlighted());
+														if (!tl.isHighlighted()) {
+															contentCell.setStyle("highlight" + color);
+														} else {
+															System.out.println("add a color block");
+															mxCell colorBlock = (mxCell) graph.insertVertex(contentBox,
+																	null, " ", 0, 0, 5, htPerLine, "highlight" + color);
+															colorBlock.setConnectable(false);
+														}
+														tl.setHighlight(color);
+													}
+
+												} else {
+													// the color block
+													// reset
+													if (reset && contentCell.getStyle().contains(color)) {
+														contentCell.removeFromParent();
+													}
+												}
 											}
 										}
 									}
@@ -434,14 +503,14 @@ public class NewContent {
 						} else {
 							// summary cell -- summaryCell
 							// redraw summary cell
-							// int ithRow = Integer.parseInt(((mxCell)
-							// rightCell).getId());
-							// redraw summary cell
-							// System.out.println("summaryCell " + ithRow);
-							if (expandedRows.contains(ithRow)) {
+							// may be slow and delayed
 
-								Set<Integer> lineSet = map.get(ithRow);
-								Map<Integer, mxICell> removedCells = new HashMap<>();
+							if (expandedRows.contains(ithRow)) {
+								int threadIdx = Integer.parseInt(((mxCell) swimCell).getId());
+
+								// Set<Integer> lineSet = map.get(ithRow);
+								// Map<Integer, mxICell> removedCells = new
+								// HashMap<>();
 
 								Map<String, Object> sumContent = graph.getStylesheet().getStyles()
 										.get("summaryContent" + ithRow);
@@ -453,18 +522,20 @@ public class NewContent {
 								// sumContent.put(mxConstants.STYLE_SPACING_LEFT,
 								// leftSpace);
 								Map<String, Object> sumContentStyle = new HashMap<>(sumContent);
-								if (!reset) {
-									sumContentStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
-									graph.getStylesheet().putCellStyle("sumhighlight" + ithRow + color,
-											sumContentStyle);
-								}
+								// String hlStyle = "sumhighlight" + ithRow +
+								// color;
+								sumContentStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
+								graph.getStylesheet().putCellStyle("sumhighlight" + ithRow + color, sumContentStyle);
+
 								// remove all the contents
 								while (((mxCell) swimCell).getChildCount() != 0) {
 									mxICell mxc = ((mxCell) swimCell).remove(0);
-									removedCells.put(Integer.parseInt(mxc.getId()), mxc);
-									if (mxc.getId() != "-1") {
-										System.out.println("remove " + mxc.getId());
-									}
+									// removedCells.put(Integer.parseInt(mxc.getId()),
+									// mxc);
+									// if (mxc.getId() != "-1") {
+									// // System.out.println("remove " +
+									// // mxc.getId());
+									// }
 								}
 
 								// summaryCell
@@ -474,74 +545,110 @@ public class NewContent {
 								boolean cgInBetween = false;
 								String lastLine = null;
 								// System.out.println(sumContentStyle);
-								for (TextLine tl : lineTable.get(ithRow)) {
+								String styleStr = "summaryContent" + ithRow;
 
+								for (TextLine tl : lineTable.get(ithRow)) {
+									double sumWt = tl.getText().length() * wtPerLine
+											+ threadIdx * cellWidth;
 									int lineNum = tl.getLineNum();
 									if (tl.isFirst() || tl.isLast()) {
-										System.out.println("draw " + tl.getLineNum());
+										// System.out.println("draw " +
+										// tl.getLineNum());
 										if (srcInBetween) {
 											mxCell summaryContent = (mxCell) graph.insertVertex(swimCell, null, "...",
-													0, 0, numOfThreads * cellWidth, htPerLine,
-													"summaryContent" + ithRow);
+													0, 0, numOfThreads * cellWidth, htPerLine, styleStr);
 											summaryContent.setConnectable(false);
 											summaryContent.setId("-1");
 											summaryLineNum++;
 											srcInBetween = false;
 										} else if (cgInBetween && lastLine != null && lastLine.equals(tl.getText())) {
 											cgInBetween = false;
-											srcInBetween = true;
+											srcInBetween = false;
 											continue;
 										}
 
-										String styleStr = "summaryContent" + ithRow;
-										if (!reset && lineSet.contains(lineNum)) {
-											styleStr = "sumhighlight" + ithRow + color;
-										} else if (!lineSet.contains(lineNum) && removedCells.containsKey(lineNum)) {
-											styleStr = removedCells.get(lineNum).getStyle();
-										}
-										mxCell summaryContent = (mxCell) graph.insertVertex(swimCell, null,
-												tl.getText(), 0, 0, numOfThreads * cellWidth, htPerLine, styleStr);
+										// if (!reset &&
+										// lineSet.contains(lineNum)) {
+										// styleStr = "sumhighlight" + ithRow +
+										// color;
+										// } else if (!lineSet.contains(lineNum)
+										// && removedCells.containsKey(lineNum))
+										// {
+										// styleStr =
+										// removedCells.get(lineNum).getStyle();
+										// }
+								
+										if (tl.isHighlighted()) {
+											mxCell summaryBox = (mxCell) graph.insertVertex(swimCell, null, null, 0, 0,
+													numOfThreads * cellWidth, htPerLine, "content");
+											summaryBox.setId(lineNum + "");
+											summaryBox.setConnectable(false);
 
+											mxCell summaryContent = (mxCell) graph.insertVertex(summaryBox, null,
+													tl.getText(), 0, 0, sumWt, htPerLine,
+													"sumhighlight" + ithRow + tl.getOneColor());
+											summaryContent.setId(lineNum + "");
+											summaryContent.setConnectable(false);
+
+											for (String c : tl.getAllHighlight()) {
+												if (!c.equals(tl.getOneColor())) {
+													mxCell sumBlock = (mxCell) graph.insertVertex(summaryBox, null,
+															" ", 0, 0, 5, htPerLine,
+															"highlight" + c);
+													sumBlock.setConnectable(false);
+												}
+											}
+
+										} else {
+											mxCell summaryBox = (mxCell) graph.insertVertex(swimCell, null, null, 0, 0,
+													numOfThreads * cellWidth, htPerLine, "content");
+											summaryBox.setId(lineNum + "");
+											summaryBox.setConnectable(false);
+											mxCell summaryContent = (mxCell) graph.insertVertex(summaryBox, null,
+													tl.getText(), 0, 0, sumWt, htPerLine, styleStr);
+											summaryContent.setId(lineNum + "");
+											summaryContent.setConnectable(false);
+										}
+										summaryLineNum++;
+										lastLine = tl.getText();
+									} else if (tl.isHighlighted()) {
+										if (srcInBetween) {
+											mxCell summaryContent = (mxCell) graph.insertVertex(swimCell, null, "...",
+													0, 0, numOfThreads * cellWidth, htPerLine,
+													styleStr);
+											summaryContent.setId("-1");
+											summaryContent.setConnectable(false);
+											summaryLineNum++;
+											srcInBetween = false;
+										} else if (cgInBetween && lastLine.equals(tl.getText())) {
+
+											cgInBetween = false;
+											srcInBetween = false;
+											continue;
+										}
+
+										mxCell summaryBox = (mxCell) graph.insertVertex(swimCell, null, null, 0, 0,
+												numOfThreads * cellWidth, htPerLine, "content");
+										summaryBox.setId(lineNum + "");
+										summaryBox.setConnectable(false);
+
+										mxCell summaryContent = (mxCell) graph.insertVertex(summaryBox, null,
+												tl.getText(), 0, 0, sumWt, htPerLine,
+												"sumhighlight" + ithRow + tl.getOneColor());
 										summaryContent.setId(lineNum + "");
 										summaryContent.setConnectable(false);
-										summaryLineNum++;
-										lastLine = tl.getText();
-									} else if (lineSet.contains(lineNum)) {
-										if (!reset) {
-											if (srcInBetween) {
-												mxCell summaryContent = (mxCell) graph.insertVertex(swimCell, null,
-														"...", 0, 0, numOfThreads * cellWidth, htPerLine,
-														"summaryContent" + ithRow);
-												summaryContent.setId("-1");
-												summaryContent.setConnectable(false);
-												summaryLineNum++;
-												srcInBetween = false;
-											} else if (cgInBetween && lastLine.equals(tl.getText())) {
-												System.out.println("cg in between and ignore the line");
-												cgInBetween = false;
-												srcInBetween = true;
-												continue;
+
+										for (String c : tl.getAllHighlight()) {
+											if (!c.equals(tl.getOneColor())) {
+												mxCell sumBlock = (mxCell) graph.insertVertex(summaryBox, null,
+														" ", 0, 0, 5, htPerLine,
+														"highlight" + c);
+												sumBlock.setConnectable(false);
 											}
-											System.out.println("draw " + tl.getLineNum());
-											summaryLineNum++;
-											mxCell summaryContent = (mxCell) graph.insertVertex(swimCell, null,
-													tl.getText(), 0, 0, numOfThreads * cellWidth, htPerLine,
-													"sumhighlight" + ithRow + color);
-											summaryContent.setConnectable(false);
-											summaryContent.setId("" + lineNum);
-											lastLine = tl.getText();
-										} else {
-											srcInBetween = true;
 										}
-									} else if (removedCells.containsKey(lineNum)) {
-
-										System.out.println("draw " + tl.getLineNum());
-
-										((mxCell) swimCell).insert(removedCells.get(lineNum));
-										summaryLineNum++;
 										lastLine = tl.getText();
+										summaryLineNum++;
 
-										System.out.println("insert " + lineNum);
 									} else if (tl.isSrc()) {
 										srcInBetween = true;
 									} else if (tl.isCG()) {
