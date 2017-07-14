@@ -306,6 +306,8 @@ public class TraceVisualPrinter extends Publisher {
 							Instruction insn = s.getInstruction();
 							if (true) {
 								MethodInfo mi = insn.getMethodInfo();
+								out.println(" mi className: " + mi.getClassName());
+
 								// if (mi != lastMi) {
 								ClassInfo mci = mi.getClassInfo();
 
@@ -330,7 +332,8 @@ public class TraceVisualPrinter extends Publisher {
 									// }
 
 								}
-								out.println(" mi uniqueName: " + mi.getUniqueName());
+								// out.println(" mi uniqueName: " +
+								// mi.getUniqueName());
 								lastMi = mi;
 								// }
 							}
@@ -339,10 +342,12 @@ public class TraceVisualPrinter extends Publisher {
 							// insn.getMnemonic());
 							// out.print("post exec = " +
 							// insn.toPostExecString());
-							out.println("insn: " + insn);
-							if (insn instanceof FieldInstruction) {
-								out.println("field insn: " + insn.getFileLocation() + ",  " + insn.getFilePos());
-								//out.println("field insn: " + ((FieldInstruction) insn).getVariableId());
+							// out.println("insn: " + insn);
+							if (insn instanceof JVMInvokeInstruction) {
+								out.println("invoke insn: " + ((JVMInvokeInstruction) insn).getInvokedMethodClassName()
+										+ " " + ((JVMInvokeInstruction) insn).getInvokedMethodName());
+								// out.println("field insn: " +
+								// ((FieldInstruction) insn).getVariableId());
 							}
 							// if (insn instanceof VirtualInvocation) {
 							// out.println("invoke: " + ((VirtualInvocation)

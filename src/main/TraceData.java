@@ -9,6 +9,7 @@ import java.util.Set;
 //import gov.nasa.jpf.jvm.bytecode.EXECUTENATIVE;
 import gov.nasa.jpf.jvm.bytecode.MONITORENTER;
 import gov.nasa.jpf.jvm.bytecode.GETFIELD;
+import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
 import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
@@ -115,6 +116,7 @@ public class TraceData {
 				TextLine txt = new TextLine(cg.toString(), true, false, t, pi, height);
 				lineList.add(txt);
 
+			
 				height++;
 				TextLine txtSrc = null;
 				int lastSi = 0;
@@ -279,6 +281,40 @@ public class TraceData {
 						}
 						// if(insn instanceof )
 
+					}
+				}
+			}
+		}
+
+		return targetSet;
+
+	}
+
+	public Set<Pair<Integer, Integer>> getClassMethod(String clsName, String m) {
+		// String target = clsName + "." + methodName;
+		String methodName = m.replaceAll("\\(.*$", "");
+		Set<Pair<Integer, Integer>> targetSet = new HashSet<>();
+		for (List<TextLine> list : lineTable.values()) {
+			Map<String, String> srcMap = new HashMap<>();
+			for (TextLine tl : list) {
+				if (tl.isSrc()) {
+					for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
+						Step step = tl.getTransition().getStep(si);
+						Instruction insn = step.getInstruction();
+						String cName = insn.getMethodInfo().getClassInfo().getName();
+						if (cName.equals(srcMap.get(insn.getFileLocation()))) {
+							targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
+							break;
+						} else if (insn instanceof JVMInvokeInstruction) {
+							String mName = ((JVMInvokeInstruction) insn).getInvokedMethodName().replaceAll("\\(.*$", "");
+
+							if (((JVMInvokeInstruction) insn).getInvokedMethodClassName().equals(clsName)
+									&& methodName.equals(mName)) {
+								targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
+								srcMap.put(insn.getFileLocation(), insn.getMethodInfo().getClassName());
+								break;
+							}
+						}
 					}
 				}
 			}

@@ -492,7 +492,7 @@ public class NewContent {
 													// the color block
 													// reset
 													if (reset && contentCell.getStyle().contains(color)) {
-														contentCell.removeFromParent();
+														model.remove(contentCell);
 													}
 												}
 											}
@@ -548,8 +548,7 @@ public class NewContent {
 								String styleStr = "summaryContent" + ithRow;
 
 								for (TextLine tl : lineTable.get(ithRow)) {
-									double sumWt = tl.getText().length() * wtPerLine
-											+ threadIdx * cellWidth;
+									double sumWt = tl.getText().length() * wtPerLine + threadIdx * cellWidth;
 									int lineNum = tl.getLineNum();
 									if (tl.isFirst() || tl.isLast()) {
 										// System.out.println("draw " +
@@ -577,7 +576,7 @@ public class NewContent {
 										// styleStr =
 										// removedCells.get(lineNum).getStyle();
 										// }
-								
+
 										if (tl.isHighlighted()) {
 											mxCell summaryBox = (mxCell) graph.insertVertex(swimCell, null, null, 0, 0,
 													numOfThreads * cellWidth, htPerLine, "content");
@@ -592,9 +591,8 @@ public class NewContent {
 
 											for (String c : tl.getAllHighlight()) {
 												if (!c.equals(tl.getOneColor())) {
-													mxCell sumBlock = (mxCell) graph.insertVertex(summaryBox, null,
-															" ", 0, 0, 5, htPerLine,
-															"highlight" + c);
+													mxCell sumBlock = (mxCell) graph.insertVertex(summaryBox, null, " ",
+															0, 0, 5, htPerLine, "highlight" + c);
 													sumBlock.setConnectable(false);
 												}
 											}
@@ -614,8 +612,7 @@ public class NewContent {
 									} else if (tl.isHighlighted()) {
 										if (srcInBetween) {
 											mxCell summaryContent = (mxCell) graph.insertVertex(swimCell, null, "...",
-													0, 0, numOfThreads * cellWidth, htPerLine,
-													styleStr);
+													0, 0, numOfThreads * cellWidth, htPerLine, styleStr);
 											summaryContent.setId("-1");
 											summaryContent.setConnectable(false);
 											summaryLineNum++;
@@ -640,9 +637,8 @@ public class NewContent {
 
 										for (String c : tl.getAllHighlight()) {
 											if (!c.equals(tl.getOneColor())) {
-												mxCell sumBlock = (mxCell) graph.insertVertex(summaryBox, null,
-														" ", 0, 0, 5, htPerLine,
-														"highlight" + c);
+												mxCell sumBlock = (mxCell) graph.insertVertex(summaryBox, null, " ", 0,
+														0, 5, htPerLine, "highlight" + c);
 												sumBlock.setConnectable(false);
 											}
 										}

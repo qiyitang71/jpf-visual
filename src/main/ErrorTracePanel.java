@@ -323,9 +323,15 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 					errorTrace.expand(set, colors.get(str));
 					System.out.println("expand end " + "(un)lock " + str);
-				} else {
+				} else if(str.contains("field")){
+					str = str.replaceAll(".*\\s", "");
 					String[] strs = str.split("\\.");
 					Set<Pair<Integer, Integer>> set = td.getClassField(strs[0], strs[1]);
+					errorTrace.expand(set, colors.get(str));
+				}else {
+					str = str.replaceAll(".*\\s", "");
+					String[] strs = str.split("\\.");
+					Set<Pair<Integer, Integer>> set = td.getClassMethod(strs[0], strs[1]);
 					errorTrace.expand(set, colors.get(str));
 				}
 
@@ -338,12 +344,17 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 					errorTrace.resetContent(set, colors.get(str));
 					System.out.println("reset end " + "(un)lock " + str);
-				} else {
-
+				} else if(str.contains("field")){
+					str = str.replaceAll(".*\\s", "");
 					String[] strs = str.split("\\.");
 					Set<Pair<Integer, Integer>> set = td.getClassField(strs[0], strs[1]);
 					errorTrace.resetContent(set, colors.get(str));
 
+				}else{
+					str = str.replaceAll(".*\\s", "");
+					String[] strs = str.split("\\.");
+					Set<Pair<Integer, Integer>> set = td.getClassMethod(strs[0], strs[1]);
+					errorTrace.resetContent(set, colors.get(str));
 				}
 
 			}
@@ -500,7 +511,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 							isField = false;
 						}
 						cb.setSelectedIndex(0);
-						if(userInput == null){
+
+						if (userInput == null) {
 							return;
 						}
 						if (!userInput.contains(".")) {
@@ -514,7 +526,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 								JOptionPane.showMessageDialog(checkPanel,
 										"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",
 										"Error message", JOptionPane.ERROR_MESSAGE);
-							} else {
+							} else if (isField) {
 								String clsName = splitStr[0];
 								String fmName = splitStr[1];
 								// use trace data to find clsname.fmName
@@ -528,24 +540,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 											"Error message", JOptionPane.ERROR_MESSAGE);
 								} else {
 									String s = clsName + "." + fmName;
-									JCheckBox fieldCheckBox = new JCheckBox(s);
+									JCheckBox fieldCheckBox = new JCheckBox("field: " + s);
 									fieldCheckBox.setSelected(true);
 									fieldCheckBox.addItemListener(listener);
 
 									if (!colors.containsKey(s)) {
-										// int nextInt = new
-										// Random().nextInt(256 * 256 * 256);
-										// while (nextInt < 100000) {
-										// nextInt = new Random().nextInt(256 *
-										// 256 * 256);
-										// }
-										// // format it as hexadecimal string
-										// (with hashtag and
-										// leading
-										// // zeros)
-										// String colorCode =
-										// String.format("#%06x", nextInt);
-
 										if (colorID < 14)
 											colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
 										else
@@ -556,6 +555,36 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 									fieldCheckBox.setOpaque(true);
 									selectTable.put(fieldCheckBox, true);
 									checkPanel.add(fieldCheckBox);
+									updateGraph();
+								}
+							} else {
+								/**
+								 * method call
+								 */
+								String clsName = splitStr[0];
+								String fmName = splitStr[1];
+								Set<Pair<Integer, Integer>> targetList = td.getClassMethod(clsName, fmName);
+								if (targetList.isEmpty()) {
+									JOptionPane.showMessageDialog(checkPanel,
+											"Sorry, \"" + userInput + "\" " + "does not exist.\n" + "Please Try again",
+											"Error message", JOptionPane.ERROR_MESSAGE);
+								} else {
+									String s =  clsName + "." + fmName;
+									JCheckBox methodCheckBox = new JCheckBox("method: " + s);
+									methodCheckBox.setSelected(true);
+									methodCheckBox.addItemListener(listener);
+
+									if (!colors.containsKey(s)) {
+										if (colorID < 14)
+											colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
+										else
+											colors.put(s, PaneConstants.COLOR_TABLE[14]);
+
+									}
+									methodCheckBox.setBackground(Color.decode(colors.get(s)));
+									methodCheckBox.setOpaque(true);
+									selectTable.put(methodCheckBox, true);
+									checkPanel.add(methodCheckBox);
 									updateGraph();
 								}
 							}
