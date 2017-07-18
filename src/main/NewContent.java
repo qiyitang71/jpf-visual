@@ -355,7 +355,7 @@ public class NewContent {
 					.setWidth(PaneConstants.SIGN_SIZE + PaneConstants.RANGE_SIZE + numOfThreads * cellWidth);
 			for (Object rightCell : graph.getChildCells(rowCell)) {
 
-				if (model.getStyle(rightCell) != "range") {
+				if (!model.getStyle(rightCell).contains("range")) {
 					model.getGeometry(rightCell).setWidth(PaneConstants.SIGN_SIZE + numOfThreads * cellWidth);
 					for (Object swimCell : graph.getChildCells(rightCell)) {
 						// swim cell
