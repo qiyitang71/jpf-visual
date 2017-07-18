@@ -72,7 +72,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		List<String> detailList = td.getDetailList();
 		List<Integer> heightList = td.getHeightList();
 		List<String> threadNames = td.getThreadNames();
-		Map<Integer, List<TextLine>> lineTable = td.getLineTable();
+		Map<Integer, TextLineList> lineTable = td.getLineTable();
 
 		int cellWidth = (int) (Math.floor(
 				(splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE)
@@ -104,6 +104,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 					StringBuilder myString = new StringBuilder();
 					for (Object o : cells) {
+						myString.append(((mxCell) o).getStyle());
 						myString.append(((mxCell) o).getValue() + "\n");
 					}
 					StringSelection stringSelection = new StringSelection(myString.toString());
@@ -118,6 +119,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			}
 		};
 		graphComponent.addKeyListener(keyListener);
+		content.resize(cellWidth);
 
 		menu = new MenuPane(cellWidth, threadNames);
 		mxGraph menuGraph = menu.getGraph();

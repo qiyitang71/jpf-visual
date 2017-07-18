@@ -39,7 +39,7 @@ public class TraceData {
 	private Set<Pair<Integer, Integer>> waitSet = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
 	private Set<Pair<Integer, Integer>> threadStartSet = new HashSet<>();
-	private Map<Integer, List<TextLine>> lineTable = new HashMap<>();
+	private Map<Integer, TextLineList> lineTable = new HashMap<>();
 	private Set<String> lockMethodName = new HashSet<>();
 
 	// private Set<Pair<Integer, Integer>> threadTerminateSet = new HashSet<>();
@@ -95,7 +95,8 @@ public class TraceData {
 			String fieldName = "";
 
 			ArrayList<TextLine> lineList = new ArrayList<>();
-			lineTable.put(pi, lineList);
+			TextLineList txtLinelist =  new TextLineList(lineList);
+			lineTable.put(pi, txtLinelist);
 
 			boolean isFirst = true;
 			for (int i = from; i <= to; i++) {
@@ -116,10 +117,9 @@ public class TraceData {
 				TextLine txt = new TextLine(cg.toString(), true, false, t, pi, height);
 				lineList.add(txt);
 
-			
 				height++;
 				TextLine txtSrc = null;
-				int lastSi = 0;
+				//int lastSi = 0;
 				for (int si = 0; si < t.getStepCount(); si++) {
 					Step s = t.getStep(si);
 					String line = s.getLineString();
@@ -171,14 +171,10 @@ public class TraceData {
 					}
 
 					if (insn instanceof VirtualInvocation) {
-						// System.out.println("insn = " + insn);
 						String insnStr = insn.toString();
 						if (insnStr.contains("java.lang.Object.wait()") || insnStr.contains("java.lang.Object.notify()")
 								|| insnStr.contains("java.lang.Object.notifyAll()")) {
 							waitSet.add(new Pair<>(pi, height - 1));
-							// System.out.println("row = " + pi + " height =" +
-							// height);
-							// break;
 						}
 					}
 
@@ -198,10 +194,6 @@ public class TraceData {
 							newSet.add(pair);
 							lockTable.put(fieldName, newSet);
 						}
-
-						// lockSet.add(new Pair<>(pi, height - 1));
-						// System.out.println("row = " + pi + " height =" +
-						// height);
 					}
 
 				}
@@ -214,11 +206,16 @@ public class TraceData {
 			/**
 			 * set last line
 			 */
-			for (int li = lineList.size() - 1; li >= 0; li--) {
+			int li = lineList.size() - 1;
+			for (; li >= 0; li--) {
 				if (lineList.get(li).isSrc()) {
 					lineList.get(li).setLast();
 					break;
 				}
+			}
+			
+			if(li == -1){
+				txtLinelist.setNoSrc(true);
 			}
 
 		}
@@ -227,8 +224,8 @@ public class TraceData {
 		 * synchronized methods
 		 */
 		if (!lockMethodName.isEmpty()) {
-			for (List<TextLine> list : lineTable.values()) {
-				for (TextLine tl : list) {
+			for (TextLineList list : lineTable.values()) {
+				for (TextLine tl : list.getList()) {
 					if (tl.isSrc()) {
 						for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
 							Step s = tl.getTransition().getStep(si);
@@ -262,8 +259,8 @@ public class TraceData {
 		String target = clsName + "." + fieldName;
 		Set<String> srcSet = new HashSet<>();
 		Set<Pair<Integer, Integer>> targetSet = new HashSet<>();
-		for (List<TextLine> list : lineTable.values()) {
-			for (TextLine tl : list) {
+		for (TextLineList list : lineTable.values()) {
+			for (TextLine tl : list.getList()) {
 				if (tl.isSrc()) {
 					for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
 						Step step = tl.getTransition().getStep(si);
@@ -294,9 +291,9 @@ public class TraceData {
 		// String target = clsName + "." + methodName;
 		String methodName = m.replaceAll("\\(.*$", "");
 		Set<Pair<Integer, Integer>> targetSet = new HashSet<>();
-		for (List<TextLine> list : lineTable.values()) {
+		for (TextLineList list : lineTable.values()) {
 			Map<String, String> srcMap = new HashMap<>();
-			for (TextLine tl : list) {
+			for (TextLine tl : list.getList()) {
 				if (tl.isSrc()) {
 					for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
 						Step step = tl.getTransition().getStep(si);
@@ -306,7 +303,8 @@ public class TraceData {
 							targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
 							break;
 						} else if (insn instanceof JVMInvokeInstruction) {
-							String mName = ((JVMInvokeInstruction) insn).getInvokedMethodName().replaceAll("\\(.*$", "");
+							String mName = ((JVMInvokeInstruction) insn).getInvokedMethodName().replaceAll("\\(.*$",
+									"");
 
 							if (((JVMInvokeInstruction) insn).getInvokedMethodClassName().equals(clsName)
 									&& methodName.equals(mName)) {
@@ -361,29 +359,15 @@ public class TraceData {
 		return new HashSet<>(threadStartSet);
 	}
 
-	// public Set<Pair<Integer, Integer>> getThreadTerminate() {
-	// return new HashSet<>(threadTerminateSet);
-	// }
-
 	public Set<String> getFieldNames() {
 		return new HashSet<>(fieldNames);
 	}
 
 	public Set<Pair<Integer, Integer>> getLocks(String field) {
-		// System.out.print(field + ": ");
-		// for(Pair<Integer, Integer> p: lockTable.get(field)){
-		// System.out.print("(" + p._1 + ", " + p._2 + ")" + ", ");
-		// }
-		// System.out.println();
-		// if (!lockMethodName.isEmpty()) {
-		// for (String str : lockMethodName) {
-		// System.out.println(str);
-		// }
-		// }
 		return new HashSet<>(lockTable.get(field));
 	}
 
-	public Map<Integer, List<TextLine>> getLineTable() {
+	public Map<Integer, TextLineList> getLineTable() {
 		return new HashMap<>(lineTable);
 	}
 

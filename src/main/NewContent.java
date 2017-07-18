@@ -32,12 +32,12 @@ public class NewContent {
 	private int numOfThreads = -1;
 	private Path path;
 	private List<Pair<Integer, Integer>> group = new ArrayList<>();
-	private Map<Integer, List<TextLine>> lineTable;
+	private Map<Integer, TextLineList> lineTable;
 	private double htPerLine;
 	private double wtPerLine = 7;
 
 	public NewContent(int width, int nThreads, Path p, List<Pair<Integer, Integer>> grp, List<String> detailList,
-			List<Integer> heightList, Map<Integer, List<TextLine>> lt) {
+			List<Integer> heightList, Map<Integer, TextLineList> lt) {
 		this.lineTable = lt;
 		this.numOfThreads = nThreads;
 		this.group = grp;
@@ -95,7 +95,7 @@ public class NewContent {
 		// style.remove(mxConstants.STYLE_FILLCOLOR);
 
 		Map<String, Object> rightStyle = new HashMap<>(style);
-		// rightStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
+		// rightStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 		graph.getStylesheet().putCellStyle("right", rightStyle);
 
 		Map<String, Object> borderStyle = new HashMap<>(style);
@@ -206,6 +206,11 @@ public class NewContent {
 		try {
 			// show the details
 			for (int ithRow = 0; ithRow < numOfRows; ithRow++) {
+				
+				if(lineTable.get(ithRow).isNoSrc()){
+					continue;
+				}
+				
 				int from = group.get(ithRow)._1;
 				int to = group.get(ithRow)._2;
 				htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(contentStyle)).getHeight() + 5;
@@ -290,7 +295,7 @@ public class NewContent {
 				Map<String, Object> summaryStyle = new HashMap<String, Object>(contentStyle);
 				graph.getStylesheet().putCellStyle("summary", summaryStyle);
 				mxCell summaryCell = (mxCell) graph.insertVertex(rightCell, null, null, 0, 0, numOfThreads * cellWidth,
-						PaneConstants.ALTER_SIZE, "summary");
+						0, "summary");
 				summaryCell.setConnectable(false);
 				summaryCell.setId("" + threadIdx);
 
@@ -300,7 +305,7 @@ public class NewContent {
 
 				boolean srcInBetween = false;
 				int sumNum = 0;
-				for (TextLine tl : lineTable.get(ithRow)) {
+				for (TextLine tl : lineTable.get(ithRow).getList()) {
 					double sumWt = tl.getText().length() * wtPerLine + threadIdx * cellWidth;
 
 					if (tl.isFirst() || tl.isLast()) {
@@ -330,7 +335,6 @@ public class NewContent {
 				summaryCell.setVisible(false);
 
 				model.getGeometry(swimCell).setAlternateBounds(new mxRectangle(0, 0, PaneConstants.SIGN_SIZE, sumHt));
-
 			}
 		} finally {
 			model.endUpdate();
@@ -444,7 +448,7 @@ public class NewContent {
 
 										if (map.get(ithRow).contains(lineNum)) {
 
-											TextLine tl = lineTable.get(ithRow).get(lineNum);
+											TextLine tl = lineTable.get(ithRow).getList().get(lineNum);
 											if (!reset && tl.isHighlightedColor(color)) {
 												continue;
 											}
@@ -529,7 +533,7 @@ public class NewContent {
 
 								// remove all the contents
 								while (((mxCell) swimCell).getChildCount() != 0) {
-									mxICell mxc = ((mxCell) swimCell).remove(0);
+									((mxCell) swimCell).remove(0);
 									// removedCells.put(Integer.parseInt(mxc.getId()),
 									// mxc);
 									// if (mxc.getId() != "-1") {
@@ -547,7 +551,7 @@ public class NewContent {
 								// System.out.println(sumContentStyle);
 								String styleStr = "summaryContent" + ithRow;
 
-								for (TextLine tl : lineTable.get(ithRow)) {
+								for (TextLine tl : lineTable.get(ithRow).getList()) {
 									double sumWt = tl.getText().length() * wtPerLine + threadIdx * cellWidth;
 									int lineNum = tl.getLineNum();
 									if (tl.isFirst() || tl.isLast()) {
@@ -617,7 +621,7 @@ public class NewContent {
 											summaryContent.setConnectable(false);
 											summaryLineNum++;
 											srcInBetween = false;
-										} else if (cgInBetween && lastLine.equals(tl.getText())) {
+										} else if (cgInBetween && lastLine != null && lastLine.equals(tl.getText())) {
 
 											cgInBetween = false;
 											srcInBetween = false;
@@ -666,7 +670,7 @@ public class NewContent {
 			}
 		}
 		graph.refresh();
-
+		resize(cellWidth);
 	}
 
 	public void foldAll(boolean b) {

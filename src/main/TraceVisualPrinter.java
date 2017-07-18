@@ -342,12 +342,11 @@ public class TraceVisualPrinter extends Publisher {
 							// insn.getMnemonic());
 							// out.print("post exec = " +
 							// insn.toPostExecString());
-							// out.println("insn: " + insn);
-							if (insn instanceof JVMInvokeInstruction) {
-								out.println("invoke insn: " + ((JVMInvokeInstruction) insn).getInvokedMethodClassName()
-										+ " " + ((JVMInvokeInstruction) insn).getInvokedMethodName());
-								// out.println("field insn: " +
-								// ((FieldInstruction) insn).getVariableId());
+							out.println("insn: " + insn);
+							if (insn instanceof FieldInstruction) {
+//								out.println("invoke insn: " + ((JVMInvokeInstruction) insn).getInvokedMethodClassName()
+//										+ " " + ((JVMInvokeInstruction) insn).getInvokedMethodName());
+								out.println("field insn: " + ((FieldInstruction) insn).getVariableId());
 							}
 							// if (insn instanceof VirtualInvocation) {
 							// out.println("invoke: " + ((VirtualInvocation)
