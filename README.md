@@ -32,6 +32,9 @@ target=[Application]
 target_args=[application_args]
 classpath=[classpath to your application]
 
+# print trace when property is violated
+report.errorTracePrinter.property_violation=trace
+
 # register console errorTracePrinter as a publisher
 report.publisher+=, errorTracePrinter
 report.errorTracePrinter.class=ErrorTracePrinter
