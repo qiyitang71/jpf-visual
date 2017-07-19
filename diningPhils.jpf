@@ -1,5 +1,6 @@
 # we are using oldclassic as default example
 target=DiningPhil
+target.args=5
 
 native_classpath+=./bin/
 
