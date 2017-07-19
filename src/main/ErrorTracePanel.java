@@ -324,14 +324,21 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					errorTrace.expand(set, colors.get(str));
 					System.out.println("expand end " + "(un)lock " + str);
 				} else if(str.contains("field")){
+					System.out.println("expand start " + "(un)lock " + str);
+
 					str = str.replaceAll(".*\\s", "");
-					String[] strs = str.split("\\.");
-					Set<Pair<Integer, Integer>> set = td.getClassField(strs[0], strs[1]);
+					//String[] strs = str.split("\\.");
+					int dotPos = str.lastIndexOf(".");
+					String cName = str.substring(0, dotPos);
+					String fName = str.substring(dotPos+1);
+					Set<Pair<Integer, Integer>> set = td.getClassField(cName, fName);
 					errorTrace.expand(set, colors.get(str));
 				}else {
 					str = str.replaceAll(".*\\s", "");
-					String[] strs = str.split("\\.");
-					Set<Pair<Integer, Integer>> set = td.getClassMethod(strs[0], strs[1]);
+					int dotPos = str.lastIndexOf(".");
+					String cName = str.substring(0, dotPos);
+					String mName = str.substring(dotPos+1);
+					Set<Pair<Integer, Integer>> set = td.getClassMethod(cName, mName);
 					errorTrace.expand(set, colors.get(str));
 				}
 
@@ -345,15 +352,20 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					errorTrace.resetContent(set, colors.get(str));
 					System.out.println("reset end " + "(un)lock " + str);
 				} else if(str.contains("field")){
+					
 					str = str.replaceAll(".*\\s", "");
-					String[] strs = str.split("\\.");
-					Set<Pair<Integer, Integer>> set = td.getClassField(strs[0], strs[1]);
+					int dotPos = str.lastIndexOf(".");
+					String cName = str.substring(0, dotPos);
+					String fName = str.substring(dotPos+1);
+					Set<Pair<Integer, Integer>> set = td.getClassField(cName, fName);
 					errorTrace.resetContent(set, colors.get(str));
 
 				}else{
 					str = str.replaceAll(".*\\s", "");
-					String[] strs = str.split("\\.");
-					Set<Pair<Integer, Integer>> set = td.getClassMethod(strs[0], strs[1]);
+					int dotPos = str.lastIndexOf(".");
+					String cName = str.substring(0, dotPos);
+					String mName = str.substring(dotPos+1);					
+					Set<Pair<Integer, Integer>> set = td.getClassMethod(cName, mName);
 					errorTrace.resetContent(set, colors.get(str));
 				}
 
@@ -520,15 +532,17 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 									"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",
 									"Error message", JOptionPane.ERROR_MESSAGE);
 						} else {
-
-							String[] splitStr = userInput.split("\\.");
-							if (splitStr.length != 2 || splitStr[0].length() == 0 || splitStr[1].length() == 0) {
+							int dotPos = userInput.lastIndexOf(".");
+							//String clsName = userInput.substring(0, dotPos);
+							
+							//String fmName =userInput.substring(dotPos+1, dotPos);							String[] splitStr = userInput.split("\\.");
+							if (dotPos == 0 || dotPos == userInput.length() - 1) {
 								JOptionPane.showMessageDialog(checkPanel,
 										"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",
 										"Error message", JOptionPane.ERROR_MESSAGE);
 							} else if (isField) {
-								String clsName = splitStr[0];
-								String fmName = splitStr[1];
+								String clsName = userInput.substring(0, dotPos);
+								String fmName = userInput.substring(dotPos+1, userInput.length());	
 								// use trace data to find clsname.fmName
 								/**
 								 * field access
@@ -561,8 +575,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 								/**
 								 * method call
 								 */
-								String clsName = splitStr[0];
-								String fmName = splitStr[1];
+								String clsName = userInput.substring(0, dotPos);
+								String fmName = userInput.substring(dotPos+1, userInput.length());	
 								Set<Pair<Integer, Integer>> targetList = td.getClassMethod(clsName, fmName);
 								if (targetList.isEmpty()) {
 									JOptionPane.showMessageDialog(checkPanel,

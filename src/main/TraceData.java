@@ -333,6 +333,7 @@ public class TraceData {
 									&& methodName.equals(mName)) {
 								targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
 								srcMap.put(insn.getFileLocation(), insn.getMethodInfo().getClassName());
+								System.out.println(clsName + "." + m + ": " + tl.getGroupNum() + tl.getLineNum());
 								break;
 							}
 						}
@@ -387,7 +388,7 @@ public class TraceData {
 	}
 
 	public Set<Pair<Integer, Integer>> getLocks(String field) {
-		System.out.println("field: " + field);
+		// System.out.println("field: " + field);
 		return new HashSet<>(lockTable.get(field));
 	}
 
