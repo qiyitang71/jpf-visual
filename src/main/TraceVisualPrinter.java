@@ -19,6 +19,7 @@
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.Error;
 import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
+import gov.nasa.jpf.jvm.bytecode.MONITORENTER;
 import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.Reporter;
@@ -34,6 +35,7 @@ import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
 import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
 import gov.nasa.jpf.vm.Step;
+import gov.nasa.jpf.vm.ThreadInfo;
 import gov.nasa.jpf.vm.Transition;
 
 import java.io.FileNotFoundException;
@@ -306,7 +308,7 @@ public class TraceVisualPrinter extends Publisher {
 							Instruction insn = s.getInstruction();
 							if (true) {
 								MethodInfo mi = insn.getMethodInfo();
-								out.println(" mi className: " + mi.getClassName());
+								out.println(" mi uniqueName: " + mi.getUniqueName());
 
 								// if (mi != lastMi) {
 								ClassInfo mci = mi.getClassInfo();
@@ -343,10 +345,21 @@ public class TraceVisualPrinter extends Publisher {
 							// out.print("post exec = " +
 							// insn.toPostExecString());
 							out.println("insn: " + insn);
-							if (insn instanceof FieldInstruction) {
-//								out.println("invoke insn: " + ((JVMInvokeInstruction) insn).getInvokedMethodClassName()
-//										+ " " + ((JVMInvokeInstruction) insn).getInvokedMethodName());
-								out.println("field insn: " + ((FieldInstruction) insn).getVariableId());
+							// if (insn instanceof FieldInstruction) {
+							// out.println("field insn: " + ((FieldInstruction)
+							// insn).getVariableId());
+							// }
+							if (insn instanceof VirtualInvocation) {
+								VirtualInvocation vinsn = (VirtualInvocation) insn;
+								String cName = vinsn.getInvokedMethodClassName();
+								String mName = vinsn.getInvokedMethodName();
+								out.println("InvokeClass: " + cName + "; InvokeMethod: " + mName);
+							}
+							if (insn instanceof MONITORENTER) {
+								MONITORENTER minsn = (MONITORENTER) insn;
+								ThreadInfo ti = t.getThreadInfo();
+								out.println("monitor ei: " + ti.getElementInfo(minsn.getLastLockRef()));
+
 							}
 							// if (insn instanceof VirtualInvocation) {
 							// out.println("invoke: " + ((VirtualInvocation)

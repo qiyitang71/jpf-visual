@@ -20,6 +20,7 @@ import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
 import gov.nasa.jpf.vm.Step;
+import gov.nasa.jpf.vm.ThreadInfo;
 import gov.nasa.jpf.vm.Transition;
 import gov.nasa.jpf.vm.bytecode.FieldInstruction;
 import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
@@ -92,10 +93,10 @@ public class TraceData {
 			int to = p._2;
 			int height = 0;
 			StringBuilder tempStr = new StringBuilder();
-			String fieldName = "";
+			// String fieldName = "";
 
 			ArrayList<TextLine> lineList = new ArrayList<>();
-			TextLineList txtLinelist =  new TextLineList(lineList);
+			TextLineList txtLinelist = new TextLineList(lineList);
 			lineTable.put(pi, txtLinelist);
 
 			boolean isFirst = true;
@@ -119,7 +120,7 @@ public class TraceData {
 
 				height++;
 				TextLine txtSrc = null;
-				//int lastSi = 0;
+				// int lastSi = 0;
 				for (int si = 0; si < t.getStepCount(); si++) {
 					Step s = t.getStep(si);
 					String line = s.getLineString();
@@ -170,7 +171,7 @@ public class TraceData {
 						}
 					}
 
-					if (insn instanceof VirtualInvocation) {
+					if (line != null && insn instanceof VirtualInvocation) {
 						String insnStr = insn.toString();
 						if (insnStr.contains("java.lang.Object.wait()") || insnStr.contains("java.lang.Object.notify()")
 								|| insnStr.contains("java.lang.Object.notifyAll()")) {
@@ -178,14 +179,19 @@ public class TraceData {
 						}
 					}
 
-					if (insn instanceof GETFIELD) {
-						fieldName = ((GETFIELD) insn).getClassName() + "." + ((GETFIELD) insn).getFieldName();
-						fieldName = fieldName.replaceAll("^.*\\$", "");
-					}
+					// if (insn instanceof GETFIELD) {
+					// fieldName = ((GETFIELD) insn).getClassName() + "." +
+					// ((GETFIELD) insn).getFieldName();
+					// fieldName = fieldName.replaceAll("^.*\\$", "");
+					// }
 
-					if (insn instanceof MONITORENTER) {
-
+					if (line != null && insn instanceof MONITORENTER) {
+						MONITORENTER minsn = (MONITORENTER) insn;
+						ThreadInfo ti = t.getThreadInfo();
+						String fieldName = ti.getElementInfo(minsn.getLastLockRef()).toString().replace("$", ".")
+								.replaceAll("@.*", "");
 						Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
+
 						if (fieldNames.contains(fieldName)) {
 							lockTable.get(fieldName).add(pair);
 						} else {
@@ -195,9 +201,7 @@ public class TraceData {
 							lockTable.put(fieldName, newSet);
 						}
 					}
-
 				}
-
 			}
 			tempStr.deleteCharAt(tempStr.length() - 1);
 			detailList.add(tempStr.toString());
@@ -213,8 +217,8 @@ public class TraceData {
 					break;
 				}
 			}
-			
-			if(li == -1){
+
+			if (li == -1) {
 				txtLinelist.setNoSrc(true);
 			}
 
@@ -252,7 +256,6 @@ public class TraceData {
 				}
 			}
 		}
-
 	}
 
 	public Set<Pair<Integer, Integer>> getClassField(String clsName, String fieldName) {
@@ -364,6 +367,7 @@ public class TraceData {
 	}
 
 	public Set<Pair<Integer, Integer>> getLocks(String field) {
+		System.out.println("field: " + field);
 		return new HashSet<>(lockTable.get(field));
 	}
 

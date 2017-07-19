@@ -206,11 +206,11 @@ public class NewContent {
 		try {
 			// show the details
 			for (int ithRow = 0; ithRow < numOfRows; ithRow++) {
-				
-				if(lineTable.get(ithRow).isNoSrc()){
+
+				if (lineTable.get(ithRow).isNoSrc()) {
 					continue;
 				}
-				
+
 				int from = group.get(ithRow)._1;
 				int to = group.get(ithRow)._2;
 				htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(contentStyle)).getHeight() + 5;
@@ -290,7 +290,7 @@ public class NewContent {
 				}
 
 				/**
-				 * draw summary line one at a time hide those lines
+				 * draw summary line one at a time; hide those lines
 				 */
 				Map<String, Object> summaryStyle = new HashMap<String, Object>(contentStyle);
 				graph.getStylesheet().putCellStyle("summary", summaryStyle);
@@ -433,7 +433,7 @@ public class NewContent {
 						Object swimCell = model.getChildAt(rightCell, swimi);
 						// swimCell
 						if (model.getStyle(swimCell).contains("swim")) {
-							System.out.println("swimCell " + ithRow);
+							// System.out.println("swimCell " + ithRow);
 							if (expandedRows.contains(ithRow)) {
 								if (!reset) {
 									// not reset, expand
@@ -449,6 +449,10 @@ public class NewContent {
 										if (map.get(ithRow).contains(lineNum)) {
 
 											TextLine tl = lineTable.get(ithRow).getList().get(lineNum);
+											if (!tl.isSrc()) {
+												continue;
+											}
+
 											if (!reset && tl.isHighlightedColor(color)) {
 												continue;
 											}
@@ -458,7 +462,8 @@ public class NewContent {
 												// content and color block
 
 												mxCell contentCell = (mxCell) model.getChildAt(contentBox, cb1);
-												System.out.println("contentCell.getId() = " + contentCell.getId());
+												// System.out.println("contentCell.getId()
+												// = " + contentCell.getId());
 												if (((String) contentCell.getValue()).length() > 1) {
 													// the content
 													if (reset) {
@@ -479,12 +484,16 @@ public class NewContent {
 														hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
 														graph.getStylesheet().putCellStyle("highlight" + color,
 																hlStyle);
-														System.out.println("tl.set = " + tl.getAllHighlight()
-																+ tl.isHighlighted());
+														// System.out.println("tl.set
+														// = " +
+														// tl.getAllHighlight()
+														// +
+														// tl.isHighlighted());
 														if (!tl.isHighlighted()) {
 															contentCell.setStyle("highlight" + color);
 														} else {
-															System.out.println("add a color block");
+															// System.out.println("add
+															// a color block");
 															mxCell colorBlock = (mxCell) graph.insertVertex(contentBox,
 																	null, " ", 0, 0, 5, htPerLine, "highlight" + color);
 															colorBlock.setConnectable(false);
@@ -552,6 +561,9 @@ public class NewContent {
 								String styleStr = "summaryContent" + ithRow;
 
 								for (TextLine tl : lineTable.get(ithRow).getList()) {
+									if (!tl.isSrc()) {
+										continue;
+									}
 									double sumWt = tl.getText().length() * wtPerLine + threadIdx * cellWidth;
 									int lineNum = tl.getLineNum();
 									if (tl.isFirst() || tl.isLast()) {
