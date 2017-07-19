@@ -19,7 +19,9 @@
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.Error;
 import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
+import gov.nasa.jpf.jvm.bytecode.JVMReturnInstruction;
 import gov.nasa.jpf.jvm.bytecode.MONITORENTER;
+import gov.nasa.jpf.jvm.bytecode.MONITOREXIT;
 import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.Reporter;
@@ -31,6 +33,7 @@ import gov.nasa.jpf.vm.FieldInfo;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.VM;
 import gov.nasa.jpf.vm.bytecode.FieldInstruction;
+import gov.nasa.jpf.vm.bytecode.ReturnInstruction;
 import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
 import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
@@ -359,6 +362,21 @@ public class TraceVisualPrinter extends Publisher {
 								MONITORENTER minsn = (MONITORENTER) insn;
 								ThreadInfo ti = t.getThreadInfo();
 								out.println("monitor ei: " + ti.getElementInfo(minsn.getLastLockRef()));
+
+							}
+							
+							if (insn instanceof MONITOREXIT) {
+								MONITOREXIT minsn = (MONITOREXIT) insn;
+								ThreadInfo ti = t.getThreadInfo();
+								out.println("monitor ei: " + ti.getElementInfo(minsn.getLastLockRef()));
+
+							}
+							
+							if(insn instanceof JVMReturnInstruction){
+								JVMReturnInstruction jvminsn = (JVMReturnInstruction) insn;
+								out.println("JVMReturnInstruction  string: " + jvminsn.toString());
+								out.println("JVMReturnInstruction  mi fullname: " + jvminsn.getMethodInfo().getFullName());
+
 
 							}
 							// if (insn instanceof VirtualInvocation) {

@@ -562,6 +562,9 @@ public class NewContent {
 
 								for (TextLine tl : lineTable.get(ithRow).getList()) {
 									if (!tl.isSrc()) {
+										if(tl.isCG()){
+											cgInBetween = true;
+										}
 										continue;
 									}
 									double sumWt = tl.getText().length() * wtPerLine + threadIdx * cellWidth;

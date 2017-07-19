@@ -10,6 +10,8 @@ import java.util.Set;
 import gov.nasa.jpf.jvm.bytecode.MONITORENTER;
 import gov.nasa.jpf.jvm.bytecode.GETFIELD;
 import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
+import gov.nasa.jpf.jvm.bytecode.JVMReturnInstruction;
+import gov.nasa.jpf.jvm.bytecode.LockInstruction;
 import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
 import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
@@ -128,7 +130,7 @@ public class TraceData {
 						String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$", "")
 								.replaceAll("/\\*.*$", "").replaceAll("^.*?\\*/", "").replaceAll("\\*.*$", "").trim();
 
-						if (!line.equals(lastLine) && src.length() > 1) {
+						if (!line.equals(lastLine) && src.length() > 0) {
 							if (nNoSrc > 0) {
 								String noSrc = " [" + nNoSrc + " insn w/o sources]";
 								tempStr.append(noSrc + "\n");
@@ -166,8 +168,9 @@ public class TraceData {
 
 					if (line != null && mi.isSynchronized()) {
 						ClassInfo mci = mi.getClassInfo();
-						if (mci != null && mi.getUniqueName() != null) {
-							lockMethodName.add(mci.getName() + "." + mi.getUniqueName());
+						String mName = mi.getUniqueName();
+						if (mci != null && mi.getUniqueName() != null && mName != null && !mName.contains("<clinit>")) {
+							lockMethodName.add(mci.getName() + "." + mName);
 						}
 					}
 
@@ -185,8 +188,8 @@ public class TraceData {
 					// fieldName = fieldName.replaceAll("^.*\\$", "");
 					// }
 
-					if (line != null && insn instanceof MONITORENTER) {
-						MONITORENTER minsn = (MONITORENTER) insn;
+					if (line != null && insn instanceof LockInstruction) {
+						LockInstruction minsn = (LockInstruction) insn;
 						ThreadInfo ti = t.getThreadInfo();
 						String fieldName = ti.getElementInfo(minsn.getLastLockRef()).toString().replace("$", ".")
 								.replaceAll("@.*", "");
@@ -199,6 +202,23 @@ public class TraceData {
 							Set<Pair<Integer, Integer>> newSet = new HashSet<>();
 							newSet.add(pair);
 							lockTable.put(fieldName, newSet);
+						}
+					}
+
+					if (line != null && insn instanceof JVMReturnInstruction) {
+						String mName = mi.getFullName();
+						String cName = mi.getClassName();
+						if (lockMethodName.contains(mName)) {
+							Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
+							if (fieldNames.contains(cName)) {
+								lockTable.get(cName).add(pair);
+							} else {
+								fieldNames.add(cName);
+								Set<Pair<Integer, Integer>> newSet = new HashSet<>();
+								newSet.add(pair);
+								lockTable.put(cName, newSet);
+							}
+
 						}
 					}
 				}
