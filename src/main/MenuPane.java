@@ -7,7 +7,7 @@ import com.mxgraph.layout.mxStackLayout;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.util.mxConstants;
-import com.mxgraph.util.mxRectangle;
+//import com.mxgraph.util.mxRectangle;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxLayoutManager;
 
@@ -56,12 +56,8 @@ public class MenuPane {
 		mxLayoutManager menuLayoutMng = new mxLayoutManager(menuGraph) {
 			public mxIGraphLayout getLayout(Object parent) {
 
-				if (menuModel.getChildCount(parent) > 0 && menuModel.getStyle(parent) != "menu") {
-					return new mxStackLayout(graph, false);
-				} else if (menuModel.getChildCount(parent) > 0 && menuModel.getStyle(parent) == "menu") {
-					return new mxStackLayout(graph, true);
-				}
-				return null;
+				return new mxStackLayout(graph, true);
+
 			}
 
 		};
@@ -72,17 +68,16 @@ public class MenuPane {
 		try {
 			// draw the menu
 			// int numOfThreads = threadNames.size();
-			mxCell menu = (mxCell) menuGraph.insertVertex(menuParent, null, "Trans.", 0, 0, numOfThreads * cellWidth, 0,
-					"menu");
-			menu.setConnectable(false);
-			System.out.println("menu lane cellWidth = " + menuModel.getGeometry(menu));
+			mxCell tranCell = (mxCell) menuGraph.insertVertex(menuParent, null, "Trans.", 0, 0,
+					PaneConstants.RANGE_SIZE, PaneConstants.CELL_HEIGHT);
+			tranCell.setConnectable(false);
 
 			for (int i = 0; i < numOfThreads; i++) {
 				int cw = cellWidth;
 				if (i == 0) {
 					cw = cellWidth + PaneConstants.SIGN_SIZE;
 				}
-				((mxCell) menuGraph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, cw,
+				((mxCell) menuGraph.insertVertex(menuParent, null, threadNames.get(i) + "\n" + i, 0, 0, cw,
 						PaneConstants.CELL_HEIGHT)).setConnectable(false);
 
 			}
@@ -97,20 +92,12 @@ public class MenuPane {
 		Object parent = menuGraph.getDefaultParent();
 		for (Object obj : menuGraph.getChildCells(parent)) {
 			if (obj != null) {
-				menuGraph.resizeCell(obj,
-						new mxRectangle(0, 0,
-								numOfThreads * cellWidth + PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE,
-								menuGraph.getCellGeometry(obj).getHeight()));
 				Object[] children = menuGraph.getChildCells(obj);
-				for (int i = 0; i < children.length; i++) {
+				for (int i = 1; i < children.length; i++) {
 					Object subObj = children[i];
-					if (subObj != null && ((mxCell) subObj).getStyle() != "blank") {
-						int cw = cellWidth;
-						if (i == 0) {
-							cw = cellWidth + PaneConstants.SIGN_SIZE;
-						}
-						menuGraph.resizeCell(subObj,
-								new mxRectangle(0, 0, cw, menuGraph.getCellGeometry(subObj).getHeight()));
+					if (subObj != null) {
+						int cw = cellWidth + PaneConstants.SIGN_SIZE;
+						menuModel.getGeometry(subObj).setWidth(cw);
 					}
 				}
 			}
