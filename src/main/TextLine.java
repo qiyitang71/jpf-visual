@@ -2,6 +2,8 @@
 import java.util.HashSet;
 import java.util.Set;
 
+import gov.nasa.jpf.util.Left;
+import gov.nasa.jpf.vm.Step;
 import gov.nasa.jpf.vm.Transition;
 
 public class TextLine {
@@ -113,6 +115,11 @@ public class TextLine {
 		}
 
 		return null;
+	}
+	
+	public String getLocationString(){
+		Step s = tran.getStep(stepStart);
+		return Left.format(s.getLocationString(), 20);
 	}
 
 }

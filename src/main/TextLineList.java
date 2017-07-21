@@ -20,4 +20,12 @@ public class TextLineList {
 	public List<TextLine> getList() {
 		return new ArrayList<>(list);
 	}
+
+	public int getHeight() {
+		return list.size();
+	}
+	
+	public TextLine getTextLine(int idx){
+		return list.get(idx);
+	}
 }

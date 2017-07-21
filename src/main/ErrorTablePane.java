@@ -69,8 +69,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		Path path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
 		List<Pair<Integer, Integer>> group = td.getGroup();
-		List<String> detailList = td.getDetailList();
-		List<Integer> heightList = td.getHeightList();
+		//List<String> detailList = td.getDetailList();
+		//List<Integer> heightList = td.getHeightList();
 		List<String> threadNames = td.getThreadNames();
 		Map<Integer, TextLineList> lineTable = td.getLineTable();
 
@@ -80,7 +80,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		// content = new ContentPane(cellWidth, numOfThreads, path, group,
 		// detailList, heightList);
-		content = new NewContent(cellWidth, numOfThreads, path, group, detailList, heightList, lineTable);
+		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable);
 
 		mxGraph graph = content.getGraph();
 		graphComponent.setGraph(graph);

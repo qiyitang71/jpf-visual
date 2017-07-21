@@ -36,8 +36,8 @@ public class TraceData {
 
 	private List<Pair<Integer, Integer>> group = new ArrayList<>();
 
-	private List<String> detailList = new ArrayList<>();
-	private List<Integer> heightList = new ArrayList<>();
+	// private List<String> detailList = new ArrayList<>();
+	// private List<Integer> heightList = new ArrayList<>();
 	private Set<String> fieldNames = new HashSet<>();
 	private Set<Pair<Integer, Integer>> waitSet = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
@@ -88,8 +88,8 @@ public class TraceData {
 		numOfThreads++;
 
 		// second pass of the path
-		detailList = new ArrayList<>();
-		heightList = new ArrayList<>();
+		// detailList = new ArrayList<>();
+		// heightList = new ArrayList<>();
 
 		for (int pi = 0; pi < group.size(); pi++) {
 			Pair<Integer, Integer> p = group.get(pi);
@@ -114,7 +114,9 @@ public class TraceData {
 
 				if (cg instanceof ThreadChoiceFromSet) {
 					if (cg.getId() == "START" || cg.getId() == "JOIN") {
-						threadStartSet.add(new Pair<>(pi, height - 1));
+						if (lineTable.get(pi).getTextLine(height - 1).isSrc()) {
+							threadStartSet.add(new Pair<>(pi, height - 1));
+						}
 					}
 				}
 
@@ -124,7 +126,6 @@ public class TraceData {
 
 				height++;
 				TextLine txtSrc = null;
-				// int lastSi = 0;
 				for (int si = 0; si < t.getStepCount(); si++) {
 					Step s = t.getStep(si);
 					String line = s.getLineString();
@@ -226,8 +227,8 @@ public class TraceData {
 				}
 			}
 			tempStr.deleteCharAt(tempStr.length() - 1);
-			detailList.add(tempStr.toString());
-			heightList.add(height);
+			// detailList.add(tempStr.toString());
+			// heightList.add(height);
 
 			/**
 			 * set last line
@@ -368,13 +369,13 @@ public class TraceData {
 		return path.size();
 	}
 
-	public List<String> getDetailList() {
-		return new ArrayList<>(this.detailList);
-	}
+	// public List<String> getDetailList() {
+	// return new ArrayList<>(this.detailList);
+	// }
 
-	public List<Integer> getHeightList() {
-		return new ArrayList<>(this.heightList);
-	}
+	// public List<Integer> getHeightList() {
+	// return new ArrayList<>(this.heightList);
+	// }
 
 	public Path getPath() {
 		return this.path;
