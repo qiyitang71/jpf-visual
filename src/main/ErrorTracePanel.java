@@ -78,7 +78,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private Path path;
 	private TraceData td = null;
 	private JPanel checkPanel = new JPanel();// new GridLayout(0, 1)
-	private ItemListener listener = null;
+	private ItemListener checkBoxListener = null;
 	// private ItemListener buttonListener = null;
 	private Map<String, String> colors = new HashMap<>();
 	private int numOfColors = 0;
@@ -91,8 +91,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private JButton expandAllButton;
 	private boolean isExpandSelected;
 
-	private JCheckBox waitButton;
-	private JCheckBox threadStartButton;
+	private JCheckBox waitBox;
+	private JCheckBox threadStartBox;
 	// private JCheckBox threadTerminateButton;
 
 	private Map<JCheckBox, Boolean> selectTable;// = new LinkedHashMap<>();
@@ -104,176 +104,48 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		JPanel tablePanel = new JPanel();
 		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
 		tablePanel.add(statusLabel);
-		// tablePanel.setBorder(BorderFactory.createEmptyBorder());
 		checkPanel.setLayout(new BoxLayout(checkPanel, BoxLayout.Y_AXIS));
 		this.numOfColors = PaneConstants.COLOR_TABLE.length;
-
-		listener = new ItemListener() {
-
+		
+		checkBoxListener = new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// TODO Auto-generated method stub
 				Object source = e.getItemSelectable();
 				assert (source instanceof JCheckBox);
-				// if (source instanceof JCheckBox) {
-
 				JCheckBox cb = (JCheckBox) source;
-				// System.out.println("################" + cb.getText());
-				//
-				// if (cb.getText() == "summary") {
-				// //
-				// // if (e.getStateChange() == ItemEvent.SELECTED) {
-				// // selectTable.put(cb, true);
-				// // expandAllButton.setSelected(false);
-				// // selectTable.put(expandAllButton, false);
-				// // }else{
-				// // selectTable.put(cb, false);
-				// // }
-				// // } else if (cb.getText() == "Expand All") {
-				// // if (e.getStateChange() == ItemEvent.SELECTED) {
-				// // foldAllButton.setSelected(false);
-				// // selectTable.put(cb, true);
-				// // selectTable.put(foldAllButton, false);
-				// // }else{
-				// // selectTable.put(cb, false);
-				// // }
-				// } else {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					selectTable.put(cb, true);
 				} else {
 					selectTable.put(cb, false);
 				}
-				// }
 				updateGraph();
-				// }
 			}
 		};
 
-		// buttonListener = new ItemListener() {
-		// @Override
-		// public void itemStateChanged(ItemEvent e) {
-		// // TODO Auto-generated method stub
-		// System.out.println("buttonListener");
-		//
-		// Object source = e.getItemSelectable();
-		// assert (source instanceof JButton);
-		// // if (source instanceof JCheckBox) {
-		//
-		// JButton button = (JButton) source;
-		// if (button == foldAllButton) {
-		// System.out.println("foldAllButton");
-		//
-		// if (e.getStateChange() == ItemEvent.SELECTED) {
-		// expandAllButton.setEnabled(false);
-		// errorTrace.foldAll(true);
-		// System.out.println("selected");
-		// } else {
-		// System.out.println("diselect");
-		// expandAllButton.setEnabled(true);
-		// }
-		// } else {
-		// if (e.getStateChange() == ItemEvent.SELECTED) {
-		// foldAllButton.setEnabled(false);
-		// errorTrace.foldAll(false);
-		// } else {
-		// foldAllButton.setEnabled(true);
-		// }
-		// }
-		// }
-		// };
-		ActionListener buttonListener = new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				if ("foldAll".equals(e.getActionCommand())) {
-					if (isFoldSelected) {
-						foldAllButton.setSelected(false);
-						expandAllButton.setEnabled(true);
-						isFoldSelected = false;
-						isExpandSelected = false;
-					} else {
-						foldAllButton.setSelected(true);
-						expandAllButton.setEnabled(false);
-						errorTrace.foldAll(true);
-						isFoldSelected = true;
-						isExpandSelected = false;
-					}
-				} else {
-					System.out.println(isExpandSelected + " expandAllButton");
-					if (isExpandSelected) {
-						expandAllButton.setSelected(false);
-						foldAllButton.setEnabled(true);
-						isExpandSelected = false;
-						isFoldSelected = false;
-					} else {
-						expandAllButton.setSelected(true);
-						foldAllButton.setEnabled(false);
-						errorTrace.foldAll(false);
-						isExpandSelected = true;
-						isFoldSelected = false;
-						// updateGraph();
-					}
-					// foldAllButton.setEnabled(false);
-					// expandAllButton.setEnabled(true);
-				}
-				updateGraph();
-				// if (e.getSource() == foldAllButton) {
-				// }
-			}
-
-		};
+		ActionListener buttonListener = new ButtonListener(); 
 
 		foldAllButton = new JButton("Collapse all");
-		// b1.setVerticalTextPosition(AbstractButton.CENTER);
-		// b1.setHorizontalTextPosition(AbstractButton.LEADING); //aka LEFT, for
-		// left-to-right locales
 		foldAllButton.setMnemonic(KeyEvent.VK_C);
 		foldAllButton.setActionCommand("foldAll");
 		foldAllButton.addActionListener(buttonListener);
-		// foldAllButton.add
-		// foldAllButton.addItemListener(buttonListener);
-
-		// foldAllButton = new JCheckBox("summary");
-		// foldAllButton.setMnemonic(KeyEvent.VK_S);
-		// foldAllButton.setSelected(true);
-		// foldAllButton.addItemListener(listener);
 
 		expandAllButton = new JButton("Expand all");
-		// b1.setVerticalTextPosition(AbstractButton.CENTER);
-		// b1.setHorizontalTextPosition(AbstractButton.LEADING); //aka LEFT, for
-		// left-to-right locales
 		expandAllButton.setMnemonic(KeyEvent.VK_E);
-		// `expandAllButton.addItemListener(buttonListener);
 		expandAllButton.setActionCommand("expandAll");
 		expandAllButton.addActionListener(buttonListener);
-		// expandAllButton.addActionListener(buttonListener);
-		// expandAllButton = new JCheckBox("Expand All");
-		// expandAllButton.setMnemonic(KeyEvent.VK_E);
-		// expandAllButton.setSelected(false);
-		// expandAllButton.addItemListener(listener);
 
-		// JCheckBox foldButton = new JCheckBox("Fold All");
-		// foldButton.setMnemonic(KeyEvent.VK_F);
-		// foldButton.setSelected(true);
-		// foldButton.addItemListener(listener);
-		waitButton = new JCheckBox("wait/notify");
-		waitButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[0]));
-		waitButton.setOpaque(true);
-		waitButton.setMnemonic(KeyEvent.VK_W);
-		waitButton.addItemListener(listener);
+		waitBox = new JCheckBox("wait/notify");
+		waitBox.setBackground(Color.decode(PaneConstants.COLOR_TABLE[0]));
+		waitBox.setOpaque(true);
+		waitBox.setMnemonic(KeyEvent.VK_W);
+		waitBox.addItemListener(checkBoxListener);
 
-		threadStartButton = new JCheckBox("thread start/join");
-		threadStartButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[1]));
-		threadStartButton.setOpaque(true);
-		threadStartButton.setMnemonic(KeyEvent.VK_S);
-		threadStartButton.addItemListener(listener);
-
-		// threadTerminateButton = new JCheckBox("thread terminate");
-		// threadTerminateButton.setBackground(Color.decode(PaneConstants.COLOR_TABLE[2]));
-		// threadTerminateButton.setOpaque(true);
-		// threadTerminateButton.setMnemonic(KeyEvent.VK_T);
-		// threadTerminateButton.addItemListener(listener);
+		threadStartBox = new JCheckBox("thread start/join");
+		threadStartBox.setBackground(Color.decode(PaneConstants.COLOR_TABLE[1]));
+		threadStartBox.setOpaque(true);
+		threadStartBox.setMnemonic(KeyEvent.VK_S);
+		threadStartBox.addItemListener(checkBoxListener);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, checkPanel, errorTrace);
 		splitPane.setOneTouchExpandable(true);
@@ -290,10 +162,210 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 	}
 
-	public void updateGraph() {
+	String publishers = null;
+
+	/**
+	 * Requests focus from the Shell then adds the corresponding
+	 * {@link gov.nasa.jpf.traceReporter.TopicPublisher TopicPublisher}s for
+	 * every trace printer defined (see
+	 * {@link gov.nasa.jpf.traceServer.printer.ConsoleTracePrinter
+	 * ConsoleTracePrinter} and
+	 * {@link gov.nasa.jpf.traceServer.printer.GenericConsoleTracePrinter
+	 * GenericConsoleTracePrinter}) to the jpf config. If no trace printer is
+	 * defined, {@link gov.nasa.jpf.traceReporter.ConsoleTopicPublisher
+	 * ConsoleTopicPublisher} is added.
+	 * 
+	 * @param command
+	 */
+	public void preCommand(final VerifyCommand command) {
+		requestShellFocus();
+		Config config = ShellManager.getManager().getConfig();
+		publishers = config.getProperty("report.publisher", "");
+		if (publishers.contains("errorTracePrinter")) {
+			config.put("report.publisher", config.getProperty("report.publisher", "") + ",errorTrace");
+			config.put("report.errorTrace.class", ErrorTracePrinter.class.getName());
+		}
+		tracker.resetFields();
+	}
+
+	/**
+	 * Once JPF creates an instance of the TopicPublisher it is grabbed after
+	 * initialization by the tracker.
+	 * 
+	 * @param command
+	 */
+	public void afterJPFInit(VerifyCommand command) {
+		tracker.attachJPF(command.getJPF());
+		layout.show(this, PROGRESS);
+	}
+
+	/**
+	 * Just show the results of the JPF verification.
+	 * 
+	 * @param command
+	 */
+	public void postCommand(VerifyCommand command) {
+
+		if (command.errorOccured()) {
+			statusLabel.setText("An Error occured during the verify, check the Error Panel for more details");
+			statusLabel.setForeground(Color.RED);
+		} else {
+			statusLabel.setText("The JPF run completed successfully");
+			statusLabel.setForeground(Color.BLACK);
+		}
+
+		boolean found = false;
+		for (Publisher publisher : command.getJPF().getReporter().getPublishers()) {
+			if (publisher instanceof ErrorTracePrinter) {
+				if (!found) {
+					found = true;
+				}
+				path = ((ErrorTracePrinter) publisher).getPath();
+			}
+		}
+		if (found) {
+			td = new TraceData(path);
+			Set<String> fieldNames = td.getFieldNames();
+			errorTrace.draw(td);
+			checkPanel.removeAll();
+			selectTable = new LinkedHashMap<>();
+			// add fold all button
+			checkPanel.add(foldAllButton);
+			// add expand all button
+			checkPanel.add(expandAllButton);
+			foldAllButton.setEnabled(true);
+			foldAllButton.setSelected(true);
+			isFoldSelected = true;
+			expandAllButton.setSelected(false);
+			expandAllButton.setEnabled(false);
+			isExpandSelected = false;
+
+			// add wait/notify check box
+			waitBox.setSelected(false);
+			selectTable.put(waitBox, false);
+			checkPanel.add(waitBox);
+
+			// add thread start/join check box
+			threadStartBox.setSelected(false);
+			selectTable.put(threadStartBox, false);
+			checkPanel.add(threadStartBox);
+
+			// add monitor enter/exit and synchronized method check boxes
+			for (String s : fieldNames) {
+				JCheckBox cb = new JCheckBox("(un)lock: " + s);
+				cb.setSelected(false);
+				cb.addItemListener(checkBoxListener);
+
+				if (!colors.containsKey(s)) {
+					colors.put(s, PaneConstants.COLOR_TABLE[colorID]);
+					colorID = (colorID + 1) % numOfColors;
+				}
+
+				cb.setBackground(Color.decode(colors.get(s)));
+				cb.setOpaque(true);
+				selectTable.put(cb, false);
+				checkPanel.add(cb);
+			}
+
+			/**
+			 * add drop down list dynamically searching user input for field
+			 * access/ method call
+			 */
+			String[] dropDownStrs = { "", "Field Access ...", "Method call ..." };
+			JComboBox highlightList = new JComboBox(dropDownStrs) {
+				@Override
+				public Dimension getMaximumSize() {
+					Dimension max = super.getMaximumSize();
+					max.height = getPreferredSize().height;
+					return max;
+				}
+
+			};
+
+			highlightList.setMaximumRowCount(3);
+			highlightList.setAlignmentX(0);
+			highlightList.setAlignmentY(0);
+			highlightList.addActionListener(new dropDownListener());
+			checkPanel.add(highlightList);
+
+			layout.show(this, TOPICS);
+			getShell().requestFocus(this);
+
+		} else {
+			ShellManager.getManager().getConfig().put("report.publisher", publishers);
+			publishers = null;
+		}
+	}
+
+	public String showDialog(String str, Component comp) {
+		String userInput;
+		if (str.equals("field")) {
+			userInput = (String) JOptionPane.showInputDialog(comp, "Input:\n" + "Class.field", "Text input",
+					JOptionPane.PLAIN_MESSAGE, null, null, "Class.field");
+		} else {
+			userInput = (String) JOptionPane.showInputDialog(comp, "Input:\n" + "Class.method", "Text input",
+					JOptionPane.PLAIN_MESSAGE, null, null, "Class.method");
+		}
+		// do things with user input;
+		System.out.println(userInput);
+		return userInput;
+
+	}
+
+	public void exceptionDuringVerify(Exception ex) {
+	}
+
+	private void popInvalidDialogue(String userInput) {
+		JOptionPane.showMessageDialog(checkPanel,
+				"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again", "Error message",
+				JOptionPane.ERROR_MESSAGE);
+	}
+
+	private void popNotExistDialogue(String userInput) {
+		JOptionPane.showMessageDialog(checkPanel,
+				"Sorry, \"" + userInput + "\" " + "does not exist.\n" + "Please Try again", "Error message",
+				JOptionPane.ERROR_MESSAGE);
+	}
+
+	private void fieldMethodSearch(String clsName, String fmName, String userInput, boolean isField) {
+		Set<Pair<Integer, Integer>> targetList = null;
+		if (isField) {
+			targetList = td.getClassField(clsName, fmName);
+		} else {
+			targetList = td.getClassMethod(clsName, fmName);
+		}
+
+		if (targetList.isEmpty()) {
+			popNotExistDialogue(userInput);
+		} else {
+			String s = clsName + "." + fmName;
+			JCheckBox fmCheckBox = null;
+			if (isField) {
+				fmCheckBox = new JCheckBox("field: " + s);
+			} else {
+				fmCheckBox = new JCheckBox("method: " + s);
+			}
+
+			fmCheckBox.setSelected(true);
+			fmCheckBox.addItemListener(checkBoxListener);
+
+			if (!colors.containsKey(s)) {
+				colors.put(s, PaneConstants.COLOR_TABLE[colorID]);
+				colorID = (colorID + 1) % numOfColors;
+			}
+			fmCheckBox.setBackground(Color.decode(colors.get(s)));
+			fmCheckBox.setOpaque(true);
+
+			selectTable.put(fmCheckBox, true);
+			checkPanel.add(fmCheckBox);
+			updateGraph();
+		}
+	}
+
+	private void updateGraph() {
 		errorTrace.foldAll(true);
 		for (JCheckBox cb : selectTable.keySet()) {
-			if (cb == waitButton) {
+			if (cb == waitBox) {
 				Set<Pair<Integer, Integer>> set = td.getWaitNotify();
 				if (selectTable.get(cb)) {
 					System.out.println("wait start expand");
@@ -306,7 +378,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					System.out.println("wait end reset");
 
 				}
-			} else if (cb == threadStartButton) {
+			} else if (cb == threadStartBox) {
 				Set<Pair<Integer, Integer>> set = td.getThreadStart();
 				if (selectTable.get(cb)) {
 					errorTrace.expand(set, PaneConstants.COLOR_TABLE[1]);
@@ -384,267 +456,85 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 	}
 
-	String publishers = null;
-
-	/**
-	 * Requests focus from the Shell then adds the corresponding
-	 * {@link gov.nasa.jpf.traceReporter.TopicPublisher TopicPublisher}s for
-	 * every trace printer defined (see
-	 * {@link gov.nasa.jpf.traceServer.printer.ConsoleTracePrinter
-	 * ConsoleTracePrinter} and
-	 * {@link gov.nasa.jpf.traceServer.printer.GenericConsoleTracePrinter
-	 * GenericConsoleTracePrinter}) to the jpf config. If no trace printer is
-	 * defined, {@link gov.nasa.jpf.traceReporter.ConsoleTopicPublisher
-	 * ConsoleTopicPublisher} is added.
-	 * 
-	 * @param command
-	 */
-	public void preCommand(final VerifyCommand command) {
-		requestShellFocus();
-		Config config = ShellManager.getManager().getConfig();
-		publishers = config.getProperty("report.publisher", "");
-		if (publishers.contains("errorTracePrinter")) {
-			config.put("report.publisher", config.getProperty("report.publisher", "") + ",errorTrace");
-			config.put("report.errorTrace.class", ErrorTracePrinter.class.getName());
+	class ButtonListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			if ("foldAll".equals(e.getActionCommand())) {
+				if (isFoldSelected) {
+					foldAllButton.setSelected(false);
+					expandAllButton.setEnabled(true);
+					isFoldSelected = false;
+					isExpandSelected = false;
+				} else {
+					foldAllButton.setSelected(true);
+					expandAllButton.setEnabled(false);
+					errorTrace.foldAll(true);
+					isFoldSelected = true;
+					isExpandSelected = false;
+				}
+			} else {
+				System.out.println(isExpandSelected + " expandAllButton");
+				if (isExpandSelected) {
+					expandAllButton.setSelected(false);
+					foldAllButton.setEnabled(true);
+					isExpandSelected = false;
+					isFoldSelected = false;
+				} else {
+					expandAllButton.setSelected(true);
+					foldAllButton.setEnabled(false);
+					errorTrace.foldAll(false);
+					isExpandSelected = true;
+					isFoldSelected = false;
+				}
+			}
+			updateGraph();
 		}
-		tracker.resetFields();
+
 	}
 
 	/**
-	 * Once JPF creates an instance of the TopicPublisher it is grabbed after
-	 * initialization by the tracker.
-	 * 
-	 * @param command
+	 * the dropdown list listener
+	 *
 	 */
-	public void afterJPFInit(VerifyCommand command) {
-		tracker.attachJPF(command.getJPF());
-		layout.show(this, PROGRESS);
-	}
+	class dropDownListener implements ActionListener {
 
-	/**
-	 * Just show the results of the JPF verification.
-	 * 
-	 * @param command
-	 */
-	public void postCommand(VerifyCommand command) {
-
-		if (command.errorOccured()) {
-			statusLabel.setText("An Error occured during the verify, check the Error Panel for more details");
-			statusLabel.setForeground(Color.RED);
-		} else {
-			statusLabel.setText("The JPF run completed successfully");
-			statusLabel.setForeground(Color.BLACK);
-		}
-
-		boolean found = false;
-		for (Publisher publisher : command.getJPF().getReporter().getPublishers()) {
-			if (publisher instanceof ErrorTracePrinter) {
-				if (!found) {
-					found = true;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			if (e.getSource() instanceof JComboBox<?>) {
+				JComboBox<?> cb = (JComboBox<?>) e.getSource();
+				String newSelection = (String) cb.getSelectedItem();
+				String userInput;
+				boolean isField;
+				if (newSelection.contains("Field")) {
+					userInput = showDialog("field", checkPanel);
+					isField = true;
+				} else {
+					userInput = showDialog("method", checkPanel);
+					isField = false;
 				}
-				path = ((ErrorTracePrinter) publisher).getPath();
-			}
-		}
-		if (found) {
-			td = new TraceData(path);
-			Set<String> fieldNames = td.getFieldNames();
-			errorTrace.draw(td);
-			checkPanel.removeAll();
-			selectTable = new LinkedHashMap<>();
-			// foldAllButton.setEnabled(true);
-			// foldAllButton.setSelected(true);
-			// expandAllButton.setEnabled(false);
-			checkPanel.add(foldAllButton);
-			checkPanel.add(expandAllButton);
-			foldAllButton.setEnabled(true);
-			foldAllButton.setSelected(true);
-			isFoldSelected = true;
-			expandAllButton.setSelected(false);
-			expandAllButton.setEnabled(false);
-			isExpandSelected = false;
-			// selectTable.put(foldAllButton, true);
-			// selectTable.put(expandAllButton, false);
-			waitButton.setSelected(false);
-			selectTable.put(waitButton, false);
-			threadStartButton.setSelected(false);
-			selectTable.put(threadStartButton, false);
-			// threadTerminateButton.setSelected(false);
-			// selectTable.put(threadTerminateButton, false);
-			// checkButtons.add(foldButton);
-			checkPanel.add(waitButton);
-			checkPanel.add(threadStartButton);
-			// checkPanel.add(threadTerminateButton);
+				cb.setSelectedIndex(0);
 
-			for (String s : fieldNames) {
-				JCheckBox cb = new JCheckBox("(un)lock: " + s);
-				cb.setSelected(false);
-				cb.addItemListener(listener);
-
-				if (!colors.containsKey(s)) {
-					// int nextInt = new Random().nextInt(256 * 256 * 256);
-					// while (nextInt < 100000) {
-					// nextInt = new Random().nextInt(256 * 256 * 256);
-					// }
-					// // format it as hexadecimal string (with hashtag and
-					// leading
-					// // zeros)
-					// String colorCode = String.format("#%06x", nextInt);
-
-					colors.put(s, PaneConstants.COLOR_TABLE[colorID]);
-					colorID = (colorID + 1) % 15;
-
+				if (userInput == null) {
+					return;
 				}
-				cb.setBackground(Color.decode(colors.get(s)));
-				cb.setOpaque(true);
-				selectTable.put(cb, false);
-				checkPanel.add(cb);
-			}
+				if (!userInput.contains(".")) {
+					popInvalidDialogue(userInput);
 
-			/**
-			 * add drop down list
-			 */
-
-			class dropDownListener implements ActionListener {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					if (e.getSource() instanceof JComboBox<?>) {
-						JComboBox<?> cb = (JComboBox<?>) e.getSource();
-						String newSelection = (String) cb.getSelectedItem();
-						String userInput;
-						boolean isField = true;
-						if (newSelection.contains("Field")) {
-							userInput = showDialog("field", checkPanel);
-						} else {
-							userInput = showDialog("method", checkPanel);
-							isField = false;
-						}
-						cb.setSelectedIndex(0);
-
-						if (userInput == null) {
-							return;
-						}
-						if (!userInput.contains(".")) {
-							JOptionPane.showMessageDialog(checkPanel,
-									"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",
-									"Error message", JOptionPane.ERROR_MESSAGE);
-						} else {
-							int dotPos = userInput.lastIndexOf(".");
-							// String clsName = userInput.substring(0, dotPos);
-
-							// String fmName =userInput.substring(dotPos+1,
-							// dotPos); String[] splitStr =
-							// userInput.split("\\.");
-							if (dotPos == 0 || dotPos == userInput.length() - 1) {
-								JOptionPane.showMessageDialog(checkPanel,
-										"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",
-										"Error message", JOptionPane.ERROR_MESSAGE);
-							} else if (isField) {
-								String clsName = userInput.substring(0, dotPos);
-								String fmName = userInput.substring(dotPos + 1, userInput.length());
-								// use trace data to find clsname.fmName
-								/**
-								 * field access
-								 */
-								Set<Pair<Integer, Integer>> targetList = td.getClassField(clsName, fmName);
-								if (targetList.isEmpty()) {
-									JOptionPane.showMessageDialog(checkPanel,
-											"Sorry, \"" + userInput + "\" " + "does not exist.\n" + "Please Try again",
-											"Error message", JOptionPane.ERROR_MESSAGE);
-								} else {
-									String s = clsName + "." + fmName;
-									JCheckBox fieldCheckBox = new JCheckBox("field: " + s);
-									fieldCheckBox.setSelected(true);
-									fieldCheckBox.addItemListener(listener);
-
-									if (!colors.containsKey(s)) {
-										colors.put(s, PaneConstants.COLOR_TABLE[colorID]);
-										colorID = (colorID + 1) % 15;
-									}
-									fieldCheckBox.setBackground(Color.decode(colors.get(s)));
-									fieldCheckBox.setOpaque(true);
-									selectTable.put(fieldCheckBox, true);
-									checkPanel.add(fieldCheckBox);
-									updateGraph();
-								}
-							} else {
-								/**
-								 * method call
-								 */
-								String clsName = userInput.substring(0, dotPos);
-								String fmName = userInput.substring(dotPos + 1, userInput.length());
-								Set<Pair<Integer, Integer>> targetList = td.getClassMethod(clsName, fmName);
-								if (targetList.isEmpty()) {
-									JOptionPane.showMessageDialog(checkPanel,
-											"Sorry, \"" + userInput + "\" " + "does not exist.\n" + "Please Try again",
-											"Error message", JOptionPane.ERROR_MESSAGE);
-								} else {
-									String s = clsName + "." + fmName;
-									JCheckBox methodCheckBox = new JCheckBox("method: " + s);
-									methodCheckBox.setSelected(true);
-									methodCheckBox.addItemListener(listener);
-
-									if (!colors.containsKey(s)) {
-										colors.put(s, PaneConstants.COLOR_TABLE[colorID]);
-										colorID = (colorID + 1) % 15;
-
-									}
-									methodCheckBox.setBackground(Color.decode(colors.get(s)));
-									methodCheckBox.setOpaque(true);
-									selectTable.put(methodCheckBox, true);
-									checkPanel.add(methodCheckBox);
-									updateGraph();
-								}
-							}
-						}
-
+				} else {
+					int dotPos = userInput.lastIndexOf(".");
+					if (dotPos == 0 || dotPos == userInput.length() - 1) {
+						popInvalidDialogue(userInput);
+					} else {
+						String clsName = userInput.substring(0, dotPos);
+						String fmName = userInput.substring(dotPos + 1, userInput.length());
+						// use TraceData to find clsname.fmName
+						fieldMethodSearch(clsName, fmName, userInput, isField);
 					}
-
 				}
 			}
-
-			String[] dropDownStrs = { "", "Field Access ...", "Method call ..." };
-			JComboBox highlightList = new JComboBox(dropDownStrs) {
-				@Override
-				public Dimension getMaximumSize() {
-					Dimension max = super.getMaximumSize();
-					max.height = getPreferredSize().height;
-					return max;
-				}
-
-			};
-
-			highlightList.setMaximumRowCount(3);
-			highlightList.setAlignmentX(0);
-			highlightList.setAlignmentY(0);
-			highlightList.addActionListener(new dropDownListener());
-			checkPanel.add(highlightList);
-
-			layout.show(this, TOPICS);
-			getShell().requestFocus(this);
-
-		} else {
-			ShellManager.getManager().getConfig().put("report.publisher", publishers);
-			publishers = null;
 		}
 	}
 
-	public String showDialog(String str, Component comp) {
-		String userInput;
-		if (str.equals("field")) {
-			userInput = (String) JOptionPane.showInputDialog(comp, "Input:\n" + "Class.field", "Text input",
-					JOptionPane.PLAIN_MESSAGE, null, null, "Class.field");
-		} else {
-			userInput = (String) JOptionPane.showInputDialog(comp, "Input:\n" + "Class.method", "Text input",
-					JOptionPane.PLAIN_MESSAGE, null, null, "Class.method");
-		}
-		// do things with user input;
-		System.out.println(userInput);
-		return userInput;
-
-	}
-
-	public void exceptionDuringVerify(Exception ex) {
-	}
 }
