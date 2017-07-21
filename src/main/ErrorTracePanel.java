@@ -81,6 +81,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private ItemListener listener = null;
 	// private ItemListener buttonListener = null;
 	private Map<String, String> colors = new HashMap<>();
+	private int numOfColors = 0;
 	private int colorID = 2;
 	// private JCheckBox foldAllButton;
 	private JButton foldAllButton;
@@ -105,6 +106,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		tablePanel.add(statusLabel);
 		// tablePanel.setBorder(BorderFactory.createEmptyBorder());
 		checkPanel.setLayout(new BoxLayout(checkPanel, BoxLayout.Y_AXIS));
+		this.numOfColors = PaneConstants.COLOR_TABLE.length;
 
 		listener = new ItemListener() {
 
@@ -323,21 +325,21 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 					errorTrace.expand(set, colors.get(str));
 					System.out.println("expand end " + "(un)lock " + str);
-				} else if(str.contains("field")){
+				} else if (str.contains("field")) {
 					System.out.println("expand start " + "(un)lock " + str);
 
 					str = str.replaceAll(".*\\s", "");
-					//String[] strs = str.split("\\.");
+					// String[] strs = str.split("\\.");
 					int dotPos = str.lastIndexOf(".");
 					String cName = str.substring(0, dotPos);
-					String fName = str.substring(dotPos+1);
+					String fName = str.substring(dotPos + 1);
 					Set<Pair<Integer, Integer>> set = td.getClassField(cName, fName);
 					errorTrace.expand(set, colors.get(str));
-				}else {
+				} else {
 					str = str.replaceAll(".*\\s", "");
 					int dotPos = str.lastIndexOf(".");
 					String cName = str.substring(0, dotPos);
-					String mName = str.substring(dotPos+1);
+					String mName = str.substring(dotPos + 1);
 					Set<Pair<Integer, Integer>> set = td.getClassMethod(cName, mName);
 					errorTrace.expand(set, colors.get(str));
 				}
@@ -351,20 +353,20 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 					errorTrace.resetContent(set, colors.get(str));
 					System.out.println("reset end " + "(un)lock " + str);
-				} else if(str.contains("field")){
-					
+				} else if (str.contains("field")) {
+
 					str = str.replaceAll(".*\\s", "");
 					int dotPos = str.lastIndexOf(".");
 					String cName = str.substring(0, dotPos);
-					String fName = str.substring(dotPos+1);
+					String fName = str.substring(dotPos + 1);
 					Set<Pair<Integer, Integer>> set = td.getClassField(cName, fName);
 					errorTrace.resetContent(set, colors.get(str));
 
-				}else{
+				} else {
 					str = str.replaceAll(".*\\s", "");
 					int dotPos = str.lastIndexOf(".");
 					String cName = str.substring(0, dotPos);
-					String mName = str.substring(dotPos+1);					
+					String mName = str.substring(dotPos + 1);
 					Set<Pair<Integer, Integer>> set = td.getClassMethod(cName, mName);
 					errorTrace.resetContent(set, colors.get(str));
 				}
@@ -488,10 +490,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					// // zeros)
 					// String colorCode = String.format("#%06x", nextInt);
 
-					if (colorID < 14)
-						colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
-					else
-						colors.put(s, PaneConstants.COLOR_TABLE[14]);
+					colors.put(s, PaneConstants.COLOR_TABLE[colorID]);
+					colorID = (colorID + 1) % 15;
 
 				}
 				cb.setBackground(Color.decode(colors.get(s)));
@@ -499,8 +499,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				selectTable.put(cb, false);
 				checkPanel.add(cb);
 			}
-
-			int remainColors = 15 - colorID;
 
 			/**
 			 * add drop down list
@@ -533,16 +531,18 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 									"Error message", JOptionPane.ERROR_MESSAGE);
 						} else {
 							int dotPos = userInput.lastIndexOf(".");
-							//String clsName = userInput.substring(0, dotPos);
-							
-							//String fmName =userInput.substring(dotPos+1, dotPos);							String[] splitStr = userInput.split("\\.");
+							// String clsName = userInput.substring(0, dotPos);
+
+							// String fmName =userInput.substring(dotPos+1,
+							// dotPos); String[] splitStr =
+							// userInput.split("\\.");
 							if (dotPos == 0 || dotPos == userInput.length() - 1) {
 								JOptionPane.showMessageDialog(checkPanel,
 										"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again",
 										"Error message", JOptionPane.ERROR_MESSAGE);
 							} else if (isField) {
 								String clsName = userInput.substring(0, dotPos);
-								String fmName = userInput.substring(dotPos+1, userInput.length());	
+								String fmName = userInput.substring(dotPos + 1, userInput.length());
 								// use trace data to find clsname.fmName
 								/**
 								 * field access
@@ -559,11 +559,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 									fieldCheckBox.addItemListener(listener);
 
 									if (!colors.containsKey(s)) {
-										if (colorID < 14)
-											colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
-										else
-											colors.put(s, PaneConstants.COLOR_TABLE[14]);
-
+										colors.put(s, PaneConstants.COLOR_TABLE[colorID]);
+										colorID = (colorID + 1) % 15;
 									}
 									fieldCheckBox.setBackground(Color.decode(colors.get(s)));
 									fieldCheckBox.setOpaque(true);
@@ -576,23 +573,21 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 								 * method call
 								 */
 								String clsName = userInput.substring(0, dotPos);
-								String fmName = userInput.substring(dotPos+1, userInput.length());	
+								String fmName = userInput.substring(dotPos + 1, userInput.length());
 								Set<Pair<Integer, Integer>> targetList = td.getClassMethod(clsName, fmName);
 								if (targetList.isEmpty()) {
 									JOptionPane.showMessageDialog(checkPanel,
 											"Sorry, \"" + userInput + "\" " + "does not exist.\n" + "Please Try again",
 											"Error message", JOptionPane.ERROR_MESSAGE);
 								} else {
-									String s =  clsName + "." + fmName;
+									String s = clsName + "." + fmName;
 									JCheckBox methodCheckBox = new JCheckBox("method: " + s);
 									methodCheckBox.setSelected(true);
 									methodCheckBox.addItemListener(listener);
 
 									if (!colors.containsKey(s)) {
-										if (colorID < 14)
-											colors.put(s, PaneConstants.COLOR_TABLE[colorID++]);
-										else
-											colors.put(s, PaneConstants.COLOR_TABLE[14]);
+										colors.put(s, PaneConstants.COLOR_TABLE[colorID]);
+										colorID = (colorID + 1) % 15;
 
 									}
 									methodCheckBox.setBackground(Color.decode(colors.get(s)));
