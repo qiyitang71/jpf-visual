@@ -44,6 +44,8 @@ public class TraceData {
 	private Set<Pair<Integer, Integer>> threadStartSet = new HashSet<>();
 	private Map<Integer, TextLineList> lineTable = new HashMap<>();
 	private Set<String> lockMethodName = new HashSet<>();
+	private Map<String, Set<Pair<Integer, Integer>>> classFieldMap = new HashMap<>();
+	private Map<String, Set<Pair<Integer, Integer>>> classMethodMap = new HashMap<>();
 
 	// private Set<Pair<Integer, Integer>> threadTerminateSet = new HashSet<>();
 
@@ -280,6 +282,10 @@ public class TraceData {
 
 	public Set<Pair<Integer, Integer>> getClassField(String clsName, String fieldName) {
 		String target = clsName + "." + fieldName;
+		if (classFieldMap.containsKey(target)) {
+			return classFieldMap.get(target);
+		}
+
 		Set<String> srcSet = new HashSet<>();
 		Set<Pair<Integer, Integer>> targetSet = new HashSet<>();
 		for (TextLineList list : lineTable.values()) {
@@ -305,13 +311,16 @@ public class TraceData {
 				}
 			}
 		}
-
+		classFieldMap.put(target, targetSet);
 		return targetSet;
 
 	}
 
 	public Set<Pair<Integer, Integer>> getClassMethod(String clsName, String m) {
-		// String target = clsName + "." + methodName;
+		String target = clsName + "." + m;
+		if (classMethodMap.containsKey(target)) {
+			return classMethodMap.get(target);
+		}
 		String methodName = m.replaceAll("\\(.*$", "");
 		Set<Pair<Integer, Integer>> targetSet = new HashSet<>();
 		for (TextLineList list : lineTable.values()) {
@@ -341,7 +350,7 @@ public class TraceData {
 				}
 			}
 		}
-
+		classMethodMap.put(target, targetSet);
 		return targetSet;
 
 	}
