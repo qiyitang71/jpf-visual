@@ -9,8 +9,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.BitSet;
-//import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,15 +17,10 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-//import javax.swing.text.JTextComponent;
 
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.swing.mxGraphOutline;
-//import com.mxgraph.swing.view.mxCellEditor;
-//import com.mxgraph.util.mxConstants;
-//import com.mxgraph.util.mxUtils;
-//import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 
 import gov.nasa.jpf.util.Pair;
@@ -69,14 +62,13 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		Path path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
 		List<Pair<Integer, Integer>> group = td.getGroup();
-		//List<String> detailList = td.getDetailList();
-		//List<Integer> heightList = td.getHeightList();
+		// List<String> detailList = td.getDetailList();
+		// List<Integer> heightList = td.getHeightList();
 		List<String> threadNames = td.getThreadNames();
 		Map<Integer, TextLineList> lineTable = td.getLineTable();
 
-		int cellWidth = (int) (Math.floor(
-				(splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE)
-						/ numOfThreads));
+		double cellWidth = (splitPane.getLeftComponent().getWidth() - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE
+				- PaneConstants.BAR_SIZE) / numOfThreads;
 
 		// content = new ContentPane(cellWidth, numOfThreads, path, group,
 		// detailList, heightList);
@@ -164,13 +156,10 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	public void componentResized(ComponentEvent arg0) {
 		if (numOfThreads < 0)
 			return;
-		// - PaneConstants.OUTLINE_SIZE
 		// TODO Auto-generated method stub
 
-		int newWidth = (int) (Math.floor(
-				(splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE)
-						/ numOfThreads));
-		// System.out.println("resize" + newWidth);
+		double newWidth = (splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE
+				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
 
 		content.resize(newWidth);
 		menu.resize(newWidth);

@@ -2,6 +2,7 @@
 public class PaneConstants {
 	public static final int START_SIZE = 50;
 	//public static final int TOP_SPACE = 10;
+	public static final int BAR_SIZE = 15;
 	public static final int TOP_SPACE = 5;
 	public static final int LEFT_SPACE = 5;
 	public static final int ALTER_SIZE = 50;

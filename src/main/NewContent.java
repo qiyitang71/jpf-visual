@@ -25,7 +25,7 @@ import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
 public class NewContent {
-	private int cellWidth = 0;// PaneConstants.DEFAULT_CELL_WIDTH;
+	private double cellWidth = 0;// PaneConstants.DEFAULT_CELL_WIDTH;
 	private mxGraph graph;
 	private mxIGraphModel model;
 
@@ -36,7 +36,7 @@ public class NewContent {
 	private double htPerLine;
 	private double wtPerLine = 7;
 
-	public NewContent(int width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
+	public NewContent(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
 			Map<Integer, TextLineList> lt) {
 		this.lineTable = lt;
 		this.numOfThreads = nThreads;
@@ -389,7 +389,7 @@ public class NewContent {
 		}
 	}
 
-	public void resize(int newCellWidth) {
+	public void resize(double newCellWidth) {
 		this.cellWidth = newCellWidth;
 		Object parent = graph.getDefaultParent();
 		for (Object rowCell : graph.getChildCells(parent)) {
