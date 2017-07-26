@@ -8,19 +8,17 @@ import java.util.Set;
 import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.layout.mxStackLayout;
 import com.mxgraph.model.mxCell;
-import com.mxgraph.model.mxICell;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxEvent;
 import com.mxgraph.util.mxEventObject;
+import com.mxgraph.util.mxEventSource.mxIEventListener;
 import com.mxgraph.util.mxRectangle;
 import com.mxgraph.util.mxUtils;
-import com.mxgraph.util.mxEventSource.mxIEventListener;
 import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxLayoutManager;
 
-import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
@@ -35,6 +33,8 @@ public class NewContent {
 	private Map<Integer, TextLineList> lineTable;
 	private double htPerLine;
 	private double wtPerLine = 7;
+
+	private LocationInGraph location = new LocationInGraph();
 
 	public NewContent(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
 			Map<Integer, TextLineList> lt) {
@@ -237,6 +237,7 @@ public class NewContent {
 						numOfThreads * cellWidth + PaneConstants.SIGN_SIZE, currHt, "swim" + ithRow);
 				swimCell.setConnectable(false);
 				swimCell.setId("" + ithRow);
+				location.addSwimCell(ithRow, swimCell);
 				graph.foldCells(true, false, new Object[] { swimCell }, true);
 
 				/**
@@ -278,6 +279,7 @@ public class NewContent {
 							htPerLine, "content");
 					content.setConnectable(false);
 					content.setId("" + ithLine);
+					location.addContentCell(ithRow, ithLine, contentBox);
 				}
 
 				/**
@@ -480,6 +482,8 @@ public class NewContent {
 	private void highlightSummaryCell(Set<Integer> expandedRows, Map<Integer, Set<Integer>> map, int ithRow,
 			boolean reset, Object summaryCell, String color, Object rightCell, Object rowCell) {
 		if (expandedRows.contains(ithRow)) {
+			
+			long t1 = System.nanoTime();
 			int threadIdx = Integer.parseInt(((mxCell) summaryCell).getId());
 			Map<String, Object> sumContent = graph.getStylesheet().getStyles().get("summaryContent" + ithRow);
 			Map<String, Object> sumContentStyle = new HashMap<>(sumContent);
@@ -499,9 +503,11 @@ public class NewContent {
 			String lastLine = null;
 			String styleStr = "summaryContent" + ithRow;
 
+			
+			long t2 = System.nanoTime();
 			for (TextLine tl : lineTable.get(ithRow).getList()) {
 				if (!tl.isSrc()) {
-						cgInBetween = true;
+					cgInBetween = true;
 					continue;
 				}
 				double sumWt = Math.min(tl.getText().length() * wtPerLine + threadIdx * cellWidth,
@@ -553,6 +559,7 @@ public class NewContent {
 					summaryLineNum++;
 					lastLine = tl.getText();
 				} else if (tl.isHighlighted()) {
+					long y1 = System.nanoTime();
 					if (srcInBetween) {
 						mxCell summaryContent = (mxCell) graph.insertVertex(summaryCell, null, "...", 0, 0,
 								numOfThreads * cellWidth, htPerLine, styleStr);
@@ -586,6 +593,10 @@ public class NewContent {
 					}
 					lastLine = tl.getText();
 					summaryLineNum++;
+					
+
+					long y2 = System.nanoTime();
+					System.out.println("Y: " + (y2 - y1));
 
 				} else if (tl.isSrc()) {
 					srcInBetween = true;
@@ -594,18 +605,58 @@ public class NewContent {
 				}
 			}
 			double tmpHt = htPerLine * summaryLineNum + 10;
+			long t3 = System.nanoTime();
 
 			model.getGeometry(summaryCell).setHeight(tmpHt);
 			if (((mxCell) summaryCell).isVisible()) {
 				model.getGeometry(rightCell).setHeight(tmpHt);
 				model.getGeometry(rowCell).setHeight(tmpHt);
 			}
-
+			
+			long t4 = System.nanoTime();
+			System.out.println("x: " + (t2 - t1) + ", " + (t3 - t2) + ", " + (t4- t3) );
 		}
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color, boolean reset) {
-
+		// for (Pair<Integer, Integer> p : set) {
+		// int row = p._1;
+		// int line = p._2;
+		// TextLine tl = lineTable.get(row).getList().get(line);
+		// Object contentBox = location.getContentCell(p);
+		// if (!reset) {
+		// graph.foldCells(false, false, new Object[] {
+		// location.getSwimCell(row) });
+		// Map<String, Object> hlStyle = new
+		// HashMap<>(graph.getStylesheet().getStyles().get("content"));
+		// hlStyle.put(mxConstants.STYLE_LABEL_BACKGROUNDCOLOR, color);
+		// graph.getStylesheet().putCellStyle("highlight" + color, hlStyle);
+		// if (!tl.isHighlighted()) {
+		// mxCell content = (mxCell) graph.getChildCells(contentBox)[0];
+		// content.setStyle("highlight" + color);
+		// } else {
+		// mxCell colorBlock = (mxCell) graph.insertVertex(contentBox, null, "
+		// ", 0, 0, 5, htPerLine,
+		// "highlight" + color);
+		// colorBlock.setConnectable(false);
+		// }
+		// tl.resetHighlight(color);
+		// } else {
+		// tl.resetHighlight(color);
+		// for (int i = 1; i < model.getChildCount(contentBox); i++) {
+		// mxCell o = (mxCell) model.getChildAt(contentBox, i);
+		// if (o.getStyle().equals("highlight" + color)) {
+		// o.removeFromParent();
+		// }
+		// }
+		//
+		// if (!tl.isHighlighted()) {
+		// mxCell content = (mxCell) graph.getChildCells(contentBox)[0];
+		// content.setStyle("content");
+		// }
+		// }
+		// }
+		long t1 = System.nanoTime();
 		Set<Integer> expandedRows = new HashSet<>();
 		for (Pair<Integer, Integer> p : set) {
 			expandedRows.add(p._1);
@@ -623,6 +674,8 @@ public class NewContent {
 		}
 
 		Object parent = graph.getDefaultParent();
+		
+		long t11 = System.nanoTime();
 
 		for (Object rowCell : graph.getChildCells(parent)) {
 			for (Object rightCell : graph.getChildCells(rowCell)) {
@@ -647,7 +700,10 @@ public class NewContent {
 				}
 			}
 		}
+		long t2 = System.nanoTime();
 		graph.refresh();
+		long t3 = System.nanoTime();
+		System.out.println((t11 - t1) + "," + (t2 - t11) + ", " + (t3 - t2));
 		// resize(cellWidth);
 	}
 
@@ -665,5 +721,5 @@ public class NewContent {
 			}
 		}
 	}
-	
+
 }
