@@ -298,8 +298,44 @@ public class NewContent {
 
 				boolean srcInBetween = false;
 				int sumNum = 0;
+				SummaryCell prevCell = null;
 				for (TextLine tl : lineTable.get(ithRow).getList()) {
-
+					
+//					if(tl.isSrc()){
+//						double sumWt = Math.min(tl.getText().length() * wtPerLine + threadIdx * cellWidth,
+//								numOfThreads * cellWidth);
+//						mxCell summaryBox = (mxCell) graph.insertVertex(summaryCell, null, null, 0, 0,
+//								numOfThreads * cellWidth, htPerLine, "content");
+//						summaryBox.setId(tl.getLineNum() + "");
+//						summaryBox.setConnectable(false);
+//						
+//						mxCell summaryContent = (mxCell) graph.insertVertex(summaryBox, null, tl.getText(), 0, 0, sumWt,
+//								htPerLine, "summaryContent" + ithRow);
+//						summaryContent.setId(tl.getLineNum() + "");
+//						summaryContent.setConnectable(false);
+//						
+//						sumNum++;
+//						
+//						
+//						mxCell summaryDots = (mxCell) graph.insertVertex(summaryCell, null, "...", 0, 0,
+//								numOfThreads * cellWidth, htPerLine, "summaryContent" + ithRow);
+//						summaryDots.setId(-1 + "");
+//						summaryDots.setConnectable(false);
+//						
+//						SummaryCell sCell= new SummaryCell(summaryBox);
+//						
+//						sCell.setNextDots(summaryDots);
+//						
+//						if(prevCell != null){
+//							sCell.setPrevSrc(prevCell.getSummary());
+//							sCell.setPrevDots(prevCell.getNextDots());
+//							prevCell.setNextSrc(summaryBox);
+//						}
+//						
+//						prevCell = sCell;
+//						
+//					}
+					
 					if (tl.isFirst() || tl.isLast()) {
 						double sumWt = Math.min(tl.getText().length() * wtPerLine + threadIdx * cellWidth,
 								numOfThreads * cellWidth);

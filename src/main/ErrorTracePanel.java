@@ -271,7 +271,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			 * add drop down list dynamically searching user input for field
 			 * access/ method call
 			 */
-			String[] dropDownStrs = { "", "Field Access ...", "Method call ..." };
+			String[] dropDownStrs = { "Custom filter...", "Field Access ...", "Method call ..." };
 			JComboBox highlightList = new JComboBox(dropDownStrs) {
 				@Override
 				public Dimension getMaximumSize() {

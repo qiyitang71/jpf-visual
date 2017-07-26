@@ -5,12 +5,13 @@ import gov.nasa.jpf.util.Pair;
 
 public class LocationInGraph {
 	private Map<Pair<Integer, Integer>, Object> contentMap;
-	private Map<Pair<Integer, Integer>, Object> summaryMap;
 	private Map<Integer, Object> swimMap;
+	private Map<Pair<Integer, Integer>, SummaryCell> summaryMap;
 
 	public LocationInGraph() {
-		contentMap = new HashMap<Pair<Integer, Integer>, Object>();
-		swimMap = new HashMap<Integer, Object>();
+		contentMap = new HashMap<>();
+		swimMap = new HashMap<>();
+		summaryMap = new HashMap<>();
 	}
 
 	public Object getContentCell(int row, int line) {
@@ -42,4 +43,23 @@ public class LocationInGraph {
 
 	}
 
+	public SummaryCell getSummaryCell(int row, int line) {
+		Pair<Integer, Integer> p = new Pair<>(row, line);
+		if (summaryMap.containsKey(p)) {
+			return summaryMap.get(p);
+		}
+		return null;
+	}
+
+	public SummaryCell getSummaryCell(Pair<Integer, Integer> pair) {
+		return summaryMap.get(pair);
+	}
+
+	public void addSummaryCell(int row, int line, SummaryCell cell) {
+		summaryMap.put(new Pair<Integer, Integer>(row, line), cell);
+	}
+
+	public void addSummaryCell(Pair<Integer, Integer> pair, SummaryCell cell) {
+		summaryMap.put(pair, cell);
+	}
 }
