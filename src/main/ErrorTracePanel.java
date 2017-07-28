@@ -1,3 +1,34 @@
+
+//import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+//import java.util.ArrayList;
+import java.util.HashMap;
+//import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+//import java.util.Random;
+import java.util.Set;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+//import javax.swing.JList;
+import javax.swing.JPanel;
+//import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.shell.ShellManager;
@@ -7,55 +38,6 @@ import gov.nasa.jpf.shell.listeners.VerifyCommandListener;
 import gov.nasa.jpf.shell.util.ProgressTrackerUI;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
-
-import java.awt.BorderLayout;
-//import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
-//import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-//import javax.swing.JList;
-import javax.swing.JPanel;
-//import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-//import javax.swing.ListSelectionModel;
-//import javax.swing.event.ListSelectionEvent;
-//import javax.swing.event.ListSelectionListener;
-import javax.swing.ListCellRenderer;
-
-import java.util.ArrayList;
-//import java.util.ArrayList;
-import java.util.HashMap;
-//import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-//import java.util.Random;
-import java.util.Set;
 
 /**
  * Basic output panel that divides new trace printer's results into browseable
@@ -106,7 +88,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		tablePanel.add(statusLabel);
 		checkPanel.setLayout(new BoxLayout(checkPanel, BoxLayout.Y_AXIS));
 		this.numOfColors = PaneConstants.COLOR_TABLE.length;
-		
+
 		checkBoxListener = new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -123,7 +105,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			}
 		};
 
-		ActionListener buttonListener = new ButtonListener(); 
+		ActionListener buttonListener = new ButtonListener();
 
 		foldAllButton = new JButton("Collapse all");
 		foldAllButton.setMnemonic(KeyEvent.VK_C);
