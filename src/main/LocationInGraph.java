@@ -10,6 +10,7 @@ public class LocationInGraph {
 	private Map<Integer, Object> rowCellMap;
 	private Map<Integer, Object> rightCellMap;
 	private Map<Integer, Object> summaryBorderMap;
+	private Map<Integer, Object> switchMap;
 
 	public LocationInGraph() {
 		contentMap = new HashMap<>();
@@ -18,6 +19,18 @@ public class LocationInGraph {
 		rowCellMap = new HashMap<>();
 		rightCellMap = new HashMap<>();
 		summaryBorderMap = new HashMap<>();
+		switchMap = new HashMap<>();
+	}
+
+	public Object getSwitchCell(int row) {
+		if (switchMap.containsKey(row)) {
+			return switchMap.get(row);
+		}
+		return null;
+	}
+
+	public void addSwitchCell(int row, Object cell) {
+		switchMap.put(row, cell);
 	}
 
 	public Object getContentCell(int row, int line) {
