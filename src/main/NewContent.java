@@ -349,6 +349,7 @@ public class NewContent {
 						sCell.setNextDots(summaryDots);
 
 						if (prevCell != null) {
+							sCell.setPreviousSummary(prevCell);
 							sCell.setPrevSrc(prevCell.getSummary());
 							sCell.setPrevDots(prevCell.getNextDots());
 							prevCell.setNextSrc(summaryBox);
@@ -626,9 +627,15 @@ public class NewContent {
 
 							summaryContent.setStyle("summaryContent" + row);
 
-							if (prevSrc != null && prevSrc.isVisible() && prevDots.isVisible()) {
-								prevDots.setVisible(false);
-								htChange--;
+							// check the previous visible cell and set the dots next to it as visible
+							SummaryCell prevCell = sCell.getPreviousSummary();
+							while (prevCell != null && !((mxCell) prevCell.getSummary()).isVisible()) {
+								prevCell = prevCell.getPreviousSummary();
+							}
+							
+							if (prevCell != null && !((mxCell) prevCell.getNextDots()).isVisible()) {
+								((mxCell) prevCell.getNextDots()).setVisible(true);
+								htChange++;
 							}
 
 							if (nextSrc != null && nextDots.isVisible()) {
