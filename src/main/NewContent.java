@@ -574,11 +574,14 @@ public class NewContent {
 						mxCell colorBlock = (mxCell) graph.insertVertex(contentBox, null, " ", 0, 0, 5, htPerLine,
 								"highlight" + color);
 						colorBlock.setConnectable(false);
-						// the summary
-						mxCell sumBlock = (mxCell) graph.insertVertex(summaryBox, null, " ", 0, 0, 5, htPerLine,
-								"sumHL" + row + color);
-						sumBlock.setConnectable(false);
 
+						// the summary
+						if (sCell != null) {
+							System.out.println("add summary color block " + row + " " + summaryBox.getStyle());
+							mxCell sumBlock = (mxCell) graph.insertVertex(summaryBox, null, " ", 0, 0, 5, htPerLine,
+									"highlight" + color);
+							sumBlock.setConnectable(false);
+						}
 					}
 					tl.setHighlight(color);
 				} else {
@@ -593,8 +596,8 @@ public class NewContent {
 					// the detailed content
 					for (int i = 1; i < model.getChildCount(contentBox); i++) {
 						mxCell o = (mxCell) model.getChildAt(contentBox, i);
-						if (o.getStyle().equals("highlight" + color)
-								|| (newColor != null && o.getStyle().equals("highlight" + newColor))) {
+						if (o.getStyle() != null && (o.getStyle().contains(color)
+								|| (newColor != null && o.getStyle().contains(newColor)))) {
 							o.removeFromParent();
 						}
 					}
@@ -611,8 +614,8 @@ public class NewContent {
 						for (int i = 1; i < model.getChildCount(summaryBox); i++) {
 							System.out.println("remove " + i);
 							mxCell o = (mxCell) model.getChildAt(summaryBox, i);
-							if (o.getStyle().equals("sumHL" + row + color)
-									|| (newColor != null && o.getStyle().equals("sumHL" + row + newColor))) {
+							if (o.getStyle() != null && (o.getStyle().contains(color)
+									|| (newColor != null && o.getStyle().contains(newColor)))) {
 								o.removeFromParent();
 							}
 						}
@@ -627,12 +630,13 @@ public class NewContent {
 
 							summaryContent.setStyle("summaryContent" + row);
 
-							// check the previous visible cell and set the dots next to it as visible
+							// check the previous visible cell and set the dots
+							// next to it as visible
 							SummaryCell prevCell = sCell.getPreviousSummary();
 							while (prevCell != null && !((mxCell) prevCell.getSummary()).isVisible()) {
 								prevCell = prevCell.getPreviousSummary();
 							}
-							
+
 							if (prevCell != null && !((mxCell) prevCell.getNextDots()).isVisible()) {
 								((mxCell) prevCell.getNextDots()).setVisible(true);
 								htChange++;
