@@ -8,13 +8,19 @@ public class SummaryCell {
 	private SummaryCell prevSummary = null;
 	private boolean isFirst = false;
 	private boolean isLast = false;
+	private int threadIdx = -1;
 
-	public SummaryCell(Object sum) {
+	public SummaryCell(Object sum, int threadIdx) {
 		this.summary = sum;
+		this.threadIdx = threadIdx;
 	}
 
 	public void setPreviousSummary(SummaryCell prevSummary) {
 		this.prevSummary = prevSummary;
+	}
+
+	public int getThreadIdx() {
+		return threadIdx;
 	}
 
 	public SummaryCell getPreviousSummary() {

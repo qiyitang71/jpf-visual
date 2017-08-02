@@ -32,12 +32,16 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	 */
 	private static final long serialVersionUID = 1L;
 	private mxGraphComponent graphComponent;
+	private mxGraphComponent menuGraphComponent;
+	private mxGraphOutline outln = null;
+	
 	private int numOfThreads = -1;
 	// private ContentPane content;
 	private NewContent content;
 
 	private MenuPane menu;
 	private JSplitPane splitPane;
+	double cellWidth = -1;
 
 	public ErrorTablePane() {
 		// super();
@@ -46,7 +50,9 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		graphComponent.addComponentListener(this);
 		graphComponent.setBorder(BorderFactory.createEmptyBorder());
-		mxGraphOutline outln = new mxGraphOutline(graphComponent);
+		menuGraphComponent = new mxGraphComponent(new mxGraph());
+		outln = new mxGraphOutline(graphComponent);
+		outln.setDrawLabels(true);
 		// this.add(outln);
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphComponent, outln);
 		splitPane.setOneTouchExpandable(false);
@@ -67,7 +73,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		List<String> threadNames = td.getThreadNames();
 		Map<Integer, TextLineList> lineTable = td.getLineTable();
 
-		double cellWidth = (splitPane.getLeftComponent().getWidth() - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE
+		cellWidth = (splitPane.getLeftComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE
 				- PaneConstants.BAR_SIZE) / numOfThreads;
 
 		// content = new ContentPane(cellWidth, numOfThreads, path, group,
@@ -111,14 +117,14 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			}
 		};
 		graphComponent.addKeyListener(keyListener);
-		content.resize(cellWidth);
+		//content.resize(cellWidth);
 
 		menu = new MenuPane(cellWidth, threadNames);
 		mxGraph menuGraph = menu.getGraph();
-		mxGraphComponent menuGraghComponent = new mxGraphComponent(menuGraph);
-		menuGraghComponent.getGraphHandler().setRemoveCellsFromParent(false);
-		menuGraghComponent.setBorder(BorderFactory.createEmptyBorder());
-		graphComponent.setColumnHeaderView(menuGraghComponent);
+		menuGraphComponent.setGraph(menuGraph);
+		menuGraphComponent.getGraphHandler().setRemoveCellsFromParent(false);
+		menuGraphComponent.setBorder(BorderFactory.createEmptyBorder());
+		graphComponent.setColumnHeaderView(menuGraphComponent);
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
@@ -158,11 +164,13 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			return;
 		// TODO Auto-generated method stub
 
-		double newWidth = (splitPane.getLeftComponent().getWidth() * 1.0 - PaneConstants.RANGE_SIZE
+		double newWidth = (splitPane.getLeftComponent().getBounds().getWidth() * 1.0 - PaneConstants.RANGE_SIZE
 				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
-
+		cellWidth = newWidth;
 		content.resize(newWidth);
 		menu.resize(newWidth);
+		
+		outln.setGraphComponent(graphComponent);
 
 	}
 

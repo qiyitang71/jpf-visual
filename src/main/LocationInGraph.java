@@ -1,3 +1,4 @@
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,8 @@ public class LocationInGraph {
 	private Map<Integer, Object> rightCellMap;
 	private Map<Integer, Object> summaryBorderMap;
 	private Map<Integer, Object> switchMap;
+	private Map<Integer, Object> threadLabelMap;
+	private Map<Integer, Object> summaryBlankMap;
 
 	public LocationInGraph() {
 		contentMap = new HashMap<>();
@@ -20,6 +23,48 @@ public class LocationInGraph {
 		rightCellMap = new HashMap<>();
 		summaryBorderMap = new HashMap<>();
 		switchMap = new HashMap<>();
+		threadLabelMap = new HashMap<>();
+		summaryBlankMap = new HashMap<>();
+	}
+
+	public Collection<Object> getAllSummaryBlanks() {
+		return summaryBlankMap.values();
+	}
+
+	public void addSummaryBlank(int row, Object cell) {
+		summaryBlankMap.put(row, cell);
+	}
+
+	public Collection<Object> getAllThreadLabels() {
+		return threadLabelMap.values();
+	}
+
+	public void addThreadLabel(int row, Object cell) {
+		threadLabelMap.put(row, cell);
+	}
+
+	public Collection<Object> getAllRowCells() {
+		return rowCellMap.values();
+	}
+
+	public Collection<Object> getAllRightCells() {
+		return rightCellMap.values();
+	}
+
+	public Collection<Object> getAllSwimCells() {
+		return swimMap.values();
+	}
+
+	public Collection<Object> getAllSummaryBorderCells() {
+		return summaryBorderMap.values();
+	}
+
+	public Collection<Object> getAllDetailedContentCells() {
+		return contentMap.values();
+	}
+
+	public Collection<SummaryCell> getAllSummaryCells() {
+		return summaryMap.values();
 	}
 
 	public Object getSwitchCell(int row) {
