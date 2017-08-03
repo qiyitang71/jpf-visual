@@ -76,7 +76,7 @@ public class NewContent {
 		// get the model
 		model = graph.getModel();
 		graph.setCellsEditable(false);
-		graph.setCellsSelectable(true);
+		graph.setCellsSelectable(false);
 		graph.setCellsResizable(false);
 
 		setStyles();
@@ -155,8 +155,8 @@ public class NewContent {
 		Map<Integer, Set<Integer>> rowLineMap = new HashMap<>();
 		for (Pair<Integer, Integer> p : set) {
 			int rowNum = p._1;
-			System.out.println("rowNum " + p._1);
-			System.out.println("lineNum " + p._2);
+			//System.out.println("rowNum " + p._1);
+			//System.out.println("lineNum " + p._2);
 
 			if (rowLineMap.containsKey(rowNum)) {
 				rowLineMap.get(rowNum).add(p._2);
@@ -321,7 +321,7 @@ public class NewContent {
 				htChange--;
 			}
 		} else {
-			System.out.println("highight with new color");
+			//System.out.println("highight with new color");
 			summaryContent.setStyle("highlight" + newColor);
 		}
 		return htChange;

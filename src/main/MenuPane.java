@@ -12,21 +12,33 @@ import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxLayoutManager;
 
 public class MenuPane {
-	private double cellWidth = 0;// PaneConstants.DEFAULT_CELL_WIDTH;
+	private double cellWidth = 0;
 	private mxGraph graph;
 	private mxIGraphModel menuModel;
 	private int numOfThreads = -1;
+	private Object menuParent;
+	private List<String> threadNames;
 
-	public MenuPane(double width, List<String> threadNames) {
+	public MenuPane(double width, List<String> tName) {
 		this.cellWidth = width;
+		this.threadNames = tName;
 		this.numOfThreads = threadNames.size();
+
 		graph = new mxGraph();
 		menuModel = graph.getModel();
 
-		// menuGraph.setCellsEditable(false);
-		// menuGraph.setCellsSelectable(false);
 		graph.setCellsResizable(false);
 		graph.setCollapseToPreferredSize(false);
+
+		setStyles();
+
+		setLayoutManager();
+
+		menuParent = graph.getDefaultParent();
+		drawMenu();
+	}
+
+	protected void setStyles() {
 
 		Map<String, Object> mDefaultstyle = graph.getStylesheet().getDefaultVertexStyle();
 		mDefaultstyle.put(mxConstants.STYLE_VERTICAL_ALIGN, "middle");
@@ -43,8 +55,9 @@ public class MenuPane {
 		Map<String, Object> menuStyle = new HashMap<String, Object>(mDefaultstyle);
 		menuStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_RECTANGLE);
 		graph.getStylesheet().putCellStyle("menu", menuStyle);
+	}
 
-		// while folding, the lower cells goes up
+	protected void setLayoutManager() {
 		@SuppressWarnings("unused")
 		mxLayoutManager menuLayoutMng = new mxLayoutManager(graph) {
 			public mxIGraphLayout getLayout(Object parent) {
@@ -56,8 +69,9 @@ public class MenuPane {
 			}
 
 		};
+	}
 
-		Object menuParent = graph.getDefaultParent();
+	protected void drawMenu() {
 
 		menuModel.beginUpdate();
 		try {
