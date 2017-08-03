@@ -1,5 +1,4 @@
 
-//import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -9,12 +8,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-//import java.util.ArrayList;
 import java.util.HashMap;
-//import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-//import java.util.Random;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -24,9 +20,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-//import javax.swing.JList;
 import javax.swing.JPanel;
-//import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
 import gov.nasa.jpf.Config;
@@ -254,7 +248,10 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			 * access/ method call
 			 */
 			String[] dropDownStrs = { "Custom filter...", "Field Access ...", "Method call ..." };
-			JComboBox highlightList = new JComboBox(dropDownStrs) {
+			JComboBox<String> highlightList = new JComboBox<String>(dropDownStrs) {
+
+				private static final long serialVersionUID = 1L;
+
 				@Override
 				public Dimension getMaximumSize() {
 					Dimension max = super.getMaximumSize();
@@ -427,8 +424,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 			}
 		}
-		// System.out.println("isFoldSelected = " + isFoldSelected);
-		// System.out.println("isExpandSelected = " + isExpandSelected);
 
 		if (isFoldSelected) {
 			errorTrace.foldAll(true);
@@ -511,7 +506,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					} else {
 						String clsName = userInput.substring(0, dotPos);
 						String fmName = userInput.substring(dotPos + 1, userInput.length());
-						// use TraceData to find clsname.fmName
 						fieldMethodSearch(clsName, fmName, userInput, isField);
 					}
 				}

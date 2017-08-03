@@ -76,7 +76,7 @@ public class NewContent {
 		// get the model
 		model = graph.getModel();
 		graph.setCellsEditable(false);
-		graph.setCellsSelectable(false);
+		graph.setCellsSelectable(true);
 		graph.setCellsResizable(false);
 
 		setStyles();
@@ -105,6 +105,7 @@ public class NewContent {
 		// resize right cells
 		for (Object rightCell : location.getAllRightCells()) {
 			model.getGeometry(rightCell).setWidth(PaneConstants.SIGN_SIZE + numOfThreads * cellWidth);
+
 		}
 
 		// resize thread labels
@@ -155,8 +156,8 @@ public class NewContent {
 		Map<Integer, Set<Integer>> rowLineMap = new HashMap<>();
 		for (Pair<Integer, Integer> p : set) {
 			int rowNum = p._1;
-			//System.out.println("rowNum " + p._1);
-			//System.out.println("lineNum " + p._2);
+			// System.out.println("rowNum " + p._1);
+			// System.out.println("lineNum " + p._2);
 
 			if (rowLineMap.containsKey(rowNum)) {
 				rowLineMap.get(rowNum).add(p._2);
@@ -173,7 +174,7 @@ public class NewContent {
 
 				Pair<Integer, Integer> p = new Pair<>(row, line);
 				TextLine tl = lineTable.get(row).getList().get(line);
-				
+
 				Object contentBox = location.getContentCell(p);
 				mxCell content = (mxCell) graph.getChildCells(contentBox)[0];
 
@@ -248,7 +249,7 @@ public class NewContent {
 				setCellHeight(location.getRowCell(row), tmpHt);
 				setCellHeight(location.getSwimCell(row), tmpHt);
 			} else {
-				 setCellAlterHeight(location.getSwimCell(row), tmpHt);
+				setCellAlterHeight(location.getSwimCell(row), tmpHt);
 			}
 
 		}
@@ -263,6 +264,10 @@ public class NewContent {
 
 	private void setCellHeight(Object cell, double h) {
 		model.getGeometry(cell).setHeight(h);
+	}
+
+	private void setCellWidth(Object cell, double w) {
+		model.getGeometry(cell).setWidth(w);
 	}
 
 	private void reformatRow(int row) {
@@ -321,7 +326,7 @@ public class NewContent {
 				htChange--;
 			}
 		} else {
-			//System.out.println("highight with new color");
+			// System.out.println("highight with new color");
 			summaryContent.setStyle("highlight" + newColor);
 		}
 		return htChange;
@@ -400,7 +405,7 @@ public class NewContent {
 						return;
 					}
 					if (graph.isCellCollapsed(cells[i])) {
-
+						// fold
 						// swim's parent is rightCell
 						mxCell rightCell = (mxCell) c.getParent();
 						double tmpHt = 0;
@@ -571,7 +576,11 @@ public class NewContent {
 
 				drawSummaryContent(row, threadIdx, summaryBorder);
 
+				setCellWidth(rightCell, cellWidth * numOfThreads + PaneConstants.SIGN_SIZE);
+				setCellWidth(swimCell, cellWidth * numOfThreads + PaneConstants.SIGN_SIZE);
+				setCellWidth(rowCell, PaneConstants.SIGN_SIZE + PaneConstants.RANGE_SIZE + numOfThreads * cellWidth);
 			}
+
 		} finally {
 			model.endUpdate();
 		}
@@ -599,6 +608,7 @@ public class NewContent {
 		mxCell rangeCell = (mxCell) graph.insertVertex(rowCell, null, rangeStr, 0, 0, PaneConstants.RANGE_SIZE,
 				PaneConstants.START_SIZE, "range");
 		rangeCell.setConnectable(false);
+		location.addRangeCell(row, rangeCell);
 		return rangeCell;
 	}
 
@@ -710,10 +720,8 @@ public class NewContent {
 				sumNum++;
 				summaryBox.setVisible(false);
 
-				mxCell summaryDots = (mxCell) graph.insertVertex(summaryBorder, null, "...", 0, 0, 5, htPerLine,
-						"content");// "summaryContent"
-									// +
-									// ithRow);
+				mxCell summaryDots = (mxCell) graph.insertVertex(summaryBorder, null, "...", 0, 0, 30, htPerLine,
+						"content");
 				summaryDots.setId(-1 + "");
 				summaryDots.setConnectable(false);
 				summaryDots.setVisible(false);

@@ -14,6 +14,7 @@ public class LocationInGraph {
 	private Map<Integer, Object> switchMap;
 	private Map<Integer, Object> threadLabelMap;
 	private Map<Integer, Object> summaryBlankMap;
+	private Map<Integer, Object> rangeCellMap;
 
 	public LocationInGraph() {
 		contentMap = new HashMap<>();
@@ -25,6 +26,22 @@ public class LocationInGraph {
 		switchMap = new HashMap<>();
 		threadLabelMap = new HashMap<>();
 		summaryBlankMap = new HashMap<>();
+		rangeCellMap = new HashMap<>();
+	}
+
+	public void addRangeCell(int row, Object cell) {
+		rangeCellMap.put(row, cell);
+	}
+
+	public Collection<Object> getAllRangeCells() {
+		return rangeCellMap.values();
+	}
+
+	public Object getRangeCell(int row) {
+		if (rangeCellMap.containsKey(row)) {
+			return rangeCellMap.get(row);
+		}
+		return null;
 	}
 
 	public Collection<Object> getAllSummaryBlanks() {

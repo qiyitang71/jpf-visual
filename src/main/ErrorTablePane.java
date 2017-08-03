@@ -27,14 +27,12 @@ import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
 public class ErrorTablePane extends JPanel implements ComponentListener {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private mxGraphComponent graphComponent;
+	mxGraph graph;
 	private mxGraphComponent menuGraphComponent;
 	private mxGraphOutline outln = null;
-	
+
 	private int numOfThreads = -1;
 	// private ContentPane content;
 	private NewContent content;
@@ -44,7 +42,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	double cellWidth = -1;
 
 	public ErrorTablePane() {
-		// super();
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 		graphComponent = new mxGraphComponent(new mxGraph());
 		graphComponent.getGraphHandler().setRemoveCellsFromParent(false);
@@ -53,82 +50,43 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		menuGraphComponent = new mxGraphComponent(new mxGraph());
 		outln = new mxGraphOutline(graphComponent);
 		outln.setDrawLabels(true);
-		// this.add(outln);
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphComponent, outln);
 		splitPane.setOneTouchExpandable(false);
 		splitPane.setDividerLocation(700);
 		this.add(splitPane);
-		// this.setBorder(BorderFactory.createEmptyBorder());
-		// graphComponent.setMinimumSize(new Dimension(200, 50));
-		// outln.setMinimumSize(new Dimension(100, 50));
-
 	}
 
 	public void draw(TraceData td) {
 		Path path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
 		List<Pair<Integer, Integer>> group = td.getGroup();
-		// List<String> detailList = td.getDetailList();
-		// List<Integer> heightList = td.getHeightList();
 		List<String> threadNames = td.getThreadNames();
 		Map<Integer, TextLineList> lineTable = td.getLineTable();
 
-		cellWidth = (splitPane.getLeftComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE
-				- PaneConstants.BAR_SIZE) / numOfThreads;
-
-		// content = new ContentPane(cellWidth, numOfThreads, path, group,
-		// detailList, heightList);
+		//the main table
+		cellWidth = (splitPane.getLeftComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE
+				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
 		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable);
-
-		mxGraph graph = content.getGraph();
+		content.resize(cellWidth);
+		graph = content.getGraph();
 		graphComponent.setGraph(graph);
-		KeyListener keyListener = new KeyListener() {
 
-			@Override
-			public void keyTyped(KeyEvent e) {
-				// TODO Auto-generated method stub
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				// TODO Auto-generated method stub
-				if ((e.getKeyCode() == KeyEvent.VK_C) && (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)
-						|| (e.getModifiers() & KeyEvent.META_MASK) != 0)) {
-					System.out.println("copy???????");
-					Object[] cells = graph.getSelectionCells();
-
-					if (cells == null)
-						return;
-
-					StringBuilder myString = new StringBuilder();
-					for (Object o : cells) {
-						myString.append(((mxCell) o).getStyle());
-						myString.append(((mxCell) o).getValue() + "\n");
-					}
-					StringSelection stringSelection = new StringSelection(myString.toString());
-					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-					clipboard.setContents(stringSelection, null);
-				}
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
-			}
-		};
+		KeyListener keyListener = new CopyListener();
 		graphComponent.addKeyListener(keyListener);
-		//content.resize(cellWidth);
 
+		// set menu
 		menu = new MenuPane(cellWidth, threadNames);
 		mxGraph menuGraph = menu.getGraph();
 		menuGraphComponent.setGraph(menuGraph);
 		menuGraphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		menuGraphComponent.setBorder(BorderFactory.createEmptyBorder());
+		
 		graphComponent.setColumnHeaderView(menuGraphComponent);
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
 		content.expand(set, color, false);
+
 	}
 
 	public void resetContent(Set<Pair<Integer, Integer>> set, String color) {
@@ -163,13 +121,12 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		if (numOfThreads < 0)
 			return;
 		// TODO Auto-generated method stub
-
 		double newWidth = (splitPane.getLeftComponent().getBounds().getWidth() * 1.0 - PaneConstants.RANGE_SIZE
 				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
 		cellWidth = newWidth;
 		content.resize(newWidth);
 		menu.resize(newWidth);
-		
+
 		outln.setGraphComponent(graphComponent);
 
 	}
@@ -177,4 +134,38 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	public JSplitPane getPane() {
 		return splitPane;
 	}
+
+	private class CopyListener implements KeyListener {
+		@Override
+		public void keyTyped(KeyEvent e) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			// TODO Auto-generated method stub
+			if ((e.getKeyCode() == KeyEvent.VK_C) && (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)
+					|| (e.getModifiers() & KeyEvent.META_MASK) != 0)) {
+				// System.out.println("copy???????");
+				Object[] cells = graph.getSelectionCells();
+
+				if (cells == null)
+					return;
+
+				StringBuilder myString = new StringBuilder();
+				for (Object o : cells) {
+					myString.append(((mxCell) o).getStyle());
+					myString.append(((mxCell) o).getValue() + "\n");
+				}
+				StringSelection stringSelection = new StringSelection(myString.toString());
+				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				clipboard.setContents(stringSelection, null);
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			// TODO Auto-generated method stub
+		}
+	};
 }
