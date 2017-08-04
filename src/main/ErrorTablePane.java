@@ -9,6 +9,9 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +36,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	mxGraph graph;
 	private mxGraphComponent menuGraphComponent;
 	private mxGraphOutline outln = null;
-	private JButton virtualButton = null;
+	private JButton foldButton = null;
+	private JButton expandButton = null;
 
 	private int numOfThreads = -1;
 	// private ContentPane content;
@@ -58,9 +62,10 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		this.add(splitPane);
 	}
 
-//	public void setButton(JButton button) {
-//		virtualButton = button;
-//	}
+	public void setButton(JButton foldButton, JButton expandButton) {
+		this.foldButton = foldButton;
+		this.expandButton = expandButton;
+	}
 
 	public void draw(TraceData td) {
 		Path path = td.getPath();
@@ -81,6 +86,28 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		KeyListener keyListener = new CopyListener();
 		graphComponent.addKeyListener(keyListener);
+		graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
+			public void mouseReleased(MouseEvent e) {
+				System.out.println("mouse released");
+				if (content.areAllExpanded()) {
+					foldButton.setSelected(false);
+					foldButton.setEnabled(true);
+					expandButton.setSelected(false);
+					expandButton.setEnabled(false);
+				} else if (content.areAllFolded()) {
+					foldButton.setSelected(false);
+					foldButton.setEnabled(false);
+					expandButton.setSelected(false);
+					expandButton.setEnabled(true);
+				} else {
+					foldButton.setSelected(false);
+					foldButton.setEnabled(true);
+					expandButton.setSelected(false);
+					expandButton.setEnabled(true);
+				}
+			}
+
+		});
 
 		// set menu
 		menu = new MenuPane(cellWidth, threadNames);
@@ -163,7 +190,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			// TODO Auto-generated method stub
 			if ((e.getKeyCode() == KeyEvent.VK_C) && (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)
 					|| (e.getModifiers() & KeyEvent.META_MASK) != 0)) {
-				// System.out.println("copy???????");
 				Object[] cells = graph.getSelectionCells();
 
 				if (cells == null)

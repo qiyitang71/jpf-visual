@@ -102,8 +102,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		virtualButton.setActionCommand("virtual");
 		virtualButton.addActionListener(buttonListener);
 
-		// errorTrace.setButton(virtualButton);
-
 		foldAllButton = new JButton("Collapse all");
 		foldAllButton.setMnemonic(KeyEvent.VK_C);
 		foldAllButton.setActionCommand("foldAll");
@@ -205,6 +203,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			expandAllButton.setSelected(false);
 			expandAllButton.setEnabled(true);
 			isExpandSelected = false;
+
+			errorTrace.setButton(foldAllButton, expandAllButton);
 
 			// add wait/notify check box
 			waitBox.setSelected(false);
@@ -443,7 +443,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			// foldAllButton.setEnabled(true);
 			// expandAllButton.setSelected(false);
 			// expandAllButton.setEnabled(false);
-			// } else {
 			// foldAllButton.setSelected(false);
 			// foldAllButton.setEnabled(true);
 			// expandAllButton.setSelected(false);
