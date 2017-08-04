@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
@@ -32,6 +33,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	mxGraph graph;
 	private mxGraphComponent menuGraphComponent;
 	private mxGraphOutline outln = null;
+	private JButton virtualButton = null;
 
 	private int numOfThreads = -1;
 	// private ContentPane content;
@@ -56,6 +58,10 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		this.add(splitPane);
 	}
 
+//	public void setButton(JButton button) {
+//		virtualButton = button;
+//	}
+
 	public void draw(TraceData td) {
 		Path path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
@@ -63,11 +69,13 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		List<String> threadNames = td.getThreadNames();
 		Map<Integer, TextLineList> lineTable = td.getLineTable();
 
-		//the main table
+		// the main table
 		cellWidth = (splitPane.getLeftComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE
 				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
 		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable);
 		content.resize(cellWidth);
+
+		content.foldAll(true);
 		graph = content.getGraph();
 		graphComponent.setGraph(graph);
 
@@ -80,8 +88,9 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		menuGraphComponent.setGraph(menuGraph);
 		menuGraphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		menuGraphComponent.setBorder(BorderFactory.createEmptyBorder());
-		
+
 		graphComponent.setColumnHeaderView(menuGraphComponent);
+
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
@@ -96,6 +105,14 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	public void foldAll(boolean b) {
 		content.foldAll(b);
+	}
+
+	public boolean areAllFolded() {
+		return content.areAllFolded();
+	}
+
+	public boolean areAllExpanded() {
+		return content.areAllExpanded();
 	}
 
 	@Override
