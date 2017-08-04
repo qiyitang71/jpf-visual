@@ -9,12 +9,16 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
@@ -32,6 +36,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	mxGraph graph;
 	private mxGraphComponent menuGraphComponent;
 	private mxGraphOutline outln = null;
+	private JButton foldButton = null;
+	private JButton expandButton = null;
 
 	private int numOfThreads = -1;
 	// private ContentPane content;
@@ -56,6 +62,11 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		this.add(splitPane);
 	}
 
+	public void setButton(JButton foldButton, JButton expandButton) {
+		this.foldButton = foldButton;
+		this.expandButton = expandButton;
+	}
+
 	public void draw(TraceData td) {
 		Path path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
@@ -63,16 +74,40 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		List<String> threadNames = td.getThreadNames();
 		Map<Integer, TextLineList> lineTable = td.getLineTable();
 
-		//the main table
+		// the main table
 		cellWidth = (splitPane.getLeftComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE
 				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
 		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable);
 		content.resize(cellWidth);
+
+		content.foldAll(true);
 		graph = content.getGraph();
 		graphComponent.setGraph(graph);
 
 		KeyListener keyListener = new CopyListener();
 		graphComponent.addKeyListener(keyListener);
+		graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
+			public void mouseReleased(MouseEvent e) {
+				System.out.println("mouse released");
+				if (content.areAllExpanded()) {
+					foldButton.setSelected(false);
+					foldButton.setEnabled(true);
+					expandButton.setSelected(false);
+					expandButton.setEnabled(false);
+				} else if (content.areAllFolded()) {
+					foldButton.setSelected(false);
+					foldButton.setEnabled(false);
+					expandButton.setSelected(false);
+					expandButton.setEnabled(true);
+				} else {
+					foldButton.setSelected(false);
+					foldButton.setEnabled(true);
+					expandButton.setSelected(false);
+					expandButton.setEnabled(true);
+				}
+			}
+
+		});
 
 		// set menu
 		menu = new MenuPane(cellWidth, threadNames);
@@ -80,8 +115,9 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		menuGraphComponent.setGraph(menuGraph);
 		menuGraphComponent.getGraphHandler().setRemoveCellsFromParent(false);
 		menuGraphComponent.setBorder(BorderFactory.createEmptyBorder());
-		
+
 		graphComponent.setColumnHeaderView(menuGraphComponent);
+
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
@@ -96,6 +132,14 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	public void foldAll(boolean b) {
 		content.foldAll(b);
+	}
+
+	public boolean areAllFolded() {
+		return content.areAllFolded();
+	}
+
+	public boolean areAllExpanded() {
+		return content.areAllExpanded();
 	}
 
 	@Override
@@ -146,7 +190,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			// TODO Auto-generated method stub
 			if ((e.getKeyCode() == KeyEvent.VK_C) && (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)
 					|| (e.getModifiers() & KeyEvent.META_MASK) != 0)) {
-				// System.out.println("copy???????");
 				Object[] cells = graph.getSelectionCells();
 
 				if (cells == null)

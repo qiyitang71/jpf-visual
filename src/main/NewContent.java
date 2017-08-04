@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+//import javax.swing.JButton;
+
 import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.layout.mxStackLayout;
 import com.mxgraph.model.mxCell;
@@ -23,6 +25,8 @@ import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
 public class NewContent {
+	//private JButton button;
+
 	private double cellWidth = 0;
 	private mxGraph graph;
 	private mxIGraphModel model;
@@ -43,6 +47,8 @@ public class NewContent {
 
 	public NewContent(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
 			Map<Integer, TextLineList> lt) {
+		//this.button = button;
+
 		this.lineTable = lt;
 		this.numOfThreads = nThreads;
 		this.group = grp;
@@ -185,7 +191,7 @@ public class NewContent {
 					if (tl.isHighlightedColor(color)) {
 						return;
 					}
-					graph.foldCells(false, false, new Object[] { location.getSwimCell(row) });
+					//graph.foldCells(false, false, new Object[] { location.getSwimCell(row) });
 
 					String hlStyleName = "highlight" + color;
 					addNewStyle(hlStyleName, color);
@@ -404,6 +410,9 @@ public class NewContent {
 					if (!c.getStyle().contains("swim")) {
 						return;
 					}
+
+					//button.doClick();
+
 					if (graph.isCellCollapsed(cells[i])) {
 						// fold
 						// swim's parent is rightCell
@@ -585,7 +594,25 @@ public class NewContent {
 			model.endUpdate();
 		}
 
-		foldAll(true);
+		// foldAll(true);
+	}
+
+	public boolean areAllFolded() {
+		for (Object o : location.getAllSwimCells()) {
+			if (!((mxCell) o).isCollapsed()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public boolean areAllExpanded() {
+		for (Object o : location.getAllSwimCells()) {
+			if (((mxCell) o).isCollapsed()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private Object drawRowCell(int row) {
@@ -629,7 +656,7 @@ public class NewContent {
 		swimCell.setConnectable(false);
 		swimCell.setId("" + row);
 		location.addSwimCell(row, swimCell);
-		graph.foldCells(true, false, new Object[] { swimCell }, true);
+		// graph.foldCells(true, false, new Object[] { swimCell }, true);
 		model.getGeometry(swimCell)
 				.setAlternateBounds(new mxRectangle(0, 0, PaneConstants.SIGN_SIZE, PaneConstants.SIGN_SIZE));
 		return swimCell;
