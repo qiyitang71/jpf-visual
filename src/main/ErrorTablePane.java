@@ -197,7 +197,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 				StringBuilder myString = new StringBuilder();
 				for (Object o : cells) {
-					myString.append(((mxCell) o).getStyle());
+					//myString.append(((mxCell) o).getStyle());
 					myString.append(((mxCell) o).getValue() + "\n");
 				}
 				StringSelection stringSelection = new StringSelection(myString.toString());
