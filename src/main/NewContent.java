@@ -81,10 +81,11 @@ public class NewContent {
 
 		// get the model
 		model = graph.getModel();
+		
 		graph.setCellsEditable(false);
-		graph.setCellsSelectable(true);
 		graph.setCellsResizable(false);
-
+		graph.setCollapseToPreferredSize(false);
+		
 		setStyles();
 
 		this.htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(graph.getStylesheet().getStyles().get("content")))
@@ -332,7 +333,6 @@ public class NewContent {
 				htChange--;
 			}
 		} else {
-			// System.out.println("highight with new color");
 			summaryContent.setStyle("highlight" + newColor);
 		}
 		return htChange;

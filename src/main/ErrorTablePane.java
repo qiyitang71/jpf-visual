@@ -1,17 +1,12 @@
-
-//import java.awt.BorderLayout;
-//import java.awt.Color;
-
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +35,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private JButton expandButton = null;
 
 	private int numOfThreads = -1;
-	// private ContentPane content;
 	private NewContent content;
 
 	private MenuPane menu;
@@ -56,6 +50,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		menuGraphComponent = new mxGraphComponent(new mxGraph());
 		outln = new mxGraphOutline(graphComponent);
 		outln.setDrawLabels(true);
+				
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphComponent, outln);
 		splitPane.setOneTouchExpandable(false);
 		splitPane.setDividerLocation(700);
@@ -84,30 +79,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		graph = content.getGraph();
 		graphComponent.setGraph(graph);
 
-		KeyListener keyListener = new CopyListener();
-		graphComponent.addKeyListener(keyListener);
-		graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
-			public void mouseReleased(MouseEvent e) {
-				System.out.println("mouse released");
-				if (content.areAllExpanded()) {
-					foldButton.setSelected(false);
-					foldButton.setEnabled(true);
-					expandButton.setSelected(false);
-					expandButton.setEnabled(false);
-				} else if (content.areAllFolded()) {
-					foldButton.setSelected(false);
-					foldButton.setEnabled(false);
-					expandButton.setSelected(false);
-					expandButton.setEnabled(true);
-				} else {
-					foldButton.setSelected(false);
-					foldButton.setEnabled(true);
-					expandButton.setSelected(false);
-					expandButton.setEnabled(true);
-				}
-			}
-
-		});
+		graphComponent.addKeyListener(new CopyListener());
+		graphComponent.getGraphControl().addMouseListener(new FoldListener());
 
 		// set menu
 		menu = new MenuPane(cellWidth, threadNames);
@@ -117,6 +90,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		menuGraphComponent.setBorder(BorderFactory.createEmptyBorder());
 
 		graphComponent.setColumnHeaderView(menuGraphComponent);
+		outln.setGraphComponent(graphComponent);
 
 	}
 
@@ -179,13 +153,31 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		return splitPane;
 	}
 
-	private class CopyListener implements KeyListener {
-		@Override
-		public void keyTyped(KeyEvent e) {
-			// TODO Auto-generated method stub
+	private class FoldListener extends MouseAdapter {
+		public void mouseReleased(MouseEvent e) {
+			System.out.println("mouse released");
+			if (content.areAllExpanded()) {
+				foldButton.setSelected(false);
+				foldButton.setEnabled(true);
+				expandButton.setSelected(false);
+				expandButton.setEnabled(false);
+			} else if (content.areAllFolded()) {
+				foldButton.setSelected(false);
+				foldButton.setEnabled(false);
+				expandButton.setSelected(false);
+				expandButton.setEnabled(true);
+			} else {
+				foldButton.setSelected(false);
+				foldButton.setEnabled(true);
+				expandButton.setSelected(false);
+				expandButton.setEnabled(true);
+			}
 		}
 
-		@Override
+	}
+
+	private class CopyListener extends KeyAdapter {
+
 		public void keyPressed(KeyEvent e) {
 			// TODO Auto-generated method stub
 			if ((e.getKeyCode() == KeyEvent.VK_C) && (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)
@@ -197,7 +189,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 				StringBuilder myString = new StringBuilder();
 				for (Object o : cells) {
-					//myString.append(((mxCell) o).getStyle());
+					// myString.append(((mxCell) o).getStyle());
 					myString.append(((mxCell) o).getValue() + "\n");
 				}
 				StringSelection stringSelection = new StringSelection(myString.toString());
@@ -206,9 +198,5 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			}
 		}
 
-		@Override
-		public void keyReleased(KeyEvent e) {
-			// TODO Auto-generated method stub
-		}
 	};
 }

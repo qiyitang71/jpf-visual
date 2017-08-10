@@ -16,31 +16,6 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-import gov.nasa.jpf.Config;
-import gov.nasa.jpf.Error;
-import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
-import gov.nasa.jpf.jvm.bytecode.JVMReturnInstruction;
-import gov.nasa.jpf.jvm.bytecode.MONITORENTER;
-import gov.nasa.jpf.jvm.bytecode.MONITOREXIT;
-import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
-import gov.nasa.jpf.report.Publisher;
-import gov.nasa.jpf.report.Reporter;
-import gov.nasa.jpf.report.Statistics;
-import gov.nasa.jpf.util.Left;
-import gov.nasa.jpf.vm.ClassInfo;
-import gov.nasa.jpf.vm.ClassLoaderInfo;
-import gov.nasa.jpf.vm.FieldInfo;
-import gov.nasa.jpf.vm.Instruction;
-import gov.nasa.jpf.vm.VM;
-import gov.nasa.jpf.vm.bytecode.FieldInstruction;
-import gov.nasa.jpf.vm.bytecode.ReturnInstruction;
-import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
-import gov.nasa.jpf.vm.MethodInfo;
-import gov.nasa.jpf.vm.Path;
-import gov.nasa.jpf.vm.Step;
-import gov.nasa.jpf.vm.ThreadInfo;
-import gov.nasa.jpf.vm.Transition;
-
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -48,6 +23,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
+import gov.nasa.jpf.Config;
+import gov.nasa.jpf.Error;
+import gov.nasa.jpf.report.Publisher;
+import gov.nasa.jpf.report.Reporter;
+import gov.nasa.jpf.report.Statistics;
+import gov.nasa.jpf.util.Left;
+import gov.nasa.jpf.vm.ChoiceGenerator;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.ClassLoaderInfo;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.Path;
+import gov.nasa.jpf.vm.Step;
+import gov.nasa.jpf.vm.ThreadInfo;
+import gov.nasa.jpf.vm.Transition;
+import gov.nasa.jpf.vm.VM;
+import gov.nasa.jpf.vm.choice.ThreadChoiceFromSet;
 
 public class TraceVisualPrinter extends Publisher {
 
@@ -266,8 +259,21 @@ public class TraceVisualPrinter extends Publisher {
 
 			if (showCG) {
 				out.println(t.getChoiceGenerator());
-				out.println(t.getChoiceGenerator().getId());
+				// out.println("stateId: " +
+				// t.getChoiceGenerator().getStateId());
+				out.println("id: " + t.getChoiceGenerator().getId());
+				// if (t.getChoiceGenerator().getProcessedNumberOfChoices() <
+				// t.getChoiceGenerator()
+				// .getTotalNumberOfChoices()) {
+				// out.println("next choice "
+				// +
+				// t.getChoiceGenerator().getChoice(t.getChoiceGenerator().getProcessedNumberOfChoices()));
+				// }
 				if (t.getChoiceGenerator() instanceof ThreadChoiceFromSet) {
+
+					for (ThreadInfo ti : ((ThreadChoiceFromSet) t.getChoiceGenerator()).getChoices()) {
+						out.println("	ti: " + ti);
+					}
 
 				}
 			}
@@ -304,11 +310,15 @@ public class TraceVisualPrinter extends Publisher {
 						lastLine = line;
 					}
 
+					// ThreadInfo ti = t.getThreadInfo();
+					// out.println("threadinfo: " + ti);
+
 					if (line != null) {
 
 						/* more information of the trace */
 						if (true) {
 							Instruction insn = s.getInstruction();
+
 							if (true) {
 								MethodInfo mi = insn.getMethodInfo();
 								out.println(" mi uniqueName: " + mi.getUniqueName());
@@ -343,42 +353,41 @@ public class TraceVisualPrinter extends Publisher {
 								// }
 							}
 							out.print("      ");
-							// out.print("insn Mnemonic = " +
-							// insn.getMnemonic());
-							// out.print("post exec = " +
-							// insn.toPostExecString());
 							out.println("insn: " + insn);
-							// if (insn instanceof FieldInstruction) {
-							// out.println("field insn: " + ((FieldInstruction)
-							// insn).getVariableId());
+
+							// if (insn instanceof VirtualInvocation) {
+							// VirtualInvocation vinsn = (VirtualInvocation)
+							// insn;
+							// String cName = vinsn.getInvokedMethodClassName();
+							// String mName = vinsn.getInvokedMethodName();
+							// out.println("InvokeClass: " + cName + ";
+							// InvokeMethod: " + mName);
 							// }
-							if (insn instanceof VirtualInvocation) {
-								VirtualInvocation vinsn = (VirtualInvocation) insn;
-								String cName = vinsn.getInvokedMethodClassName();
-								String mName = vinsn.getInvokedMethodName();
-								out.println("InvokeClass: " + cName + "; InvokeMethod: " + mName);
-							}
-							if (insn instanceof MONITORENTER) {
-								MONITORENTER minsn = (MONITORENTER) insn;
-								ThreadInfo ti = t.getThreadInfo();
-								out.println("monitor ei: " + ti.getElementInfo(minsn.getLastLockRef()));
-
-							}
-							
-							if (insn instanceof MONITOREXIT) {
-								MONITOREXIT minsn = (MONITOREXIT) insn;
-								ThreadInfo ti = t.getThreadInfo();
-								out.println("monitor ei: " + ti.getElementInfo(minsn.getLastLockRef()));
-
-							}
-							
-							if(insn instanceof JVMReturnInstruction){
-								JVMReturnInstruction jvminsn = (JVMReturnInstruction) insn;
-								out.println("JVMReturnInstruction  string: " + jvminsn.toString());
-								out.println("JVMReturnInstruction  mi fullname: " + jvminsn.getMethodInfo().getFullName());
-
-
-							}
+							// if (insn instanceof MONITORENTER) {
+							// MONITORENTER minsn = (MONITORENTER) insn;
+							// ThreadInfo ti = t.getThreadInfo();
+							// out.println("monitor ei: " +
+							// ti.getElementInfo(minsn.getLastLockRef()));
+							//
+							// }
+							//
+							// if (insn instanceof MONITOREXIT) {
+							// MONITOREXIT minsn = (MONITOREXIT) insn;
+							// ThreadInfo ti = t.getThreadInfo();
+							// out.println("monitor ei: " +
+							// ti.getElementInfo(minsn.getLastLockRef()));
+							//
+							// }
+							//
+							// if(insn instanceof JVMReturnInstruction){
+							// JVMReturnInstruction jvminsn =
+							// (JVMReturnInstruction) insn;
+							// out.println("JVMReturnInstruction string: " +
+							// jvminsn.toString());
+							// out.println("JVMReturnInstruction mi fullname: "
+							// + jvminsn.getMethodInfo().getFullName());
+							//
+							// }
 							// if (insn instanceof VirtualInvocation) {
 							// out.println("invoke: " + ((VirtualInvocation)
 							// insn).getInvokedMethodClassName() + "."

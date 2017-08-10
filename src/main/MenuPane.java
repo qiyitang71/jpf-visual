@@ -29,6 +29,7 @@ public class MenuPane {
 
 		graph.setCellsResizable(false);
 		graph.setCollapseToPreferredSize(false);
+		graph.setCellsEditable(false);
 
 		setStyles();
 

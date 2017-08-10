@@ -1,14 +1,10 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-//import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-//import gov.nasa.jpf.jvm.bytecode.EXECUTENATIVE;
-import gov.nasa.jpf.jvm.bytecode.MONITORENTER;
-import gov.nasa.jpf.jvm.bytecode.GETFIELD;
 import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
 import gov.nasa.jpf.jvm.bytecode.JVMReturnInstruction;
 import gov.nasa.jpf.jvm.bytecode.LockInstruction;
@@ -17,7 +13,6 @@ import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.ChoiceGenerator;
 import gov.nasa.jpf.vm.ClassInfo;
-//import gov.nasa.jpf.vm.ClassInfo;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.Path;
@@ -36,8 +31,6 @@ public class TraceData {
 
 	private List<Pair<Integer, Integer>> group = new ArrayList<>();
 
-	// private List<String> detailList = new ArrayList<>();
-	// private List<Integer> heightList = new ArrayList<>();
 	private Set<String> fieldNames = new HashSet<>();
 	private Set<Pair<Integer, Integer>> waitSet = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
@@ -46,8 +39,7 @@ public class TraceData {
 	private Set<String> lockMethodName = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> classFieldMap = new HashMap<>();
 	private Map<String, Set<Pair<Integer, Integer>>> classMethodMap = new HashMap<>();
-
-	// private Set<Pair<Integer, Integer>> threadTerminateSet = new HashSet<>();
+	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap = new HashMap<>();
 
 	public TraceData(Path path) {
 		this.path = path;
@@ -88,16 +80,13 @@ public class TraceData {
 		numOfThreads++;
 
 		// second pass of the path
-		// detailList = new ArrayList<>();
-		// heightList = new ArrayList<>();
-
+		int prevThreadIdx = 0;
 		for (int pi = 0; pi < group.size(); pi++) {
 			Pair<Integer, Integer> p = group.get(pi);
 			int from = p._1;
 			int to = p._2;
 			int height = 0;
 			StringBuilder tempStr = new StringBuilder();
-			// String fieldName = "";
 
 			ArrayList<TextLine> lineList = new ArrayList<>();
 			TextLineList txtLinelist = new TextLineList(lineList);
@@ -105,29 +94,80 @@ public class TraceData {
 
 			boolean isFirst = true;
 			for (int i = from; i <= to; i++) {
-				Transition t = path.get(i);
+				Transition transition = path.get(i);
 				String lastLine = null;
-				// MethodInfo lastMi = null;
 
 				int nNoSrc = 0;
-				ChoiceGenerator<?> cg = t.getChoiceGenerator();
+				ChoiceGenerator<?> cg = transition.getChoiceGenerator();
 
 				if (cg instanceof ThreadChoiceFromSet) {
+					// thread start/join highlight
 					if (cg.getId() == "START" || cg.getId() == "JOIN") {
 						if (lineTable.get(pi).getTextLine(height - 1).isSrc()) {
 							threadStartSet.add(new Pair<>(pi, height - 1));
 						}
 					}
+					ThreadInfo ti = transition.getThreadInfo();
+					Pair<Integer, Integer> tmp = new Pair<>(pi, height);
+
+					// thread state view
+					// ROOT - main thread
+					if (cg.getId() == "ROOT") {
+						Pair<Integer, String> threadState = new Pair<>(ti.getId(), "ROOT");
+						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+						list.add(threadState);
+						threadStateMap.put(tmp, list);
+					}
+
+					// START
+					if (cg.getId() == "START") {
+						int tid = ((ThreadChoiceFromSet) cg).getChoice(cg.getTotalNumberOfChoices() - 1).getId();
+						Pair<Integer, String> threadState = new Pair<>(tid, "START");
+
+						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+						list.add(threadState);
+						threadStateMap.put(tmp, list);
+					}
+
+					// LOCK
+					if (cg.getId() == "LOCK") {
+						Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "LOCK");
+
+						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+						list.add(threadState);
+						threadStateMap.put(tmp, list);
+					}
+
+					// WAIT
+					if (cg.getId() == "WAIT") {
+						Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "WAIT");
+
+						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+						list.add(threadState);
+						threadStateMap.put(tmp, list);
+					}
+
+					// RELEASE
+					if (cg.getId() == "RELEASE") {
+						Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "RELEASE");
+						Pair<Integer, String> threadState2 = new Pair<>(ti.getId(), "RELEASE");
+
+						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+						list.add(threadState);
+						list.add(threadState2);
+						threadStateMap.put(tmp, list);
+					}
+
 				}
 
 				tempStr.append(cg + "\n");
-				TextLine txt = new TextLine(cg.toString(), true, false, t, pi, height);
+				TextLine txt = new TextLine(cg.toString(), true, false, transition, pi, height);
 				lineList.add(txt);
 
 				height++;
 				TextLine txtSrc = null;
-				for (int si = 0; si < t.getStepCount(); si++) {
-					Step s = t.getStep(si);
+				for (int si = 0; si < transition.getStepCount(); si++) {
+					Step s = transition.getStep(si);
 					String line = s.getLineString();
 					if (line != null) {
 						String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$", "")
@@ -137,7 +177,7 @@ public class TraceData {
 							if (nNoSrc > 0) {
 								String noSrc = " [" + nNoSrc + " insn w/o sources]";
 								tempStr.append(noSrc + "\n");
-								txtSrc = new TextLine(noSrc, false, false, t, pi, height);
+								txtSrc = new TextLine(noSrc, false, false, transition, pi, height);
 								lineList.add(txtSrc);
 								height++;
 							}
@@ -146,7 +186,7 @@ public class TraceData {
 							tempStr.append(": ");
 							tempStr.append(src + "\n");
 
-							txtSrc = new TextLine(src, false, true, t, pi, height);
+							txtSrc = new TextLine(src, false, true, transition, pi, height);
 							txtSrc.setStartStep(si);
 							if (isFirst) {
 								isFirst = false;
@@ -185,15 +225,9 @@ public class TraceData {
 						}
 					}
 
-					// if (insn instanceof GETFIELD) {
-					// fieldName = ((GETFIELD) insn).getClassName() + "." +
-					// ((GETFIELD) insn).getFieldName();
-					// fieldName = fieldName.replaceAll("^.*\\$", "");
-					// }
-
 					if (line != null && insn instanceof LockInstruction) {
 						LockInstruction minsn = (LockInstruction) insn;
-						ThreadInfo ti = t.getThreadInfo();
+						ThreadInfo ti = transition.getThreadInfo();
 						String fieldName = ti.getElementInfo(minsn.getLastLockRef()).toString().replace("$", ".")
 								.replaceAll("@.*", "");
 						Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
@@ -225,10 +259,10 @@ public class TraceData {
 						}
 					}
 				}
+				prevThreadIdx = transition.getThreadIndex();
 			}
+
 			tempStr.deleteCharAt(tempStr.length() - 1);
-			// detailList.add(tempStr.toString());
-			// heightList.add(height);
 
 			/**
 			 * set last line
@@ -306,8 +340,6 @@ public class TraceData {
 								break;
 							}
 						}
-						// if(insn instanceof )
-
 					}
 				}
 			}
@@ -369,14 +401,6 @@ public class TraceData {
 		return path.size();
 	}
 
-	// public List<String> getDetailList() {
-	// return new ArrayList<>(this.detailList);
-	// }
-
-	// public List<Integer> getHeightList() {
-	// return new ArrayList<>(this.heightList);
-	// }
-
 	public Path getPath() {
 		return this.path;
 	}
@@ -398,12 +422,15 @@ public class TraceData {
 	}
 
 	public Set<Pair<Integer, Integer>> getLocks(String field) {
-		// System.out.println("field: " + field);
 		return new HashSet<>(lockTable.get(field));
 	}
 
 	public Map<Integer, TextLineList> getLineTable() {
 		return new HashMap<>(lineTable);
+	}
+
+	public Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> getThreadStateMap() {
+		return new HashMap<>(threadStateMap);
 	}
 
 }

@@ -1,5 +1,6 @@
 # we are using oldclassic as default example
-target=oldclassic
+target= DiningPhil
+#oldclassic
 #DiningPhil
 
 native_classpath+=./bin/
