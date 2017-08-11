@@ -90,10 +90,10 @@ public class ThreadStateView extends JComponent {
 			// show the details
 			for (int row = 0; row < numOfRows; row++) {
 
-				if (!lineTable.containsKey(row) || lineTable.get(row).isNoSrc()) {
-					lineTable.remove(row);
-					continue;
-				}
+//				if (!lineTable.containsKey(row) || lineTable.get(row).isNoSrc()) {
+//					lineTable.remove(row);
+//					continue;
+//				}
 
 				TextLineList lineList = lineTable.get(row);
 				double currHt = lineList.getHeight() * htPerLine;

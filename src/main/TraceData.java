@@ -270,12 +270,12 @@ public class TraceData {
 					}
 				}
 				prevThreadIdx = transition.getThreadIndex();
-				
-				//final transition wait
+
+				// final transition wait
 				if (pi == group.size() - 1 && i == to) {
 					ThreadInfo ti = transition.getThreadInfo();
 					Pair<Integer, Integer> tmp = new Pair<>(pi, height - 1);
-					if (ti.getStateName() == "WAITING") {
+					if (ti.getStateName() == "WAITING" || ti.getStateName() == "TIMEOUT_WAITING") {
 						Pair<Integer, String> threadState = new Pair<>(ti.getId(), "WAIT");
 						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
 						list.add(threadState);
