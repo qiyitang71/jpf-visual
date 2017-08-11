@@ -538,7 +538,7 @@ public class NewContent {
 			for (int row = 0; row < numOfRows; row++) {
 
 				if (!lineTable.containsKey(row) || lineTable.get(row).isNoSrc()) {
-					lineTable.remove(row);
+//					lineTable.remove(row);
 					continue;
 				}
 

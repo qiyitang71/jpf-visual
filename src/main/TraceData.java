@@ -40,6 +40,8 @@ public class TraceData {
 	private Map<String, Set<Pair<Integer, Integer>>> classFieldMap = new HashMap<>();
 	private Map<String, Set<Pair<Integer, Integer>>> classMethodMap = new HashMap<>();
 	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap = new HashMap<>();
+	// private Map<Pair<Integer, Integer>,String> threadStateMap = new
+	// HashMap<>();
 
 	public TraceData(Path path) {
 		this.path = path;
@@ -114,6 +116,14 @@ public class TraceData {
 					// ROOT - main thread
 					if (cg.getId() == "ROOT") {
 						Pair<Integer, String> threadState = new Pair<>(ti.getId(), "ROOT");
+						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+						list.add(threadState);
+						threadStateMap.put(tmp, list);
+					}
+
+					// TERMINATE
+					if (cg.getId() == "TERMINATE") {
+						Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "TERMINATE");
 						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
 						list.add(threadState);
 						threadStateMap.put(tmp, list);
@@ -260,6 +270,18 @@ public class TraceData {
 					}
 				}
 				prevThreadIdx = transition.getThreadIndex();
+				
+				//final transition wait
+				if (pi == group.size() - 1 && i == to) {
+					ThreadInfo ti = transition.getThreadInfo();
+					Pair<Integer, Integer> tmp = new Pair<>(pi, height - 1);
+					if (ti.getStateName() == "WAITING") {
+						Pair<Integer, String> threadState = new Pair<>(ti.getId(), "WAIT");
+						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+						list.add(threadState);
+						threadStateMap.put(tmp, list);
+					}
+				}
 			}
 
 			tempStr.deleteCharAt(tempStr.length() - 1);

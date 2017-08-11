@@ -31,6 +31,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	mxGraph graph;
 	private mxGraphComponent menuGraphComponent;
 	private mxGraphOutline outln = null;
+	private ThreadStateView threadStateView = null;
+
 	private JButton foldButton = null;
 	private JButton expandButton = null;
 
@@ -50,7 +52,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		menuGraphComponent = new mxGraphComponent(new mxGraph());
 		outln = new mxGraphOutline(graphComponent);
 		outln.setDrawLabels(true);
-				
+
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphComponent, outln);
 		splitPane.setOneTouchExpandable(false);
 		splitPane.setDividerLocation(700);
@@ -68,12 +70,19 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		List<Pair<Integer, Integer>> group = td.getGroup();
 		List<String> threadNames = td.getThreadNames();
 		Map<Integer, TextLineList> lineTable = td.getLineTable();
+		Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap = td.getThreadStateMap();
 
 		// the main table
 		cellWidth = (splitPane.getLeftComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE
 				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
 		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable);
 		content.resize(cellWidth);
+
+		// set to threadStateView
+		double rightCellWidth = (splitPane.getRightComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE
+				- PaneConstants.BAR_SIZE) / numOfThreads;
+		threadStateView = new ThreadStateView(cellWidth/2, numOfThreads, path, group, lineTable, threadStateMap);
+		splitPane.setRightComponent(threadStateView.getComponent());
 
 		content.foldAll(true);
 		graph = content.getGraph();

@@ -1,16 +1,22 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JComponent;
 
+import com.mxgraph.layout.mxIGraphLayout;
+import com.mxgraph.layout.mxStackLayout;
+import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxIGraphModel;
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.swing.mxGraphOutline;
 import com.mxgraph.util.mxConstants;
-import com.mxgraph.util.mxRectangle;
 import com.mxgraph.util.mxUtils;
-import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
+import com.mxgraph.view.mxLayoutManager;
 
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
@@ -26,18 +32,22 @@ public class ThreadStateView extends JComponent {
 	private Object parent;
 	private mxGraph graph;
 
-	private Map<String, Object> swimStyle;
 	private Map<String, Object> contentStyle;
 
 	private int numOfThreads = -1;
 	private Path path;
 	private List<Pair<Integer, Integer>> group = new ArrayList<>();
 	private Map<Integer, TextLineList> lineTable;
+	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap;
 	private double htPerLine;
 	private int numOfRows = -1;
 
+	private Map<String, String> tmpMap = new HashMap<>();
+	private Map<Integer, String> previousColor = new HashMap<>();
+	private Map<Integer, Object> previousThreadCell = new HashMap<>();
+
 	public ThreadStateView(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
-			Map<Integer, TextLineList> lt) {
+			Map<Integer, TextLineList> lt, Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap) {
 		this.cellWidth = width;
 		this.lineTable = lt;
 		this.numOfThreads = nThreads;
@@ -45,29 +55,17 @@ public class ThreadStateView extends JComponent {
 		this.path = p;
 		this.cellWidth = width;
 		this.numOfRows = group.size();
+		this.threadStateMap = threadStateMap;
+
+		tmpMap.put("ROOT", "green");
+		tmpMap.put("LOCK", "red");
+		tmpMap.put("WAIT", "red");
+		tmpMap.put("RELEASE", "green");
+		tmpMap.put("TERMINATE", "none");
+		tmpMap.put("START", "green");
 
 		// create graph
-		this.graph = new mxGraph() {
-			public mxRectangle getStartSize(Object swimlane) {
-				mxRectangle result = new mxRectangle();
-				mxCellState state = view.getState(swimlane);
-				Map<String, Object> temp = getCellStyle(swimlane);
-
-				Map<String, Object> style = (temp != null) ? temp : state.getStyle();
-
-				if (style != null) {
-					double size = mxUtils.getDouble(style, mxConstants.STYLE_STARTSIZE, mxConstants.DEFAULT_STARTSIZE);
-
-					if (mxUtils.isTrue(style, mxConstants.STYLE_HORIZONTAL, true)) {
-						result.setHeight(size);
-					} else {
-						result.setWidth(size);
-					}
-				}
-
-				return result;
-			}
-		};
+		this.graph = new mxGraph();
 
 		// get the model
 		this.model = graph.getModel();
@@ -77,11 +75,9 @@ public class ThreadStateView extends JComponent {
 		graph.setCollapseToPreferredSize(false);
 
 		setStyles();
-		// this.htPerLine =
-		// mxUtils.getFontMetrics(mxUtils.getFont(graph.getStylesheet().getStyles().get("content")))
-		// .getHeight() + 5;
-		// installFoldingHandler();
-		// setLayoutManager();
+		this.htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(graph.getStylesheet().getStyles().get("content")))
+				.getHeight() * 0.5;
+		setLayoutManager();
 		drawTable();
 
 	}
@@ -100,36 +96,69 @@ public class ThreadStateView extends JComponent {
 				}
 
 				TextLineList lineList = lineTable.get(row);
-				double currHt = (lineList.getHeight() + 1) * htPerLine + 5 + 10;
+				double currHt = lineList.getHeight() * htPerLine;
 
 				/**
 				 * The big box around the first row with black border
 				 */
-				// mxCell rowCell = (mxCell) drawRowCell(row);
+				mxCell rowCell = (mxCell) drawRowCell(row);
 
 				/**
 				 * The transition range no border
 				 */
-				// drawRangeCell(row, rowCell);
+				drawRangeCell(row, currHt, rowCell);
 
 				/**
 				 * The big box outside the swimlane
 				 */
-				// mxCell rightCell = (mxCell) drawRightCell(row, rowCell);
+				mxCell rightCell = (mxCell) drawRightCell(row, currHt, rowCell);
 
-				/**
-				 * The swimlane
-				 */
-				// mxCell swimCell = (mxCell) drawSwimCell(row, rightCell,
-				// currHt);
+				int from = group.get(row)._1;
+				int threadIdx = path.get(from).getThreadIndex();
 
+				List<TextLine> txtLines = lineTable.get(row).getList();
+				for (int ithLine = 0; ithLine < txtLines.size(); ithLine++) {
+
+					/**
+					 * The blank thread
+					 */
+					mxCell blankCell = (mxCell) drawBlankCell(currHt, rightCell);
+
+					/**
+					 * The thread state in threadCell
+					 */
+					drawThreadState(row, ithLine, threadIdx, blankCell);
+
+					// draw transition for every thread
+					if (row == (numOfRows - 1) && ithLine == (txtLines.size() - 1)) {
+						drawLastTransition(row, threadIdx, blankCell);
+					}
+				}
 			}
 
 		} finally {
 			model.endUpdate();
 		}
 
-		// foldAll(true);
+	}
+
+	protected void setLayoutManager() {
+		@SuppressWarnings("unused")
+		mxLayoutManager layoutMng = new mxLayoutManager(graph) {
+			public mxIGraphLayout getLayout(Object parent) {
+				String st = model.getStyle(parent);
+
+				if (model.getChildCount(parent) > 0 && (st == null || st.contains("right") || st.contains("range"))) {
+					// vertical
+					return new mxStackLayout(graph, false);
+				} else if (model.getChildCount(parent) > 0 && !st.contains("content")) {
+					// horizontal
+					return new mxStackLayout(graph, true);
+				}
+				return null;
+			}
+
+		};
 	}
 
 	protected void setStyles() {
@@ -163,17 +192,6 @@ public class ThreadStateView extends JComponent {
 		rangeStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 		graph.getStylesheet().putCellStyle("range", rangeStyle);
 
-		swimStyle = new HashMap<String, Object>(style);
-		swimStyle.remove(mxConstants.STYLE_VERTICAL_ALIGN);
-		swimStyle.put(mxConstants.STYLE_HORIZONTAL, false);
-		swimStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_SWIMLANE);
-		swimStyle.put(mxConstants.STYLE_FOLDABLE, true);
-		swimStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
-		swimStyle.put(mxConstants.STYLE_STARTSIZE, PaneConstants.SIGN_SIZE);
-		swimStyle.put(mxConstants.STYLE_SPACING_TOP, PaneConstants.TOP_SPACE);
-		swimStyle.put(mxConstants.STYLE_SWIMLANE_LINE, 0);
-		graph.getStylesheet().putCellStyle("swim", swimStyle);
-
 		contentStyle = new HashMap<String, Object>(style);
 		contentStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 		contentStyle.put(mxConstants.STYLE_OPACITY, 0);
@@ -181,11 +199,126 @@ public class ThreadStateView extends JComponent {
 		contentStyle.put(mxConstants.STYLE_SPACING_TOP, PaneConstants.TOP_SPACE);
 		contentStyle.remove(mxConstants.STYLE_VERTICAL_ALIGN);
 		contentStyle.put(mxConstants.STYLE_FONTFAMILY, "Courier");
+
 		graph.getStylesheet().putCellStyle("content", contentStyle);
 	}
 
 	public JComponent getComponent() {
-		return this;
+		mxGraphComponent graphComponent = new mxGraphComponent(graph);
+		graph.getView().setScale(0.4);
+		return (graphComponent);
+	}
+
+	private Object drawRowCell(int row) {
+		mxCell rowCell = (mxCell) graph.insertVertex(parent, null, null, 0, 0,
+				PaneConstants.RANGE_SIZE + numOfThreads * cellWidth, 0, "border");
+		rowCell.setConnectable(false);
+		return rowCell;
+	}
+
+	private Object drawRangeCell(int row, double currHt, Object rowCell) {
+		int from = group.get(row)._1;
+		int to = group.get(row)._2;
+		String rangeStr = null;
+		if (from != to) {
+			rangeStr = from + "-" + to;
+		} else {
+			rangeStr = "" + from;
+		}
+		mxCell rangeCell = (mxCell) graph.insertVertex(rowCell, null, rangeStr, 0, 0, PaneConstants.RANGE_SIZE, currHt,
+				"range");
+		rangeCell.setConnectable(false);
+		return rangeCell;
+	}
+
+	private Object drawRightCell(int row, double currHt, Object rowCell) {
+		mxCell rightCell = (mxCell) graph.insertVertex(rowCell, null, null, 0, 0, numOfThreads * cellWidth, currHt,
+				"right");
+		rightCell.setId("" + row);
+		rightCell.setConnectable(false);
+		return rightCell;
+	}
+
+	private Object drawBlankCell(double currHt, Object rightCell) {
+		mxCell blankCell = (mxCell) graph.insertVertex(rightCell, null, null, 0, 0, numOfThreads * cellWidth, htPerLine,
+				"content");
+		blankCell.setConnectable(false);
+		return blankCell;
+
+	}
+
+	private void drawThreadState(int row, int ithLine, int threadIdx, Object blankCell) {
+
+		Pair<Integer, Integer> pair = new Pair<>(row, ithLine);
+		if (threadStateMap.containsKey(pair)) {
+			List<Pair<Integer, String>> list = threadStateMap.get(pair);
+			for (Pair<Integer, String> p : list) {
+				int thrd = p._1;
+				String strId = p._2;
+				String color = tmpMap.get(strId);
+				String styleName = "vertex" + strId;
+
+				addNewVertexStyle(styleName, color);
+				mxCell threadStateCell = (mxCell) graph.insertVertex(blankCell, null, null, thrd * cellWidth, 0, 20,
+						htPerLine, styleName);
+				if (previousThreadCell.containsKey(thrd)) {
+					String prevColor = previousColor.get(thrd);
+					addNewEdgeStyle("edge" + prevColor, prevColor);
+					graph.insertEdge(parent, null, null, previousThreadCell.get(thrd), threadStateCell,
+							"edge" + prevColor);
+				}
+				previousThreadCell.put(thrd, threadStateCell);
+				if (!(strId == "LOCK" && threadIdx == thrd)) {
+					previousColor.put(thrd, color);
+				}
+			}
+
+		}
+	}
+
+	private void drawLastTransition(int row, int ithLine, Object blankCell) {
+		Pair<Integer, Integer> pair = new Pair<>(row, ithLine);
+		Set<Integer> exptSet = new HashSet<>();
+		if (threadStateMap.containsKey(pair)) {
+			for (Pair<Integer, String> p : threadStateMap.get(pair)) {
+				exptSet.add(p._1);
+			}
+		}
+
+		for (int ti = 0; ti < numOfThreads; ti++) {
+			if (previousColor.containsKey(ti) && previousColor.get(ti) != "none" && !exptSet.contains(ti)) {
+				addNewVertexStyle("vertex" + "none", "none");
+				mxCell threadStateCell = (mxCell) graph.insertVertex(blankCell, null, null, ti * cellWidth, htPerLine,
+						20, 0, "vertex" + "none");
+				if (previousThreadCell.containsKey(ti)) {
+					String prevColor = previousColor.get(ti);
+					addNewEdgeStyle("edge" + prevColor, prevColor);
+					graph.insertEdge(parent, null, null, previousThreadCell.get(ti), threadStateCell,
+							"edge" + prevColor);
+				}
+			}
+		}
+	}
+
+	private void addNewVertexStyle(String name, String color) {
+		Map<String, Object> hlStyle = new HashMap<>(graph.getStylesheet().getDefaultVertexStyle());
+		hlStyle.put(mxConstants.STYLE_FILLCOLOR, color);
+		hlStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
+
+		graph.getStylesheet().putCellStyle(name, hlStyle);
+	}
+
+	private void addNewEdgeStyle(String name, String color) {
+
+		Map<String, Object> hlStyle = new HashMap<>(graph.getStylesheet().getDefaultEdgeStyle());
+		hlStyle.put(mxConstants.STYLE_FILLCOLOR, color);
+		hlStyle.put(mxConstants.STYLE_FILL_OPACITY, 0);
+		hlStyle.put(mxConstants.STYLE_STROKECOLOR, color);
+		hlStyle.put(mxConstants.STYLE_STROKEWIDTH, 2);
+
+		hlStyle.put(mxConstants.STYLE_ENDARROW, "none");
+		graph.getStylesheet().putCellStyle(name, hlStyle);
+
 	}
 
 }

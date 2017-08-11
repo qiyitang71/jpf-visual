@@ -310,8 +310,8 @@ public class TraceVisualPrinter extends Publisher {
 						lastLine = line;
 					}
 
-					// ThreadInfo ti = t.getThreadInfo();
-					// out.println("threadinfo: " + ti);
+					ThreadInfo ti = t.getThreadInfo();
+					out.println("threadinfo: " + ti);
 
 					if (line != null) {
 

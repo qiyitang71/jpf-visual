@@ -1,7 +1,9 @@
+import java.util.HashMap;
+import java.util.Map;
 
 public class PaneConstants {
 	public static final int START_SIZE = 50;
-	//public static final int TOP_SPACE = 10;
+	// public static final int TOP_SPACE = 10;
 	public static final int BAR_SIZE = 18;
 	public static final int TOP_SPACE = 5;
 	public static final int LEFT_SPACE = 5;
@@ -15,4 +17,17 @@ public class PaneConstants {
 	public static final int DEFAULT_CELL_WIDTH = 201;
 	public static final String[] COLOR_TABLE = { "#e3a5bc", "#75d4b7", "#ec8dad", "#66d0d6", "#e69e93", "#81bfe7",
 			"#d3c478", "#c3afe6", "#cdd295", "#d1b6ca", "#ddad79", "#adc6d5", "#b9cda1", "#dfb5a6", "#b6cfbe" };
+	private static Map<String, String> tmpMap = new HashMap<>();
+
+	{
+		tmpMap.put("ROOT", "none");
+		tmpMap.put("LOCK", "red");
+		tmpMap.put("WAIT", "red");
+		tmpMap.put("RELEASE", "green");
+		tmpMap.put("TERMINATE", "none");
+		tmpMap.put("START", "green");
+	}
+
+	public static final Map<String, String> threadState = new HashMap<>(tmpMap);
+
 }
