@@ -12,7 +12,6 @@ import com.mxgraph.layout.mxStackLayout;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.swing.mxGraphComponent;
-import com.mxgraph.swing.mxGraphOutline;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
@@ -21,16 +20,13 @@ import com.mxgraph.view.mxLayoutManager;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
-public class ThreadStateView extends JComponent {
+public class ThreadStateView {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 	private double cellWidth = 0;
 	private mxIGraphModel model;
 	private Object parent;
 	private mxGraph graph;
+	private mxGraphComponent graphComponent;
 
 	private Map<String, Object> contentStyle;
 
@@ -82,7 +78,11 @@ public class ThreadStateView extends JComponent {
 
 	}
 
-	protected void drawTable() {
+	public void setCellWidth(double newWidth) {
+		this.cellWidth = newWidth;
+	}
+
+	public void drawTable() {
 		parent = graph.getDefaultParent();
 
 		model.beginUpdate();
@@ -90,10 +90,11 @@ public class ThreadStateView extends JComponent {
 			// show the details
 			for (int row = 0; row < numOfRows; row++) {
 
-//				if (!lineTable.containsKey(row) || lineTable.get(row).isNoSrc()) {
-//					lineTable.remove(row);
-//					continue;
-//				}
+				// if (!lineTable.containsKey(row) ||
+				// lineTable.get(row).isNoSrc()) {
+				// lineTable.remove(row);
+				// continue;
+				// }
 
 				TextLineList lineList = lineTable.get(row);
 				double currHt = lineList.getHeight() * htPerLine;
@@ -139,6 +140,7 @@ public class ThreadStateView extends JComponent {
 		} finally {
 			model.endUpdate();
 		}
+		graph.refresh();
 
 	}
 
@@ -203,9 +205,9 @@ public class ThreadStateView extends JComponent {
 		graph.getStylesheet().putCellStyle("content", contentStyle);
 	}
 
-	public JComponent getComponent() {
-		mxGraphComponent graphComponent = new mxGraphComponent(graph);
-		graph.getView().setScale(0.4);
+	public mxGraphComponent getComponent() {
+		graphComponent = new mxGraphComponent(graph);
+		// graph.getView().setScale(0.8);
 		return (graphComponent);
 	}
 
@@ -259,8 +261,8 @@ public class ThreadStateView extends JComponent {
 				String styleName = "vertex" + strId;
 
 				addNewVertexStyle(styleName, color);
-				mxCell threadStateCell = (mxCell) graph.insertVertex(blankCell, null, null, thrd * cellWidth, 0, 20,
-						htPerLine, styleName);
+				mxCell threadStateCell = (mxCell) graph.insertVertex(blankCell, null, null, thrd * cellWidth, 0,
+						PaneConstants.THREAD_STATE_WIDTH, htPerLine, styleName);
 				if (previousThreadCell.containsKey(thrd)) {
 					String prevColor = previousColor.get(thrd);
 					addNewEdgeStyle("edge" + prevColor, prevColor);
@@ -289,7 +291,7 @@ public class ThreadStateView extends JComponent {
 			if (previousColor.containsKey(ti) && previousColor.get(ti) != "none" && !exptSet.contains(ti)) {
 				addNewVertexStyle("vertex" + "none", "none");
 				mxCell threadStateCell = (mxCell) graph.insertVertex(blankCell, null, null, ti * cellWidth, htPerLine,
-						20, 0, "vertex" + "none");
+						PaneConstants.THREAD_STATE_WIDTH, 0, "vertex" + "none");
 				if (previousThreadCell.containsKey(ti)) {
 					String prevColor = previousColor.get(ti);
 					addNewEdgeStyle("edge" + prevColor, prevColor);

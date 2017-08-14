@@ -1,6 +1,8 @@
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
@@ -14,6 +16,7 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
@@ -32,16 +35,29 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private mxGraphComponent menuGraphComponent;
 	private mxGraphOutline outln = null;
 	private ThreadStateView threadStateView = null;
+	private mxGraphComponent threadStateComponent;
 
 	private JButton foldButton = null;
 	private JButton expandButton = null;
+
+	private JButton outlnButton = null;
+	private JButton threadStateButton = null;
 
 	private int numOfThreads = -1;
 	private NewContent content;
 
 	private MenuPane menu;
 	private JSplitPane splitPane;
+	private JSplitPane mapPane;
+	private JPanel buttonPanel;
+
 	double cellWidth = -1;
+
+	private Path path;
+	private List<Pair<Integer, Integer>> group;
+	private List<String> threadNames;
+	private Map<Integer, TextLineList> lineTable;
+	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap;
 
 	public ErrorTablePane() {
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -53,10 +69,23 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		outln = new mxGraphOutline(graphComponent);
 		outln.setDrawLabels(true);
 
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphComponent, outln);
+		buttonPanel = new JPanel();
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+
+		mapPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, buttonPanel, outln);
+		mapPane.setOneTouchExpandable(false);
+		mapPane.setDividerLocation(100);
+		mapPane.setBorder(BorderFactory.createEmptyBorder());
+
+		addButtons();
+
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphComponent, mapPane);
 		splitPane.setOneTouchExpandable(false);
-		splitPane.setDividerLocation(700);
+		splitPane.setDividerLocation(600);
+		splitPane.setBorder(BorderFactory.createEmptyBorder());
+
 		this.add(splitPane);
+
 	}
 
 	public void setButton(JButton foldButton, JButton expandButton) {
@@ -65,12 +94,12 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	}
 
 	public void draw(TraceData td) {
-		Path path = td.getPath();
+		path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
-		List<Pair<Integer, Integer>> group = td.getGroup();
-		List<String> threadNames = td.getThreadNames();
-		Map<Integer, TextLineList> lineTable = td.getLineTable();
-		Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap = td.getThreadStateMap();
+		group = td.getGroup();
+		threadNames = td.getThreadNames();
+		lineTable = td.getLineTable();
+		threadStateMap = td.getThreadStateMap();
 
 		// the main table
 		cellWidth = (splitPane.getLeftComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE
@@ -78,11 +107,11 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable);
 		content.resize(cellWidth);
 
-		// set to threadStateView
-		double rightCellWidth = (splitPane.getRightComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE
-				- PaneConstants.BAR_SIZE) / numOfThreads;
-		threadStateView = new ThreadStateView(cellWidth/2, numOfThreads, path, group, lineTable, threadStateMap);
-		splitPane.setRightComponent(threadStateView.getComponent());
+		double rightCellWidth = (splitPane.getWidth() - splitPane.getLeftComponent().getBounds().getWidth()
+				- PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
+		threadStateView = new ThreadStateView(rightCellWidth, numOfThreads, path, group, lineTable, threadStateMap);
+		threadStateComponent = threadStateView.getComponent();
+		threadStateComponent.addComponentListener(new MapListener());
 
 		content.foldAll(true);
 		graph = content.getGraph();
@@ -101,6 +130,20 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		graphComponent.setColumnHeaderView(menuGraphComponent);
 		outln.setGraphComponent(graphComponent);
 
+	}
+
+	private void addButtons() {
+		ButtonListener buttonListener = new ButtonListener();
+		outlnButton = new JButton("Outline");
+		outlnButton.setEnabled(false);
+		outlnButton.addActionListener(buttonListener);
+
+		threadStateButton = new JButton("Thread State");
+		threadStateButton.setEnabled(true);
+		threadStateButton.addActionListener(buttonListener);
+
+		buttonPanel.add(outlnButton);
+		buttonPanel.add(threadStateButton);
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
@@ -127,27 +170,24 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	@Override
 	public void componentShown(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
-
+		// do nothing
 	}
 
 	@Override
 	public void componentHidden(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
+		// do nothing
 
 	}
 
 	@Override
 	public void componentMoved(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
-
+		// do nothing
 	}
 
 	@Override
 	public void componentResized(ComponentEvent arg0) {
 		if (numOfThreads < 0)
 			return;
-		// TODO Auto-generated method stub
 		double newWidth = (splitPane.getLeftComponent().getBounds().getWidth() * 1.0 - PaneConstants.RANGE_SIZE
 				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
 		cellWidth = newWidth;
@@ -208,4 +248,59 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		}
 
 	};
+
+	private class ButtonListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			assert (e.getSource() instanceof JButton);
+
+			JButton button = (JButton) e.getSource();
+			if (button.equals(outlnButton)) {
+				threadStateButton.setEnabled(true);
+				outlnButton.setEnabled(false);
+				mapPane.setBottomComponent(outln);
+			}
+
+			if (button.equals(threadStateButton)) {
+				outlnButton.setEnabled(true);
+				threadStateButton.setEnabled(false);
+				System.out.println("thread State");
+				mapPane.setBottomComponent(threadStateComponent);
+			}
+		}
+
+	}
+
+	private class MapListener implements ComponentListener {
+
+		@Override
+		public void componentResized(ComponentEvent e) {
+			System.out.println("resize thread state");
+			double rightCellWidth = ((splitPane.getWidth() - splitPane.getLeftComponent().getBounds().getWidth()
+					- PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE)) / numOfThreads;
+			threadStateView.setCellWidth(rightCellWidth);
+			threadStateView.drawTable();
+			threadStateComponent.refresh();
+		}
+
+		@Override
+		public void componentMoved(ComponentEvent e) {
+			// do nothing
+
+		}
+
+		@Override
+		public void componentShown(ComponentEvent e) {
+			// do nothing
+
+		}
+
+		@Override
+		public void componentHidden(ComponentEvent e) {
+			// do nothing
+
+		}
+
+	}
 }
