@@ -38,7 +38,6 @@ public class ThreadStateView {
 	private double htPerLine;
 	private int numOfRows = -1;
 
-	private Map<String, String> tmpMap = new HashMap<>();
 	private Map<Integer, String> previousColor = new HashMap<>();
 	private Map<Integer, Object> previousThreadCell = new HashMap<>();
 
@@ -53,12 +52,6 @@ public class ThreadStateView {
 		this.numOfRows = group.size();
 		this.threadStateMap = threadStateMap;
 
-		tmpMap.put("ROOT", "green");
-		tmpMap.put("LOCK", "red");
-		tmpMap.put("WAIT", "red");
-		tmpMap.put("RELEASE", "green");
-		tmpMap.put("TERMINATE", "none");
-		tmpMap.put("START", "green");
 
 		// create graph
 		this.graph = new mxGraph();
@@ -97,7 +90,7 @@ public class ThreadStateView {
 				// }
 
 				TextLineList lineList = lineTable.get(row);
-				double currHt = lineList.getHeight() * htPerLine;
+				double currHt = lineList.getHeight() * htPerLine ;
 
 				/**
 				 * The big box around the first row with black border
@@ -107,7 +100,7 @@ public class ThreadStateView {
 				/**
 				 * The transition range no border
 				 */
-				drawRangeCell(row, currHt, rowCell);
+				mxCell rangeCell = (mxCell) drawRangeCell(row, currHt, rowCell);
 
 				/**
 				 * The big box outside the swimlane
@@ -118,6 +111,7 @@ public class ThreadStateView {
 				int threadIdx = path.get(from).getThreadIndex();
 
 				List<TextLine> txtLines = lineTable.get(row).getList();
+				int plainLines = 0;
 				for (int ithLine = 0; ithLine < txtLines.size(); ithLine++) {
 
 					/**
@@ -128,13 +122,22 @@ public class ThreadStateView {
 					/**
 					 * The thread state in threadCell
 					 */
-					drawThreadState(row, ithLine, threadIdx, blankCell);
+					boolean hasState = drawThreadState(row, ithLine, threadIdx, blankCell);
 
 					// draw transition for every thread
 					if (row == (numOfRows - 1) && ithLine == (txtLines.size() - 1)) {
 						drawLastTransition(row, threadIdx, blankCell);
+					} else if (!hasState) {
+						plainLines++;
+						changeHeight(blankCell, htPerLine* PaneConstants.PlainLineScale);
 					}
 				}
+				double realHt = plainLines * htPerLine* PaneConstants.PlainLineScale + (txtLines.size() - plainLines) * htPerLine;
+				// resize row and right cell
+				changeHeight(rowCell, realHt);
+				changeHeight(rightCell, realHt);
+				changeHeight(rangeCell, realHt);
+
 			}
 
 		} finally {
@@ -240,6 +243,10 @@ public class ThreadStateView {
 		model.getGeometry(cell).setWidth(width);
 	}
 
+	private void changeHeight(Object cell, double height) {
+		model.getGeometry(cell).setHeight(height);
+	}
+
 	private Object drawRowCell(int row) {
 		mxCell rowCell = (mxCell) graph.insertVertex(parent, null, null, 0, 0,
 				PaneConstants.RANGE_SIZE + numOfThreads * cellWidth, 0, "border");
@@ -278,7 +285,7 @@ public class ThreadStateView {
 
 	}
 
-	private void drawThreadState(int row, int ithLine, int threadIdx, Object blankCell) {
+	private boolean drawThreadState(int row, int ithLine, int threadIdx, Object blankCell) {
 
 		Pair<Integer, Integer> pair = new Pair<>(row, ithLine);
 		if (threadStateMap.containsKey(pair)) {
@@ -286,7 +293,7 @@ public class ThreadStateView {
 			for (Pair<Integer, String> p : list) {
 				int thrd = p._1;
 				String strId = p._2;
-				String color = tmpMap.get(strId);
+				String color = PaneConstants.threadState.get(strId);
 				String styleName = "vertex" + strId;
 
 				addNewVertexStyle(styleName, color);
@@ -304,8 +311,9 @@ public class ThreadStateView {
 					previousColor.put(thrd, color);
 				}
 			}
-
+			return true;
 		}
+		return false;
 	}
 
 	private void drawLastTransition(int row, int ithLine, Object blankCell) {

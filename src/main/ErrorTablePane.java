@@ -16,7 +16,6 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
@@ -41,7 +40,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private JButton expandButton = null;
 
 	private JButton outlnButton = null;
-	private JButton threadStateButton = null;
 
 	private int numOfThreads = -1;
 	private NewContent content;
@@ -74,7 +72,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		mapPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, buttonPanel, outln);
 		mapPane.setOneTouchExpandable(false);
-		mapPane.setDividerLocation(100);
+		mapPane.setDividerLocation(PaneConstants.CELL_HEIGHT);
 		mapPane.setBorder(BorderFactory.createEmptyBorder());
 
 		addButtons();
