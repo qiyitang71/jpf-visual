@@ -142,7 +142,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
 		content.expand(set, color, false);
-
 	}
 
 	public void resetContent(Set<Pair<Integer, Integer>> set, String color) {
@@ -270,8 +269,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			double rightCellWidth = ((splitPane.getWidth() - splitPane.getLeftComponent().getBounds().getWidth()
 					- PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE)) / numOfThreads;
 			threadStateView.setCellWidth(rightCellWidth);
-			threadStateView.drawTable();
-			threadStateComponent.refresh();
+			threadStateView.resize();
 		}
 
 		@Override

@@ -209,6 +209,37 @@ public class ThreadStateView {
 		return (graphComponent);
 	}
 
+	public void resize() {
+		// resize rowCell
+		for (Object rowCell : graph.getChildCells(parent)) {
+			if (!model.isVertex(rowCell)) {
+				continue;
+			}
+			changeWidth(rowCell, PaneConstants.RANGE_SIZE + numOfThreads * cellWidth);
+			// resize rightCell
+			for (Object rightCell : graph.getChildCells(rowCell)) {
+				if (!model.getStyle(rightCell).contains("right")) {
+					continue;
+				}
+				changeWidth(rightCell, numOfThreads * cellWidth);
+				// resize blankCell
+				for (Object blankCell : graph.getChildCells(rightCell)) {
+					changeWidth(blankCell, numOfThreads * cellWidth);
+					// reposition trheadStateCell
+					for (Object threadStateCell : graph.getChildCells(blankCell)) {
+						int ti = Integer.parseInt(((mxCell) threadStateCell).getId());
+						model.getGeometry(threadStateCell).setX(ti * cellWidth);
+					}
+				}
+			}
+		}
+		graph.refresh();
+	}
+
+	private void changeWidth(Object cell, double width) {
+		model.getGeometry(cell).setWidth(width);
+	}
+
 	private Object drawRowCell(int row) {
 		mxCell rowCell = (mxCell) graph.insertVertex(parent, null, null, 0, 0,
 				PaneConstants.RANGE_SIZE + numOfThreads * cellWidth, 0, "border");
@@ -261,6 +292,7 @@ public class ThreadStateView {
 				addNewVertexStyle(styleName, color);
 				mxCell threadStateCell = (mxCell) graph.insertVertex(blankCell, null, null, thrd * cellWidth, 0,
 						PaneConstants.THREAD_STATE_WIDTH, htPerLine, styleName);
+				threadStateCell.setId("" + thrd);
 				if (previousThreadCell.containsKey(thrd)) {
 					String prevColor = previousColor.get(thrd);
 					addNewEdgeStyle("edge" + prevColor, prevColor);
@@ -290,6 +322,7 @@ public class ThreadStateView {
 				addNewVertexStyle("vertex" + "none", "none");
 				mxCell threadStateCell = (mxCell) graph.insertVertex(blankCell, null, null, ti * cellWidth, htPerLine,
 						PaneConstants.THREAD_STATE_WIDTH, 0, "vertex" + "none");
+				threadStateCell.setId("" + ti);
 				if (previousThreadCell.containsKey(ti)) {
 					String prevColor = previousColor.get(ti);
 					addNewEdgeStyle("edge" + prevColor, prevColor);
