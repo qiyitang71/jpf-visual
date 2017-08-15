@@ -134,16 +134,10 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	private void addButtons() {
 		ButtonListener buttonListener = new ButtonListener();
-		outlnButton = new JButton("Outline");
-		outlnButton.setEnabled(false);
+		outlnButton = new JButton("Thread State");
 		outlnButton.addActionListener(buttonListener);
 
-		threadStateButton = new JButton("Thread State");
-		threadStateButton.setEnabled(true);
-		threadStateButton.addActionListener(buttonListener);
-
 		buttonPanel.add(outlnButton);
-		buttonPanel.add(threadStateButton);
 	}
 
 	public void expand(Set<Pair<Integer, Integer>> set, String color) {
@@ -256,18 +250,14 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			assert (e.getSource() instanceof JButton);
 
 			JButton button = (JButton) e.getSource();
-			if (button.equals(outlnButton)) {
-				threadStateButton.setEnabled(true);
-				outlnButton.setEnabled(false);
+			if (button.getText().equals("Outline")) {
+				outlnButton.setText("Thread State");
 				mapPane.setBottomComponent(outln);
-			}
-
-			if (button.equals(threadStateButton)) {
-				outlnButton.setEnabled(true);
-				threadStateButton.setEnabled(false);
-				System.out.println("thread State");
+			} else {
+				outlnButton.setText("Outline");
 				mapPane.setBottomComponent(threadStateComponent);
 			}
+
 		}
 
 	}

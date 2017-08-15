@@ -140,8 +140,6 @@ public class ThreadStateView {
 		} finally {
 			model.endUpdate();
 		}
-		graph.refresh();
-
 	}
 
 	protected void setLayoutManager() {
