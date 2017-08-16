@@ -127,6 +127,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		threadStateComponent.getGraphControl().addMouseListener(new ClickListener());
 		// threadStateComponent.addMouseWheelListener(new ScrollListener());
 		threadStateComponent.getViewport().addChangeListener(new ViewportListener());
+		threadStateComponent.setDragEnabled(false);
 
 		content.foldAll(true);
 		graph = content.getGraph();
@@ -135,6 +136,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		graphComponent.addKeyListener(new CopyListener());
 		graphComponent.getGraphControl().addMouseListener(new FoldListener());
+		graphComponent.addMouseWheelListener(new ScrollListener());
 
 		// set menu
 		menu = new MenuPane(cellWidth, threadNames);
@@ -338,7 +340,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			System.out.println("mouse wheel");
-			System.out.println(e.getYOnScreen());
+			JViewport myViewport = ((mxGraphComponent) e.getSource()).getViewport();
+			System.out.println(myViewport);
 		}
 	}
 

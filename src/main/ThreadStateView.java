@@ -61,8 +61,8 @@ public class ThreadStateView {
 
 		graph.setCellsEditable(false);
 		graph.setCellsResizable(false);
-		graph.setCollapseToPreferredSize(false);
-
+		graph.setCellsSelectable(false);
+		
 		setStyles();
 		this.htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(graph.getStylesheet().getStyles().get("content")))
 				.getHeight() * 0.5;
