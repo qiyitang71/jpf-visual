@@ -1,5 +1,4 @@
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -21,6 +20,7 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JViewport;
@@ -238,6 +238,22 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		public void mouseClicked(MouseEvent e) {
 			System.out.println("mouse clicked");
 			System.out.println(e.getPoint());
+
+			Point point = e.getPoint();
+			if (point == null)
+				return;
+			int y = (int) Math.abs(point.getY());
+			System.out.println(findGroup(y));
+			int row = findGroup(y);
+			Object cell = location.getRowCell(row);
+			if (cell == null) {
+				return;
+			}
+			mxCellState state = graph.getView().getState(cell);
+			mxRectangle bounds = state;
+			System.out.println(state);
+			graphComponent.getVerticalScrollBar().setValue((int) bounds.getY());
+
 		}
 	}
 
@@ -345,15 +361,14 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 				int y = (int) Math.abs(point.getY());
 				System.out.println(findGroup(y));
 				int row = findGroup(y);
-				// graphComponent.getVerticalScrollBar().setValue(y);
-				//graphComponent.cell
-				//graphComponent.scrollCellToVisible(location.getRowCell(3), true);
-				mxCellState state = graph.getView().getState(location.getRowCell(row));
+				Object cell = location.getRowCell(row);
+				if (cell == null) {
+					return;
+				}
+				mxCellState state = graph.getView().getState(cell);
 				mxRectangle bounds = state;
 				System.out.println(state);
-
 				graphComponent.getVerticalScrollBar().setValue((int) bounds.getY());
-
 
 			} catch (NoSuchFieldException e1) {
 				// TODO Auto-generated catch block
