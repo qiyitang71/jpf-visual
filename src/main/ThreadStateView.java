@@ -40,6 +40,8 @@ public class ThreadStateView {
 	private Map<Integer, String> previousColor = new HashMap<>();
 	private Map<Integer, Object> previousThreadCell = new HashMap<>();
 
+	private List<Double> heightList = new ArrayList<>();
+
 	public ThreadStateView(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
 			Map<Integer, TextLineList> lt, Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap) {
 		this.cellWidth = width;
@@ -50,7 +52,6 @@ public class ThreadStateView {
 		this.cellWidth = width;
 		this.numOfRows = group.size();
 		this.threadStateMap = threadStateMap;
-
 
 		// create graph
 		this.graph = new mxGraph();
@@ -74,14 +75,18 @@ public class ThreadStateView {
 		this.cellWidth = newWidth;
 	}
 
-	public void drawTable() {
+	public List<Double> getHeightList() {
+		return new ArrayList<>(heightList);
+	}
+
+	protected void drawTable() {
 		parent = graph.getDefaultParent();
 
 		model.beginUpdate();
 		try {
 			// show the details
+			double absoluteY = 0;
 			for (int row = 0; row < numOfRows; row++) {
-
 				// if (!lineTable.containsKey(row) ||
 				// lineTable.get(row).isNoSrc()) {
 				// lineTable.remove(row);
@@ -89,7 +94,7 @@ public class ThreadStateView {
 				// }
 
 				TextLineList lineList = lineTable.get(row);
-				double currHt = lineList.getHeight() * htPerLine ;
+				double currHt = lineList.getHeight() * htPerLine;
 
 				/**
 				 * The big box around the first row with black border
@@ -128,14 +133,17 @@ public class ThreadStateView {
 						drawLastTransition(row, threadIdx, blankCell);
 					} else if (!hasState) {
 						plainLines++;
-						changeHeight(blankCell, htPerLine* PaneConstants.PlainLineScale);
+						changeHeight(blankCell, htPerLine * PaneConstants.PlainLineScale);
 					}
 				}
-				double realHt = plainLines * htPerLine* PaneConstants.PlainLineScale + (txtLines.size() - plainLines) * htPerLine;
+				double realHt = plainLines * htPerLine * PaneConstants.PlainLineScale
+						+ (txtLines.size() - plainLines) * htPerLine;
 				// resize row and right cell
 				changeHeight(rowCell, realHt);
 				changeHeight(rightCell, realHt);
 				changeHeight(rangeCell, realHt);
+				absoluteY += realHt;
+				heightList.add(absoluteY);
 
 			}
 
@@ -164,7 +172,7 @@ public class ThreadStateView {
 	}
 
 	protected void setStyles() {
-		
+
 		Map<String, Object> style = graph.getStylesheet().getDefaultVertexStyle();
 
 		style.put(mxConstants.STYLE_VERTICAL_ALIGN, "middle");

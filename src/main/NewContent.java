@@ -25,7 +25,7 @@ import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
 public class NewContent {
-	//private JButton button;
+	// private JButton button;
 
 	private double cellWidth = 0;
 	private mxGraph graph;
@@ -47,7 +47,7 @@ public class NewContent {
 
 	public NewContent(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
 			Map<Integer, TextLineList> lt) {
-		//this.button = button;
+		// this.button = button;
 
 		this.lineTable = lt;
 		this.numOfThreads = nThreads;
@@ -81,11 +81,11 @@ public class NewContent {
 
 		// get the model
 		model = graph.getModel();
-		
+
 		graph.setCellsEditable(false);
 		graph.setCellsResizable(false);
 		graph.setCollapseToPreferredSize(false);
-		
+
 		setStyles();
 
 		this.htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(graph.getStylesheet().getStyles().get("content")))
@@ -99,6 +99,10 @@ public class NewContent {
 
 	public mxGraph getGraph() {
 		return graph;
+	}
+
+	public LocationInGraph getLocation() {
+		return location;
 	}
 
 	public void resize(double newCellWidth) {
@@ -192,7 +196,8 @@ public class NewContent {
 					if (tl.isHighlightedColor(color)) {
 						return;
 					}
-					//graph.foldCells(false, false, new Object[] { location.getSwimCell(row) });
+					// graph.foldCells(false, false, new Object[] {
+					// location.getSwimCell(row) });
 
 					String hlStyleName = "highlight" + color;
 					addNewStyle(hlStyleName, color);
@@ -411,7 +416,7 @@ public class NewContent {
 						return;
 					}
 
-					//button.doClick();
+					// button.doClick();
 
 					if (graph.isCellCollapsed(cells[i])) {
 						// fold
@@ -538,7 +543,7 @@ public class NewContent {
 			for (int row = 0; row < numOfRows; row++) {
 
 				if (!lineTable.containsKey(row) || lineTable.get(row).isNoSrc()) {
-					//lineTable.remove(row);
+					// lineTable.remove(row);
 					continue;
 				}
 
