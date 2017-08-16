@@ -5,13 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.JComponent;
-
 import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.layout.mxStackLayout;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.swing.util.mxCellOverlay;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
@@ -165,6 +164,7 @@ public class ThreadStateView {
 	}
 
 	protected void setStyles() {
+		
 		Map<String, Object> style = graph.getStylesheet().getDefaultVertexStyle();
 
 		style.put(mxConstants.STYLE_VERTICAL_ALIGN, "middle");

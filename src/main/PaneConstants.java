@@ -24,7 +24,7 @@ public class PaneConstants {
 	public static final Map<String, String> threadState = new HashMap<>();
 	static {
 		threadState.put("ROOT", "green");
-		threadState.put("LOCK", "red");
+		threadState.put("LOCK", "#ffbf00");//amber
 		threadState.put("WAIT", "red");
 		threadState.put("RELEASE", "green");
 		threadState.put("TERMINATE", "none");
