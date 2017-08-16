@@ -16,6 +16,7 @@ import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxLayoutManager;
 
+import gov.nasa.jpf.util.LocationSpec;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
@@ -41,9 +42,11 @@ public class ThreadStateView {
 	private Map<Integer, Object> previousThreadCell = new HashMap<>();
 
 	private List<Double> heightList = new ArrayList<>();
+	private LocationInGraph location;
 
 	public ThreadStateView(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
-			Map<Integer, TextLineList> lt, Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap) {
+			Map<Integer, TextLineList> lt, Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap,
+			LocationInGraph locate) {
 		this.cellWidth = width;
 		this.lineTable = lt;
 		this.numOfThreads = nThreads;
@@ -52,7 +55,7 @@ public class ThreadStateView {
 		this.cellWidth = width;
 		this.numOfRows = group.size();
 		this.threadStateMap = threadStateMap;
-
+		this.location = locate;
 		// create graph
 		this.graph = new mxGraph();
 
@@ -62,7 +65,7 @@ public class ThreadStateView {
 		graph.setCellsEditable(false);
 		graph.setCellsResizable(false);
 		graph.setCellsSelectable(false);
-		
+
 		setStyles();
 		this.htPerLine = mxUtils.getFontMetrics(mxUtils.getFont(graph.getStylesheet().getStyles().get("content")))
 				.getHeight() * 0.5;
@@ -100,6 +103,11 @@ public class ThreadStateView {
 				 * The big box around the first row with black border
 				 */
 				mxCell rowCell = (mxCell) drawRowCell(row);
+
+				/**
+				 * The arrow no border
+				 */
+				mxCell arrowCell = (mxCell) drawArrowCell(row, currHt, rowCell);
 
 				/**
 				 * The transition range no border
@@ -142,6 +150,7 @@ public class ThreadStateView {
 				changeHeight(rowCell, realHt);
 				changeHeight(rightCell, realHt);
 				changeHeight(rangeCell, realHt);
+				changeHeight(arrowCell, realHt);
 				absoluteY += realHt;
 				heightList.add(absoluteY);
 
@@ -199,9 +208,14 @@ public class ThreadStateView {
 		graph.getStylesheet().putCellStyle("border", borderStyle);
 
 		Map<String, Object> rangeStyle = new HashMap<String, Object>(style);
-		rangeStyle.put(mxConstants.STYLE_SPACING_LEFT, PaneConstants.LEFT_SPACE);
 		rangeStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 		graph.getStylesheet().putCellStyle("range", rangeStyle);
+
+		Map<String, Object> arrowStyle = new HashMap<String, Object>(style);
+		arrowStyle.put(mxConstants.STYLE_SPACING_LEFT, PaneConstants.LEFT_SPACE);
+		arrowStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
+		arrowStyle.put(mxConstants.STYLE_FONTCOLOR, "blue");
+		graph.getStylesheet().putCellStyle("arrow", arrowStyle);
 
 		contentStyle = new HashMap<String, Object>(style);
 		contentStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
@@ -226,7 +240,7 @@ public class ThreadStateView {
 			if (!model.isVertex(rowCell)) {
 				continue;
 			}
-			changeWidth(rowCell, PaneConstants.RANGE_SIZE + numOfThreads * cellWidth);
+			changeWidth(rowCell, PaneConstants.RANGE_SIZE + PaneConstants.ARROW_SIZE + numOfThreads * cellWidth);
 			// resize rightCell
 			for (Object rightCell : graph.getChildCells(rowCell)) {
 				if (!model.getStyle(rightCell).contains("right")) {
@@ -257,9 +271,30 @@ public class ThreadStateView {
 
 	private Object drawRowCell(int row) {
 		mxCell rowCell = (mxCell) graph.insertVertex(parent, null, null, 0, 0,
-				PaneConstants.RANGE_SIZE + numOfThreads * cellWidth, 0, "border");
+				PaneConstants.RANGE_SIZE + PaneConstants.ARROW_SIZE + numOfThreads * cellWidth, 0, "border");
 		rowCell.setConnectable(false);
 		return rowCell;
+	}
+
+	private Object drawArrowCell(int row, double currHt, Object rowCell) {
+		mxCell arrowCell = (mxCell) graph.insertVertex(rowCell, null, null, 0, 0, PaneConstants.ARROW_SIZE, currHt,
+				"arrow");
+		arrowCell.setConnectable(false);
+		location.addArrowCell(row, arrowCell);
+		return arrowCell;
+
+	}
+
+	public String getCellStyle(Object cell) {
+		return model.getStyle(cell);
+	}
+
+	public void setArrow(Object cell) {
+		model.setValue(cell, "➤");
+	}
+
+	public void resetArrow(Object cell) {
+		model.setValue(cell, null);
 	}
 
 	private Object drawRangeCell(int row, double currHt, Object rowCell) {

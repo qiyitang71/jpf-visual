@@ -46,6 +46,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private mxGraphOutline outln = null;
 	private ThreadStateView threadStateView = null;
 	private mxGraphComponent threadStateComponent;
+	private Object previousArrowCell = null;
 
 	private JButton foldButton = null;
 	private JButton expandButton = null;
@@ -117,26 +118,30 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable);
 		content.resize(cellWidth);
 
+		location = content.getLocation();
+
 		double rightCellWidth = (splitPane.getWidth() - splitPane.getLeftComponent().getBounds().getWidth()
-				- PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
-		threadStateView = new ThreadStateView(rightCellWidth, numOfThreads, path, group, lineTable, threadStateMap);
+				- PaneConstants.RANGE_SIZE - PaneConstants.ARROW_SIZE - PaneConstants.SIGN_SIZE
+				- PaneConstants.BAR_SIZE) / numOfThreads;
+		threadStateView = new ThreadStateView(rightCellWidth, numOfThreads, path, group, lineTable, threadStateMap,
+				location);
 		threadStateComponent = threadStateView.getComponent();
 		threadHeightList = threadStateView.getHeightList();
 
 		threadStateComponent.addComponentListener(new MapListener());
 		threadStateComponent.getGraphControl().addMouseListener(new ClickListener());
 		// threadStateComponent.addMouseWheelListener(new ScrollListener());
-		threadStateComponent.getViewport().addChangeListener(new ViewportListener());
+		// threadStateComponent.getViewport().addChangeListener(new
+		// ViewportListener());
 		threadStateComponent.setDragEnabled(false);
 
 		content.foldAll(true);
 		graph = content.getGraph();
 		graphComponent.setGraph(graph);
-		location = content.getLocation();
 
 		graphComponent.addKeyListener(new CopyListener());
 		graphComponent.getGraphControl().addMouseListener(new FoldListener());
-		graphComponent.addMouseWheelListener(new ScrollListener());
+		// graphComponent.addMouseWheelListener(new ScrollListener());
 
 		// set menu
 		menu = new MenuPane(cellWidth, threadNames);
@@ -242,11 +247,26 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			System.out.println(e.getPoint());
 
 			Point point = e.getPoint();
-			if (point == null)
+			if (point == null) {
 				return;
+			}
 			int y = (int) Math.abs(point.getY());
-			System.out.println(findGroup(y));
+			Object arrowCell = threadStateComponent.getCellAt(point.x, point.y);
+			String style = threadStateView.getCellStyle(arrowCell);
+			if (!style.contains("arrow")) {
+				return;
+			}
+			
+			if (previousArrowCell != null ) {
+				threadStateView.resetArrow(previousArrowCell);
+			}
+			previousArrowCell = arrowCell;
+
+			threadStateView.setArrow(arrowCell);
+			System.out.println(style);
+
 			int row = findGroup(y);
+			System.out.println(row);
 			Object cell = location.getRowCell(row);
 			if (cell == null) {
 				return;
@@ -308,7 +328,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		public void componentResized(ComponentEvent e) {
 			System.out.println("resize thread state");
 			double rightCellWidth = ((splitPane.getWidth() - splitPane.getLeftComponent().getBounds().getWidth()
-					- PaneConstants.RANGE_SIZE - PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE)) / numOfThreads;
+					- PaneConstants.RANGE_SIZE - PaneConstants.ARROW_SIZE - PaneConstants.SIGN_SIZE
+					- PaneConstants.BAR_SIZE)) / numOfThreads;
 			threadStateView.setCellWidth(rightCellWidth);
 			threadStateView.resize();
 			// System.out.println(threadStateComponent.getViewport());

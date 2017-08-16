@@ -15,6 +15,7 @@ public class LocationInGraph {
 	private Map<Integer, Object> threadLabelMap;
 	private Map<Integer, Object> summaryBlankMap;
 	private Map<Integer, Object> rangeCellMap;
+	private Map<Integer, Object> arrowCellMap;// thread state view
 
 	public LocationInGraph() {
 		contentMap = new HashMap<>();
@@ -27,8 +28,20 @@ public class LocationInGraph {
 		threadLabelMap = new HashMap<>();
 		summaryBlankMap = new HashMap<>();
 		rangeCellMap = new HashMap<>();
+		arrowCellMap = new HashMap<>();
 	}
 
+	public void addArrowCell(int row, Object cell) {
+		arrowCellMap.put(row, cell);
+	}
+
+	public Object getArrowCell(int row){
+		if(arrowCellMap.containsKey(row)){
+			return arrowCellMap.get(row);
+		}
+		return null;
+	}
+	
 	public void addRangeCell(int row, Object cell) {
 		rangeCellMap.put(row, cell);
 	}
