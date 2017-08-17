@@ -41,7 +41,6 @@ public class ThreadStateView {
 	private Map<Integer, String> previousColor = new HashMap<>();
 	private Map<Integer, Object> previousThreadCell = new HashMap<>();
 
-	private List<Double> heightList = new ArrayList<>();
 	private LocationInGraph location;
 
 	public ThreadStateView(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
@@ -78,17 +77,12 @@ public class ThreadStateView {
 		this.cellWidth = newWidth;
 	}
 
-	public List<Double> getHeightList() {
-		return new ArrayList<>(heightList);
-	}
-
 	protected void drawTable() {
 		parent = graph.getDefaultParent();
 
 		model.beginUpdate();
 		try {
 			// show the details
-			double absoluteY = 0;
 			for (int row = 0; row < numOfRows; row++) {
 				// if (!lineTable.containsKey(row) ||
 				// lineTable.get(row).isNoSrc()) {
@@ -151,9 +145,6 @@ public class ThreadStateView {
 				changeHeight(rightCell, realHt);
 				changeHeight(rangeCell, realHt);
 				changeHeight(arrowCell, realHt);
-				absoluteY += realHt;
-				heightList.add(absoluteY);
-
 			}
 
 		} finally {
@@ -280,6 +271,7 @@ public class ThreadStateView {
 		mxCell arrowCell = (mxCell) graph.insertVertex(rowCell, null, null, 0, 0, PaneConstants.ARROW_SIZE, currHt,
 				"arrow");
 		arrowCell.setConnectable(false);
+		arrowCell.setId("" + row);
 		location.addArrowCell(row, arrowCell);
 		return arrowCell;
 
@@ -287,6 +279,10 @@ public class ThreadStateView {
 
 	public String getCellStyle(Object cell) {
 		return model.getStyle(cell);
+	}
+
+	public String getCellId(Object cell) {
+		return ((mxCell) cell).getId();
 	}
 
 	public void setArrow(Object cell) {

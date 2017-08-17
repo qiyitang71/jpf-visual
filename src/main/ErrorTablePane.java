@@ -4,15 +4,14 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,12 +19,9 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JSplitPane;
-import javax.swing.JViewport;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
@@ -47,6 +43,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private ThreadStateView threadStateView = null;
 	private mxGraphComponent threadStateComponent;
 	private Object previousArrowCell = null;
+	private int previousRow = -1;
 
 	private JButton foldButton = null;
 	private JButton expandButton = null;
@@ -68,7 +65,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private List<String> threadNames;
 	private Map<Integer, TextLineList> lineTable;
 	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap;
-	private List<Double> threadHeightList;
 
 	public ErrorTablePane() {
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -105,6 +101,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	}
 
 	public void draw(TraceData td) {
+		this.location = new LocationInGraph();
+		
 		path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
 		group = td.getGroup();
@@ -115,10 +113,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		// the main table
 		cellWidth = (splitPane.getLeftComponent().getBounds().getWidth() - PaneConstants.RANGE_SIZE
 				- PaneConstants.SIGN_SIZE - PaneConstants.BAR_SIZE) / numOfThreads;
-		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable);
+		content = new NewContent(cellWidth, numOfThreads, path, group, lineTable, location);
 		content.resize(cellWidth);
-
-		location = content.getLocation();
 
 		double rightCellWidth = (splitPane.getWidth() - splitPane.getLeftComponent().getBounds().getWidth()
 				- PaneConstants.RANGE_SIZE - PaneConstants.ARROW_SIZE - PaneConstants.SIGN_SIZE
@@ -126,13 +122,9 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		threadStateView = new ThreadStateView(rightCellWidth, numOfThreads, path, group, lineTable, threadStateMap,
 				location);
 		threadStateComponent = threadStateView.getComponent();
-		threadHeightList = threadStateView.getHeightList();
 
 		threadStateComponent.addComponentListener(new MapListener());
 		threadStateComponent.getGraphControl().addMouseListener(new ClickListener());
-		// threadStateComponent.addMouseWheelListener(new ScrollListener());
-		// threadStateComponent.getViewport().addChangeListener(new
-		// ViewportListener());
 		threadStateComponent.setDragEnabled(false);
 
 		content.foldAll(true);
@@ -141,7 +133,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		graphComponent.addKeyListener(new CopyListener());
 		graphComponent.getGraphControl().addMouseListener(new FoldListener());
-		// graphComponent.addMouseWheelListener(new ScrollListener());
+		graphComponent.getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
 
 		// set menu
 		menu = new MenuPane(cellWidth, threadNames);
@@ -250,39 +242,42 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			if (point == null) {
 				return;
 			}
-			int y = (int) Math.abs(point.getY());
 			Object arrowCell = threadStateComponent.getCellAt(point.x, point.y);
 			String style = threadStateView.getCellStyle(arrowCell);
 			if (!style.contains("arrow")) {
 				return;
 			}
-			
-			if (previousArrowCell != null ) {
-				threadStateView.resetArrow(previousArrowCell);
-			}
-			previousArrowCell = arrowCell;
+			setArrow(arrowCell);
 
-			threadStateView.setArrow(arrowCell);
-			System.out.println(style);
+			int row = Integer.parseInt(threadStateView.getCellId(arrowCell));
 
-			int row = findGroup(y);
 			System.out.println(row);
-			Object cell = location.getRowCell(row);
-			if (cell == null) {
-				return;
-			}
-			mxCellState state = graph.getView().getState(cell);
-			mxRectangle bounds = state;
-			System.out.println(state);
-			graphComponent.getVerticalScrollBar().setValue((int) bounds.getY());
-
+			scrollContentToRow(row);
 		}
+	}
+
+	private void setArrow(Object arrowCell) {
+		if (previousArrowCell != null) {
+			threadStateView.resetArrow(previousArrowCell);
+		}
+		previousArrowCell = arrowCell;
+		threadStateView.setArrow(arrowCell);
+	}
+
+	private void scrollContentToRow(int row) {
+		Object cell = location.getRowCell(row);
+		if (cell == null) {
+			return;
+		}
+		mxCellState state = graph.getView().getState(cell);
+		mxRectangle bounds = state;
+		System.out.println(state);
+		graphComponent.getVerticalScrollBar().setValue((int) bounds.getY());
 	}
 
 	private class CopyListener extends KeyAdapter {
 
 		public void keyPressed(KeyEvent e) {
-			// TODO Auto-generated method stub
 			if ((e.getKeyCode() == KeyEvent.VK_C) && (((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)
 					|| (e.getModifiers() & KeyEvent.META_MASK) != 0)) {
 				Object[] cells = graph.getSelectionCells();
@@ -292,7 +287,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 				StringBuilder myString = new StringBuilder();
 				for (Object o : cells) {
-					// myString.append(((mxCell) o).getStyle());
 					myString.append(((mxCell) o).getValue() + "\n");
 				}
 				StringSelection stringSelection = new StringSelection(myString.toString());
@@ -306,7 +300,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private class ButtonListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
 			assert (e.getSource() instanceof JButton);
 
 			JButton button = (JButton) e.getSource();
@@ -332,8 +325,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 					- PaneConstants.BAR_SIZE)) / numOfThreads;
 			threadStateView.setCellWidth(rightCellWidth);
 			threadStateView.resize();
-			// System.out.println(threadStateComponent.getViewport());
-
 		}
 
 		@Override
@@ -356,77 +347,32 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	}
 
-	private class ScrollListener implements MouseWheelListener {
+	private class MyAdjustmentListener implements AdjustmentListener {
 
 		@Override
-		public void mouseWheelMoved(MouseWheelEvent e) {
-			System.out.println("mouse wheel");
-			JViewport myViewport = ((mxGraphComponent) e.getSource()).getViewport();
-			System.out.println(myViewport);
-		}
-	}
-
-	private class ViewportListener implements ChangeListener {
-
-		@Override
-		public void stateChanged(ChangeEvent e) {
-			System.out.println("view port change");
-
-			// System.out.println(e.getSource());
-			JViewport myViewport = (JViewport) e.getSource();
-			Field field;
-			try {
-				field = myViewport.getClass().getDeclaredField("lastPaintPosition");
-				field.setAccessible(true);
-				Object value = field.get(myViewport);
-				Point point = (Point) value;
-				if (point == null)
-					return;
-				int y = (int) Math.abs(point.getY());
-				System.out.println(findGroup(y));
-				int row = findGroup(y);
-				Object cell = location.getRowCell(row);
-				if (cell == null) {
-					return;
-				}
-				mxCellState state = graph.getView().getState(cell);
-				mxRectangle bounds = state;
-				System.out.println(state);
-				graphComponent.getVerticalScrollBar().setValue((int) bounds.getY());
-
-			} catch (NoSuchFieldException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (SecurityException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IllegalArgumentException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IllegalAccessException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+		public void adjustmentValueChanged(AdjustmentEvent e) {
+			System.out.println("adjust value change");
+			JScrollBar bar = (JScrollBar) e.getSource();
+			Object cell = graphComponent.getCellAt(0, bar.getValue());
+			int row = Integer.parseInt(content.getCellId(cell));
+			if (row == previousRow) {
+				return;
 			}
-
+			previousRow = row;
+			System.out.println(row);
+			setArrow(row);
 		}
 
 	}
 
-	private int findGroup(double y) {
-		int len = threadHeightList.size();
-		int left = 0;
-		int right = len - 1;
-		while (left <= right) {
-			int mid = left + (right - left) / 2;
-			if (y < threadHeightList.get(mid)) {
-				right = mid - 1;
-			} else if (y > threadHeightList.get(mid)) {
-				left = mid + 1;
-			} else {
-				return mid;
-			}
+	private void setArrow(int row) {
+		if (previousArrowCell != null) {
+			threadStateView.resetArrow(previousArrowCell);
 		}
-		return left;
-
+		Object arrowCell = location.getArrowCell(row);
+		threadStateView.setArrow(arrowCell);
+		previousArrowCell = arrowCell;
+		threadStateComponent.scrollCellToVisible(arrowCell);
 	}
+
 }

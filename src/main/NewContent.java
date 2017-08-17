@@ -43,10 +43,10 @@ public class NewContent {
 	private double wtPerLine = 7;
 	private int numOfRows = -1;
 
-	private LocationInGraph location = new LocationInGraph();
+	private LocationInGraph location;
 
 	public NewContent(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
-			Map<Integer, TextLineList> lt) {
+			Map<Integer, TextLineList> lt, LocationInGraph locate) {
 		// this.button = button;
 
 		this.lineTable = lt;
@@ -55,6 +55,7 @@ public class NewContent {
 		this.path = p;
 		this.cellWidth = width;
 		this.numOfRows = group.size();
+		this.location = locate;
 
 		// create graph
 		graph = new mxGraph() {
@@ -101,8 +102,16 @@ public class NewContent {
 		return graph;
 	}
 
-	public LocationInGraph getLocation() {
-		return location;
+//	public LocationInGraph getLocation() {
+//		return location;
+//	}
+
+	public String getCellStyle(Object cell) {
+		return model.getStyle(cell);
+	}
+
+	public String getCellId(Object cell) {
+		return ((mxCell) cell).getId();
 	}
 
 	public void resize(double newCellWidth) {
@@ -624,6 +633,7 @@ public class NewContent {
 		mxCell rowCell = (mxCell) graph.insertVertex(parent, null, null, 0, 0,
 				PaneConstants.SIGN_SIZE + PaneConstants.RANGE_SIZE + numOfThreads * cellWidth, 0, "border");
 		rowCell.setConnectable(false);
+		rowCell.setId("" + row);
 		location.addRowCell(row, rowCell);
 		return rowCell;
 	}
@@ -640,6 +650,7 @@ public class NewContent {
 		mxCell rangeCell = (mxCell) graph.insertVertex(rowCell, null, rangeStr, 0, 0, PaneConstants.RANGE_SIZE,
 				PaneConstants.START_SIZE, "range");
 		rangeCell.setConnectable(false);
+		rangeCell.setId("" + row);
 		location.addRangeCell(row, rangeCell);
 		return rangeCell;
 	}
