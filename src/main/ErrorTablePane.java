@@ -65,6 +65,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 	private List<String> threadNames;
 	private Map<Integer, TextLineList> lineTable;
 	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap;
+	private List<Double> threadHeightList;
 
 	public ErrorTablePane() {
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -102,7 +103,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	public void draw(TraceData td) {
 		this.location = new LocationInGraph();
-		
+
 		path = td.getPath();
 		numOfThreads = td.getNumberOfThreads();
 		group = td.getGroup();
@@ -122,10 +123,11 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		threadStateView = new ThreadStateView(rightCellWidth, numOfThreads, path, group, lineTable, threadStateMap,
 				location);
 		threadStateComponent = threadStateView.getComponent();
-
 		threadStateComponent.addComponentListener(new MapListener());
 		threadStateComponent.getGraphControl().addMouseListener(new ClickListener());
 		threadStateComponent.setDragEnabled(false);
+
+		threadHeightList = threadStateView.getHeightList();
 
 		content.foldAll(true);
 		graph = content.getGraph();
@@ -242,26 +244,27 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			if (point == null) {
 				return;
 			}
-			Object arrowCell = threadStateComponent.getCellAt(point.x, point.y);
-			String style = threadStateView.getCellStyle(arrowCell);
-			if (!style.contains("arrow")) {
+			Object cell = threadStateComponent.getCellAt(point.x, point.y);
+			String style = threadStateView.getCellStyle(cell);
+			System.out.println(style);
+
+			if (style.contains("arrow")) {
 				return;
 			}
-			setArrow(arrowCell);
 
-			int row = Integer.parseInt(threadStateView.getCellId(arrowCell));
+			int row = findGroup(point.y);
+			setArrow(row);
 
 			System.out.println(row);
 			scrollContentToRow(row);
 		}
 	}
 
-	private void setArrow(Object arrowCell) {
+	private void setArrow(int row) {
 		if (previousArrowCell != null) {
 			threadStateView.resetArrow(previousArrowCell);
 		}
-		previousArrowCell = arrowCell;
-		threadStateView.setArrow(arrowCell);
+		previousArrowCell = threadStateView.setArrow(row);
 	}
 
 	private void scrollContentToRow(int row) {
@@ -360,19 +363,36 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			}
 			previousRow = row;
 			System.out.println(row);
-			setArrow(row);
+			setScrollArrow(row);
 		}
 
 	}
 
-	private void setArrow(int row) {
+	private void setScrollArrow(int row) {
 		if (previousArrowCell != null) {
 			threadStateView.resetArrow(previousArrowCell);
 		}
 		Object arrowCell = location.getArrowCell(row);
-		threadStateView.setArrow(arrowCell);
+		threadStateView.setArrow(row);
 		previousArrowCell = arrowCell;
-		threadStateComponent.scrollCellToVisible(arrowCell);
+		//threadStateComponent.scrollCellToVisible(arrowCell);
+	}
+
+	private int findGroup(double y) {
+		int len = threadHeightList.size();
+		int left = 0;
+		int right = len - 1;
+		while (left <= right) {
+			int mid = left + (right - left) / 2;
+			if (y < threadHeightList.get(mid)) {
+				right = mid - 1;
+			} else if (y > threadHeightList.get(mid)) {
+				left = mid + 1;
+			} else {
+				return mid;
+			}
+		}
+		return left;
 	}
 
 }

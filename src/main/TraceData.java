@@ -40,8 +40,6 @@ public class TraceData {
 	private Map<String, Set<Pair<Integer, Integer>>> classFieldMap = new HashMap<>();
 	private Map<String, Set<Pair<Integer, Integer>>> classMethodMap = new HashMap<>();
 	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap = new HashMap<>();
-	// private Map<Pair<Integer, Integer>,String> threadStateMap = new
-	// HashMap<>();
 
 	public TraceData(Path path) {
 		this.path = path;

@@ -10,13 +10,11 @@ import com.mxgraph.layout.mxStackLayout;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.swing.mxGraphComponent;
-import com.mxgraph.swing.util.mxCellOverlay;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxLayoutManager;
 
-import gov.nasa.jpf.util.LocationSpec;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
@@ -42,6 +40,8 @@ public class ThreadStateView {
 	private Map<Integer, Object> previousThreadCell = new HashMap<>();
 
 	private LocationInGraph location;
+
+	private List<Double> heightList = new ArrayList<>();
 
 	public ThreadStateView(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
 			Map<Integer, TextLineList> lt, Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap,
@@ -83,6 +83,7 @@ public class ThreadStateView {
 		model.beginUpdate();
 		try {
 			// show the details
+			double absoluteY = 0;
 			for (int row = 0; row < numOfRows; row++) {
 				// if (!lineTable.containsKey(row) ||
 				// lineTable.get(row).isNoSrc()) {
@@ -124,7 +125,7 @@ public class ThreadStateView {
 					 * The blank thread
 					 */
 					mxCell blankCell = (mxCell) drawBlankCell(currHt, rightCell);
-
+					blankCell.setId("" + row);
 					/**
 					 * The thread state in threadCell
 					 */
@@ -145,6 +146,8 @@ public class ThreadStateView {
 				changeHeight(rightCell, realHt);
 				changeHeight(rangeCell, realHt);
 				changeHeight(arrowCell, realHt);
+				absoluteY += realHt;
+				heightList.add(absoluteY);
 			}
 
 		} finally {
@@ -196,14 +199,17 @@ public class ThreadStateView {
 		graph.getStylesheet().putCellStyle("right", rightStyle);
 
 		Map<String, Object> borderStyle = new HashMap<>(style);
+		borderStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 		graph.getStylesheet().putCellStyle("border", borderStyle);
 
 		Map<String, Object> rangeStyle = new HashMap<String, Object>(style);
-		rangeStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
+		rangeStyle.put(mxConstants.STYLE_SPACING_LEFT, PaneConstants.LEFT_SPACE);
+		// rangeStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 		graph.getStylesheet().putCellStyle("range", rangeStyle);
 
 		Map<String, Object> arrowStyle = new HashMap<String, Object>(style);
-		arrowStyle.put(mxConstants.STYLE_SPACING_LEFT, PaneConstants.LEFT_SPACE);
+		// arrowStyle.put(mxConstants.STYLE_SPACING_LEFT,
+		// PaneConstants.LEFT_SPACE);
 		arrowStyle.put(mxConstants.STYLE_STROKECOLOR, "none");
 		arrowStyle.put(mxConstants.STYLE_FONTCOLOR, "blue");
 		graph.getStylesheet().putCellStyle("arrow", arrowStyle);
@@ -223,6 +229,10 @@ public class ThreadStateView {
 		graphComponent = new mxGraphComponent(graph);
 		// graph.getView().setScale(0.8);
 		return (graphComponent);
+	}
+
+	public List<Double> getHeightList() {
+		return new ArrayList<>(heightList);
 	}
 
 	public void resize() {
@@ -282,11 +292,22 @@ public class ThreadStateView {
 	}
 
 	public String getCellId(Object cell) {
-		return ((mxCell) cell).getId();
+		String style = getCellStyle(cell);
+		if (style != null && style.contains("vertex")) {
+			mxCell myCell = (mxCell) cell;
+			return getCellId(model.getParent(myCell));
+		} else {
+			return ((mxCell) cell).getId();
+		}
 	}
 
-	public void setArrow(Object cell) {
+	public Object setArrow(int row) {
+
+		Object cell = location.getArrowCell(row);
+		if (cell == null)
+			return null;
 		model.setValue(cell, "➤");
+		return cell;
 	}
 
 	public void resetArrow(Object cell) {
@@ -305,6 +326,7 @@ public class ThreadStateView {
 		mxCell rangeCell = (mxCell) graph.insertVertex(rowCell, null, rangeStr, 0, 0, PaneConstants.RANGE_SIZE, currHt,
 				"range");
 		rangeCell.setConnectable(false);
+		rangeCell.setId("" + row);
 		return rangeCell;
 	}
 
