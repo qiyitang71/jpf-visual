@@ -16,15 +16,14 @@
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
 
-import gov.nasa.jpf.Config;
-import gov.nasa.jpf.report.ConsolePublisher;
-import gov.nasa.jpf.report.Reporter;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import gov.nasa.jpf.Config;
+import gov.nasa.jpf.report.Reporter;
 
 /**
  * Redirects {@link gov.nasa.jpf.traceServer.printer.ConsoleTracePrinter
