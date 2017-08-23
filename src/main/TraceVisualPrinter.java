@@ -30,7 +30,6 @@ import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.Reporter;
 import gov.nasa.jpf.report.Statistics;
 import gov.nasa.jpf.util.Left;
-import gov.nasa.jpf.vm.ChoiceGenerator;
 import gov.nasa.jpf.vm.ClassInfo;
 import gov.nasa.jpf.vm.ClassLoaderInfo;
 import gov.nasa.jpf.vm.Instruction;
@@ -242,6 +241,8 @@ public class TraceVisualPrinter extends Publisher {
 	 * this is done as part of the property violation reporting, i.e. we have an
 	 * error
 	 */
+
+	// this is the main method we use to experiment
 	@Override
 	protected void publishTrace() {
 		this.path = reporter.getPath();
@@ -259,16 +260,6 @@ public class TraceVisualPrinter extends Publisher {
 
 			if (showCG) {
 				out.println(t.getChoiceGenerator());
-				// out.println("stateId: " +
-				// t.getChoiceGenerator().getStateId());
-				out.println("id: " + t.getChoiceGenerator().getId());
-				// if (t.getChoiceGenerator().getProcessedNumberOfChoices() <
-				// t.getChoiceGenerator()
-				// .getTotalNumberOfChoices()) {
-				// out.println("next choice "
-				// +
-				// t.getChoiceGenerator().getChoice(t.getChoiceGenerator().getProcessedNumberOfChoices()));
-				// }
 				if (t.getChoiceGenerator() instanceof ThreadChoiceFromSet) {
 
 					for (ThreadInfo ti : ((ThreadChoiceFromSet) t.getChoiceGenerator()).getChoices()) {
@@ -280,7 +271,6 @@ public class TraceVisualPrinter extends Publisher {
 
 			if (showSteps) {
 				String lastLine = null;
-				MethodInfo lastMi = null;
 				int nNoSrc = 0;
 
 				for (Step s : t) {
@@ -310,9 +300,6 @@ public class TraceVisualPrinter extends Publisher {
 						lastLine = line;
 					}
 
-					ThreadInfo ti = t.getThreadInfo();
-					// out.println("threadinfo: " + ti);
-
 					if (line != null) {
 
 						/* more information of the trace */
@@ -323,91 +310,24 @@ public class TraceVisualPrinter extends Publisher {
 								MethodInfo mi = insn.getMethodInfo();
 								out.println(" mi uniqueName: " + mi.getUniqueName());
 
-								// if (mi != lastMi) {
 								ClassInfo mci = mi.getClassInfo();
 
 								if (mi.isSynchronized()) {
 									out.print("mi synchronized : " + mi.isSynchronized());
 								}
-								// out.println("classinfo object: " +
-								// mi.getClassInfo().getClassObject());
+
 								out.print("mci:    ");
 								if (mci != null) {
 									out.println(" className: " + mci.getName());
 									out.println(" simple className: " + mci.getSimpleName());
-
-									//out.println("super class: " + mci.getSuperClass());
 									out.println("outer class: " + mci.getEnclosingClassInfo());
-									
-									// out.print(" uniquename:");
-									// FieldInfo[] fi = mci.getInstanceFields();
-									// out.println("FieldInfos: ");
-									// if (fi != null && fi.length > 0) {
-									// for (int ii = 0; ii < fi.length; ii++) {
-									// out.print(fi[ii].getName() + ",");
-									// }
-									// out.println();
-									//
-									// }
 
 								}
-								// out.println(" mi uniqueName: " +
-								// mi.getUniqueName());
-								lastMi = mi;
-								// }
 							}
-							// out.print(" ");
-							// out.println("insn: " + insn);
 
-							// if (insn instanceof VirtualInvocation) {
-							// VirtualInvocation vinsn = (VirtualInvocation)
-							// insn;
-							// String cName = vinsn.getInvokedMethodClassName();
-							// String mName = vinsn.getInvokedMethodName();
-							// out.println("InvokeClass: " + cName + ";
-							// InvokeMethod: " + mName);
-							// }
-							// if (insn instanceof MONITORENTER) {
-							// MONITORENTER minsn = (MONITORENTER) insn;
-							// ThreadInfo ti = t.getThreadInfo();
-							// out.println("monitor ei: " +
-							// ti.getElementInfo(minsn.getLastLockRef()));
-							//
-							// }
-							//
-							// if (insn instanceof MONITOREXIT) {
-							// MONITOREXIT minsn = (MONITOREXIT) insn;
-							// ThreadInfo ti = t.getThreadInfo();
-							// out.println("monitor ei: " +
-							// ti.getElementInfo(minsn.getLastLockRef()));
-							//
-							// }
-							//
-							// if(insn instanceof JVMReturnInstruction){
-							// JVMReturnInstruction jvminsn =
-							// (JVMReturnInstruction) insn;
-							// out.println("JVMReturnInstruction string: " +
-							// jvminsn.toString());
-							// out.println("JVMReturnInstruction mi fullname: "
-							// + jvminsn.getMethodInfo().getFullName());
-							//
-							// }
-							// if (insn instanceof VirtualInvocation) {
-							// out.println("invoke: " + ((VirtualInvocation)
-							// insn).getInvokedMethodClassName() + "."
-							// +((VirtualInvocation)
-							// insn).getInvokedMethodName());
-							//
-							// }
-
-							// out.println("insn: " + insn + ", class =" +
-							// insn.getClass());
 						}
 					}
 
-					if (showSource && !showCode && (nNoSrc > 0)) {
-						// out.println(" [" + nNoSrc + " insn w/o sources]");
-					}
 				}
 			}
 		}

@@ -1,3 +1,4 @@
+
 //
 // Copyright (C) 2010 Igor Andjelkovic (igor.andjelkovic@gmail.com).
 // All Rights Reserved.
@@ -15,18 +16,6 @@
 // THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
-
-import gov.nasa.jpf.Config;
-import gov.nasa.jpf.report.Publisher;
-import gov.nasa.jpf.shell.ShellManager;
-import gov.nasa.jpf.shell.ShellPanel;
-import gov.nasa.jpf.shell.commands.VerifyCommand;
-import gov.nasa.jpf.shell.listeners.VerifyCommandListener;
-import gov.nasa.jpf.shell.util.HyperlinkEditorPane;
-import gov.nasa.jpf.shell.util.ProgressTrackerUI;
-import gov.nasa.jpf.shell.util.hyperlinks.BasicHyperLinkDecorator;
-import gov.nasa.jpf.shell.util.hyperlinks.JavaSourceFileHyperlinkPattern;
-import gov.nasa.jpf.shell.util.hyperlinks.StacktraceHyperlinkPattern;
 
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -55,6 +44,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 
+import gov.nasa.jpf.Config;
+import gov.nasa.jpf.report.Publisher;
+import gov.nasa.jpf.shell.ShellManager;
+import gov.nasa.jpf.shell.ShellPanel;
+import gov.nasa.jpf.shell.commands.VerifyCommand;
+import gov.nasa.jpf.shell.listeners.VerifyCommandListener;
+import gov.nasa.jpf.shell.util.HyperlinkEditorPane;
+import gov.nasa.jpf.shell.util.ProgressTrackerUI;
+import gov.nasa.jpf.shell.util.hyperlinks.BasicHyperLinkDecorator;
+import gov.nasa.jpf.shell.util.hyperlinks.JavaSourceFileHyperlinkPattern;
+import gov.nasa.jpf.shell.util.hyperlinks.StacktraceHyperlinkPattern;
+
 /**
  * Basic output panel that divides new trace printer's results into browseable
  * topics. This panel uses a
@@ -72,6 +73,8 @@ public class TraceVisualPanel extends ShellPanel implements VerifyCommandListene
 	private JSplitPane splitPane;
 	private HyperlinkEditorPane outputArea;
 	private TopicListModel topicListModel = new TopicListModel();
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private JList topicList = new JList(topicListModel);
 
 	private ProgressTrackerUI tracker = new ProgressTrackerUI();
@@ -135,7 +138,7 @@ public class TraceVisualPanel extends ShellPanel implements VerifyCommandListene
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroll, textScroll);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(150);
-		
+
 		topicsPanel.add(splitPane);
 
 		setLayout(layout);
@@ -302,7 +305,7 @@ public class TraceVisualPanel extends ShellPanel implements VerifyCommandListene
 	public void exceptionDuringVerify(Exception ex) {
 	}
 
-	@SuppressWarnings("serial")
+	@SuppressWarnings({ "serial", "rawtypes" })
 	private class TopicListModel extends AbstractListModel {
 
 		private Map<String, Topic> topics = new HashMap<String, Topic>();
