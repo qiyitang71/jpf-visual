@@ -174,9 +174,9 @@ public class TraceData {
 
 					loadLockUnlock(line, insn, mi, ti, pi, height);
 
-					loadFields(line, insn);
+					loadFields(line, insn, txtSrc);
 
-					loadMethods(line, insn);
+					loadMethods(line, insn, txtSrc);
 				}
 				prevThreadIdx = transition.getThreadIndex();
 
@@ -329,8 +329,8 @@ public class TraceData {
 		}
 	}
 
-	private void loadFields(String line, Instruction insn) {
-		if (line != null && insn instanceof FieldInstruction) {
+	private void loadFields(String line, Instruction insn, TextLine txtSrc) {
+		if (line != null && txtSrc != null && txtSrc.isSrc() && insn instanceof FieldInstruction) {
 			String name = ((FieldInstruction) insn).getVariableId();
 			int dotPos = name.lastIndexOf(".");
 			if (dotPos == 0 || dotPos == name.length() - 1) {
@@ -348,8 +348,8 @@ public class TraceData {
 		}
 	}
 
-	private void loadMethods(String line, Instruction insn) {
-		if (line != null && insn instanceof JVMInvokeInstruction) {
+	private void loadMethods(String line, Instruction insn, TextLine txtSrc) {
+		if (line != null && txtSrc != null && txtSrc.isSrc() && insn instanceof JVMInvokeInstruction) {
 			String methodName = ((JVMInvokeInstruction) insn).getInvokedMethodName().replaceAll("\\(.*$", "");
 			String clsName = ((JVMInvokeInstruction) insn).getInvokedMethodClassName();
 			if (classMethodNameMap.containsKey(clsName)) {

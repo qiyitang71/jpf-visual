@@ -190,11 +190,15 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			}
 		}
 		if (found) {
+			// reset
 			td = new TraceData(path);
 			errorTrace.draw(td);
 			userControlPanel.removeAll();
 			selectTable = new LinkedHashMap<>();
+			colors.clear();
+			colorID = 2;
 
+			// install buttons, check boxes, dropdown list
 			installFoldExpandButtons();
 			errorTrace.setButton(foldAllButton, expandAllButton);
 			installCheckBoxes();
@@ -295,8 +299,14 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	}
 
 	private void popNotExistDialogue(String userInput) {
-		JOptionPane.showMessageDialog(userControlPanel,
+		JOptionPane.showMessageDialog(errorTrace,
 				"Sorry, \"" + userInput + "\" " + "does not exist.\n" + "Please Try again", "Error message",
+				JOptionPane.ERROR_MESSAGE);
+	}
+
+	private void popAlreadyExistDialogue(String userInput) {
+		JOptionPane.showMessageDialog(errorTrace,
+				"Sorry, \"" + userInput + "\" " + "already exist.\n" + "Please Try again", "Error message",
 				JOptionPane.ERROR_MESSAGE);
 	}
 
@@ -313,6 +323,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		} else {
 			String s = clsName + "." + fmName;
 			if (colors.containsKey(s)) {
+				popAlreadyExistDialogue(userInput);
 				return;
 			}
 			JCheckBox fmCheckBox = null;
@@ -541,7 +552,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					dialog.add(classFieldExplorer);
 					dialog.setVisible(true);
 					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-					dialog.setAlwaysOnTop(true);
 					dialog.setMinimumSize(new Dimension(200, 100));
 					dialog.setLocationRelativeTo(userControlPanel);
 
@@ -560,7 +570,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					dialog.add(classMethodExplorer);
 					dialog.setVisible(true);
 					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-					dialog.setAlwaysOnTop(true);
 					dialog.setMinimumSize(new Dimension(200, 100));
 					dialog.setLocationRelativeTo(userControlPanel);
 

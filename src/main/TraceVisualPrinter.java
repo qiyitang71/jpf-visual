@@ -26,10 +26,12 @@ import java.util.TreeMap;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.Error;
+import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.Reporter;
 import gov.nasa.jpf.report.Statistics;
 import gov.nasa.jpf.util.Left;
+import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.ClassInfo;
 import gov.nasa.jpf.vm.ClassLoaderInfo;
 import gov.nasa.jpf.vm.Instruction;
@@ -305,6 +307,12 @@ public class TraceVisualPrinter extends Publisher {
 						/* more information of the trace */
 						if (true) {
 							Instruction insn = s.getInstruction();
+							if (insn instanceof JVMInvokeInstruction) {
+								out.println("JVMInvokeInstruction: "
+										+ ((JVMInvokeInstruction) insn).getInvokedMethodClassName() + "."
+										+ ((JVMInvokeInstruction) insn).getInvokedMethodName().replaceAll("\\(.*$",
+												""));
+							}
 
 							if (true) {
 								MethodInfo mi = insn.getMethodInfo();
@@ -319,9 +327,6 @@ public class TraceVisualPrinter extends Publisher {
 								out.print("mci:    ");
 								if (mci != null) {
 									out.println(" className: " + mci.getName());
-									out.println(" simple className: " + mci.getSimpleName());
-									out.println("outer class: " + mci.getEnclosingClassInfo());
-
 								}
 							}
 
