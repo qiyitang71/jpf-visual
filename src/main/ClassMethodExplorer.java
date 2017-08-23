@@ -10,19 +10,19 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
-public class ClassFieldExplorer extends JPanel {
+public class ClassMethodExplorer extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	private JTree tree;
 	private TraceData td;
 
-	public ClassFieldExplorer(TraceData td) {
+	public ClassMethodExplorer(TraceData td) {
 
 		super(new GridLayout(1, 0));
 		this.td = td;
 
 		// Create the nodes.
-		DefaultMutableTreeNode top = new DefaultMutableTreeNode("Fields");
+		DefaultMutableTreeNode top = new DefaultMutableTreeNode("Methods");
 		createNodes(top);
 
 		// Create a tree that allows one selection at a time.
@@ -59,46 +59,34 @@ public class ClassFieldExplorer extends JPanel {
 	private void createNodes(DefaultMutableTreeNode top) {
 		DefaultMutableTreeNode parent = null;
 		DefaultMutableTreeNode leaf = null;
-		Map<String, Set<String>> classFieldStructure = td.getClassFieldStructure();
+		Map<String, Set<String>> classMethodStructure = td.getClassMethodStructure();
 
-		for (String clsName : classFieldStructure.keySet()) {
+		for (String clsName : classMethodStructure.keySet()) {
 
 			parent = new DefaultMutableTreeNode(clsName);
 			top.add(parent);
 
-			for (String fieldName : classFieldStructure.get(clsName)) {
-				leaf = new DefaultMutableTreeNode(new FieldNode(clsName, fieldName));
+			for (String methodName : classMethodStructure.get(clsName)) {
+				leaf = new DefaultMutableTreeNode(new MethodNode(clsName, methodName));
 				parent.add(leaf);
 			}
 		}
 
 	}
+
 }
 
-class MyJTree extends JTree {
-
-	private static final long serialVersionUID = 1L;
-
-	public MyJTree(DefaultMutableTreeNode top) {
-		super(top);
-	}
-
-	public void clear() {
-		this.clearToggledPaths();
-	}
-}
-
-class FieldNode {
+class MethodNode {
 	public String clsName;
-	public String fieldName;
+	public String methodName;
 
-	public FieldNode(String clsName, String fieldName) {
+	public MethodNode(String clsName, String methodName) {
 		this.clsName = clsName;
-		this.fieldName = fieldName;
+		this.methodName = methodName;
 	}
 
 	public String toString() {
-		return this.fieldName;
+		return this.methodName;
 	}
 
 }

@@ -77,6 +77,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		outln = new mxGraphOutline(graphComponent);
 		outln.setDrawLabels(true);
 
+		threadStateComponent = new mxGraphComponent(new mxGraph());
+
 		buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
@@ -122,10 +124,14 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 				- PaneConstants.BAR_SIZE) / numOfThreads;
 		threadStateView = new ThreadStateView(rightCellWidth, numOfThreads, path, group, lineTable, threadStateMap,
 				location);
-		threadStateComponent = threadStateView.getComponent();
+		threadStateComponent.setGraph(threadStateView.getGraph()); // =
+																	// threadStateView.getComponent();
 		threadStateComponent.addComponentListener(new MapListener());
 		threadStateComponent.getGraphControl().addMouseListener(new ClickListener());
 		threadStateComponent.setDragEnabled(false);
+		// initialize
+		previousArrowCell = null;
+		previousRow = -1;
 
 		threadHeightList = threadStateView.getHeightList();
 
@@ -349,6 +355,8 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		public void adjustmentValueChanged(AdjustmentEvent e) {
 			JScrollBar bar = (JScrollBar) e.getSource();
 			Object cell = graphComponent.getCellAt(0, bar.getValue());
+			if (cell == null)
+				return;
 			int row = Integer.parseInt(content.getCellId(cell));
 			if (row == previousRow) {
 				return;
@@ -366,7 +374,7 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		Object arrowCell = location.getArrowCell(row);
 		threadStateView.setArrow(row);
 		previousArrowCell = arrowCell;
-		//threadStateComponent.scrollCellToVisible(arrowCell);
+		// threadStateComponent.scrollCellToVisible(arrowCell);
 	}
 
 	private int findGroup(double y) {

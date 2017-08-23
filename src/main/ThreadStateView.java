@@ -225,10 +225,8 @@ public class ThreadStateView {
 		graph.getStylesheet().putCellStyle("content", contentStyle);
 	}
 
-	public mxGraphComponent getComponent() {
-		graphComponent = new mxGraphComponent(graph);
-		// graph.getView().setScale(0.8);
-		return (graphComponent);
+	public mxGraph getGraph() {
+		return this.graph;
 	}
 
 	public List<Double> getHeightList() {

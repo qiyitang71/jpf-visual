@@ -80,6 +80,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private int colorID = 2;
 
 	private ClassFieldExplorer classFieldExplorer;
+	private ClassMethodExplorer classMethodExplorer;
 
 	public ErrorTracePanel() {
 		super("Error Trace", null, "View JPF's Output");
@@ -293,12 +294,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	public void exceptionDuringVerify(Exception ex) {
 	}
 
-	private void popInvalidDialogue(String userInput) {
-		JOptionPane.showMessageDialog(userControlPanel,
-				"Sorry, \"" + userInput + "\" " + "isn't a valid input.\n" + "Please Try again", "Error message",
-				JOptionPane.ERROR_MESSAGE);
-	}
-
 	private void popNotExistDialogue(String userInput) {
 		JOptionPane.showMessageDialog(userControlPanel,
 				"Sorry, \"" + userInput + "\" " + "does not exist.\n" + "Please Try again", "Error message",
@@ -460,11 +455,11 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 	}
 
-	class TreeListener implements TreeSelectionListener {
+	class FieldTreeListener implements TreeSelectionListener {
 		private JTree tree;
 		private JDialog dialog;
 
-		public TreeListener(JTree tree, JDialog dialog) {
+		public FieldTreeListener(JTree tree, JDialog dialog) {
 			this.tree = tree;
 			this.dialog = dialog;
 		}
@@ -485,6 +480,36 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			String fieldName = fn.fieldName;
 
 			fieldMethodSearch(clsName, fieldName, clsName + "." + fieldName, true);
+			dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+		}
+
+	}
+
+	class MethodTreeListener implements TreeSelectionListener {
+		private JTree tree;
+		private JDialog dialog;
+
+		public MethodTreeListener(JTree tree, JDialog dialog) {
+			this.tree = tree;
+			this.dialog = dialog;
+		}
+
+		@Override
+		public void valueChanged(TreeSelectionEvent e) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+
+			if (node == null)
+				return;
+
+			if (!(node.getUserObject() instanceof MethodNode)) {
+				return;
+			}
+
+			MethodNode fn = (MethodNode) node.getUserObject();
+			String clsName = fn.clsName;
+			String methodName = fn.methodName;
+
+			fieldMethodSearch(clsName, methodName, clsName + "." + methodName, false);
 			dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
 		}
 
@@ -511,7 +536,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					JTree tree = classFieldExplorer.getTree();
 
 					JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(userControlPanel);
-					
+
 					JDialog dialog = new JDialog(topFrame, "Field Access");
 					dialog.add(classFieldExplorer);
 					dialog.setVisible(true);
@@ -520,30 +545,27 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					dialog.setMinimumSize(new Dimension(200, 100));
 					dialog.setLocationRelativeTo(userControlPanel);
 
-					TreeListener treeListener = new TreeListener(tree, dialog);
+					FieldTreeListener treeListener = new FieldTreeListener(tree, dialog);
 					classFieldExplorer.addTreeSelectionListener(treeListener);
 
 				} else {
-					String userInput = showDialog("method", userControlPanel);
 
 					cb.setSelectedIndex(0);
-
-					if (userInput == null) {
-						return;
+					if (classMethodExplorer == null) {
+						classMethodExplorer = new ClassMethodExplorer(td);
 					}
-					if (!userInput.contains(".")) {
-						popInvalidDialogue(userInput);
+					JTree tree = classMethodExplorer.getTree();
+					JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(userControlPanel);
+					JDialog dialog = new JDialog(topFrame, "Method Access");
+					dialog.add(classMethodExplorer);
+					dialog.setVisible(true);
+					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+					dialog.setAlwaysOnTop(true);
+					dialog.setMinimumSize(new Dimension(200, 100));
+					dialog.setLocationRelativeTo(userControlPanel);
 
-					} else {
-						int dotPos = userInput.lastIndexOf(".");
-						if (dotPos == 0 || dotPos == userInput.length() - 1) {
-							popInvalidDialogue(userInput);
-						} else {
-							String clsName = userInput.substring(0, dotPos);
-							String fmName = userInput.substring(dotPos + 1, userInput.length());
-							fieldMethodSearch(clsName, fmName, userInput, false);
-						}
-					}
+					MethodTreeListener treeListener = new MethodTreeListener(tree, dialog);
+					classMethodExplorer.addTreeSelectionListener(treeListener);
 				}
 
 			}

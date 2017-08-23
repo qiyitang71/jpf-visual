@@ -40,10 +40,8 @@ public class TraceData {
 	private Map<String, Set<Pair<Integer, Integer>>> classFieldMap = new HashMap<>();
 	private Map<String, Set<Pair<Integer, Integer>>> classMethodMap = new HashMap<>();
 	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap = new HashMap<>();
-	private Map<String, ClassInfo> classMap = new HashMap<>();
-	private Map<ClassInfo, Set<ClassInfo>> classStruture = new HashMap<>();
-	private Set<ClassInfo> classRoots = new HashSet<>();
 	private Map<String, Set<String>> classFieldNameMap = new HashMap<>();
+	private Map<String, Set<String>> classMethodNameMap = new HashMap<>();
 
 	public TraceData(Path path) {
 		this.path = path;
@@ -63,8 +61,6 @@ public class TraceData {
 
 		// synchronized methods
 		processSynchronizedMethods();
-
-		// loadClassStructure();
 	}
 
 	private void firstPass() {
@@ -172,9 +168,6 @@ public class TraceData {
 					MethodInfo mi = insn.getMethodInfo();
 					ThreadInfo ti = transition.getThreadInfo();
 
-					// deal with the class and outer class
-					loadOuterClass(line, mi);
-
 					loadSynchronizedMethod(line, mi);
 
 					loadWaitNotify(line, insn, pi, height);
@@ -183,6 +176,7 @@ public class TraceData {
 
 					loadFields(line, insn);
 
+					loadMethods(line, insn);
 				}
 				prevThreadIdx = transition.getThreadIndex();
 
@@ -281,15 +275,6 @@ public class TraceData {
 
 	}
 
-	private void loadOuterClass(String line, MethodInfo mi) {
-		if (line != null && mi != null) {
-			ClassInfo ci = mi.getClassInfo();
-			if (ci != null && !classMap.containsKey(ci.getName())) {
-				classMap.put(ci.getName(), ci);
-			}
-		}
-	}
-
 	private void loadSynchronizedMethod(String line, MethodInfo mi) {
 		if (line != null && mi.isSynchronized()) {
 			ClassInfo mci = mi.getClassInfo();
@@ -361,6 +346,21 @@ public class TraceData {
 				}
 			}
 		}
+	}
+
+	private void loadMethods(String line, Instruction insn) {
+		if (line != null && insn instanceof JVMInvokeInstruction) {
+			String methodName = ((JVMInvokeInstruction) insn).getInvokedMethodName().replaceAll("\\(.*$", "");
+			String clsName = ((JVMInvokeInstruction) insn).getInvokedMethodClassName();
+			if (classMethodNameMap.containsKey(clsName)) {
+				classMethodNameMap.get(clsName).add(methodName);
+			} else {
+				Set<String> methods = new HashSet<>();
+				methods.add(methodName);
+				classMethodNameMap.put(clsName, methods);
+			}
+		}
+
 	}
 
 	private void loadFinaWaitInFinalTransition(ThreadInfo ti, int pi, int height) {
@@ -451,15 +451,14 @@ public class TraceData {
 			}
 		}
 	}
-	
+
 	// getters
 
-	public Set<Pair<Integer, Integer>> getClassMethod(String clsName, String m) {
-		String target = clsName + "." + m;
+	public Set<Pair<Integer, Integer>> getClassMethod(String clsName, String methodName) {
+		String target = clsName + "." + methodName;
 		if (classMethodMap.containsKey(target)) {
 			return classMethodMap.get(target);
 		}
-		String methodName = m.replaceAll("\\(.*$", "");
 		Set<Pair<Integer, Integer>> targetSet = new HashSet<>();
 		for (TextLineList list : lineTable.values()) {
 			Map<String, String> srcMap = new HashMap<>();
@@ -500,33 +499,8 @@ public class TraceData {
 		return this.classFieldNameMap;
 	}
 
-	protected void loadClassStructure() {
-		for (ClassInfo ci : classMap.values()) {
-			if (ci.getEnclosingClassInfo() == null || !classMap.containsKey(ci.getEnclosingClassName())) {
-				classRoots.add(ci);
-			}
-		}
-
-		for (ClassInfo ci : classMap.values()) {
-			if (classRoots.contains(ci)) {
-				Set<ClassInfo> children = new HashSet<>();
-				classStruture.put(ci, children);
-			} else if (classStruture.containsKey(ci.getEnclosingClassInfo())) {
-				classStruture.get(ci.getEnclosingClassInfo()).add(ci);
-			} else {
-				Set<ClassInfo> children = new HashSet<>();
-				children.add(ci);
-				classStruture.put(ci.getEnclosingClassInfo(), children);
-			}
-		}
-	}
-
-	public Map<ClassInfo, Set<ClassInfo>> getClassStruture() {
-		return this.classStruture;
-	}
-
-	public Set<ClassInfo> getClassRoots() {
-		return this.classRoots;
+	public Map<String, Set<String>> getClassMethodStructure() {
+		return this.classMethodNameMap;
 	}
 
 	public int getNumberOfThreads() {
