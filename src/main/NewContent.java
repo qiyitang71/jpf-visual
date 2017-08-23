@@ -25,7 +25,6 @@ import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.Path;
 
 public class NewContent {
-	// private JButton button;
 
 	private double cellWidth = 0;
 	private mxGraph graph;
@@ -47,7 +46,6 @@ public class NewContent {
 
 	public NewContent(double width, int nThreads, Path p, List<Pair<Integer, Integer>> grp,
 			Map<Integer, TextLineList> lt, LocationInGraph locate) {
-		// this.button = button;
 
 		this.lineTable = lt;
 		this.numOfThreads = nThreads;
@@ -102,10 +100,6 @@ public class NewContent {
 		return graph;
 	}
 
-//	public LocationInGraph getLocation() {
-//		return location;
-//	}
-
 	public String getCellStyle(Object cell) {
 		return model.getStyle(cell);
 	}
@@ -118,19 +112,18 @@ public class NewContent {
 		this.cellWidth = newCellWidth;
 		// resize row cells
 		for (Object rowCell : location.getAllRowCells()) {
-			model.getGeometry(rowCell)
-					.setWidth(PaneConstants.SIGN_SIZE + PaneConstants.RANGE_SIZE + numOfThreads * cellWidth);
+			setCellWidth(rowCell, PaneConstants.SIGN_SIZE + PaneConstants.RANGE_SIZE + numOfThreads * cellWidth);
 		}
 
 		// resize right cells
 		for (Object rightCell : location.getAllRightCells()) {
-			model.getGeometry(rightCell).setWidth(PaneConstants.SIGN_SIZE + numOfThreads * cellWidth);
+			setCellWidth(rightCell, PaneConstants.SIGN_SIZE + numOfThreads * cellWidth);
 
 		}
 
 		// resize thread labels
 		for (Object threadLabel : location.getAllThreadLabels()) {
-			model.getGeometry(threadLabel).setWidth(numOfThreads * cellWidth);
+			setCellWidth(threadLabel, numOfThreads * cellWidth);
 			String st = model.getStyle(threadLabel);
 			Map<String, Object> tmpStyle = graph.getStylesheet().getStyles().get(st);
 			int threadIdx = Integer.parseInt(((mxCell) threadLabel).getId());
@@ -142,19 +135,19 @@ public class NewContent {
 		// resize summary blanks
 		for (Object summaryBlank : location.getAllSummaryBlanks()) {
 			int threadIdx = Integer.parseInt(((mxCell) summaryBlank).getId());
-			model.getGeometry(summaryBlank).setWidth(threadIdx * cellWidth);
+			setCellWidth(summaryBlank, threadIdx * cellWidth);
 		}
 
 		// resize summary border cells
 		for (Object summaryBorder : location.getAllSummaryBorderCells()) {
 			int threadIdx = Integer.parseInt(((mxCell) summaryBorder).getId());
-			model.getGeometry(summaryBorder).setWidth((numOfThreads - threadIdx) * cellWidth);
+			setCellWidth(summaryBorder, (numOfThreads - threadIdx) * cellWidth);
 		}
 
 		// resize swim cells
 		for (Object swimCell : location.getAllSwimCells()) {
 			if (!graph.isCellCollapsed(swimCell)) {
-				model.getGeometry(swimCell).setWidth(numOfThreads * cellWidth + PaneConstants.SIGN_SIZE);
+				setCellWidth(swimCell,numOfThreads * cellWidth + PaneConstants.SIGN_SIZE);
 			} else {
 				model.getGeometry(swimCell).getAlternateBounds()
 						.setWidth(numOfThreads * cellWidth + PaneConstants.SIGN_SIZE);
@@ -176,8 +169,6 @@ public class NewContent {
 		Map<Integer, Set<Integer>> rowLineMap = new HashMap<>();
 		for (Pair<Integer, Integer> p : set) {
 			int rowNum = p._1;
-			// System.out.println("rowNum " + p._1);
-			// System.out.println("lineNum " + p._2);
 
 			if (rowLineMap.containsKey(rowNum)) {
 				rowLineMap.get(rowNum).add(p._2);
@@ -224,7 +215,6 @@ public class NewContent {
 
 						// the summary
 						if (sCell != null) {
-							System.out.println("add summary color block " + row + " " + summaryBox.getStyle());
 							addColorBlock(summaryBox, hlStyleName);
 						}
 					}
@@ -256,9 +246,7 @@ public class NewContent {
 
 			reformatRow(row);
 
-			// System.out.println("height change: " + htChange);
 			mxCell summaryBorder = (mxCell) location.getSummaryBorderCell(row);
-			// System.out.println(summaryBorder.getStyle() + " height" +
 			if (htChange == 0) {
 				continue;
 			}
@@ -295,10 +283,7 @@ public class NewContent {
 		mxCell sw = (mxCell) location.getSwitchCell(row);
 		if (sw != null) {
 			graph.foldCells(!sw.isCollapsed(), false, new Object[] { sw }, false);
-
-		} else {
-			System.out.println("row not have switch " + row);
-		}
+		} 
 	}
 
 	private void addColorBlock(Object cell, String styleName) {
@@ -315,15 +300,11 @@ public class NewContent {
 		mxCell summaryContent = (mxCell) model.getChildAt(summaryBox, 0);
 		mxCell nextDots = (mxCell) sCell.getNextDots();
 		mxCell nextSrc = (mxCell) sCell.getNextSrc();
-		System.out.println("reset value: " + summaryContent.getValue());
 
 		removeColorBlock(summaryBox, color, newColor);
 
 		if (!isHighlight) {
 			if (!sCell.isFirst() && !sCell.isLast()) {
-				// System.out.println("invisible " + summaryBox.getStyle() + ":"
-				// + row + "," + line);
-
 				summaryBox.setVisible(false);
 				htChange--;
 			}
@@ -378,7 +359,6 @@ public class NewContent {
 
 		if (prevSrc != null && prevSrc.isVisible()) {
 			if (prevDots.isVisible()) {
-				System.out.println("prev dots is visible");
 				prevDots.setVisible(false);
 				htChange--;
 			}
@@ -439,14 +419,14 @@ public class NewContent {
 							cell.setVisible(true);
 							cell2.setVisible(true);
 							tmpHt = cell2.getGeometry().getHeight();
-							// System.out.println("fold and " + cell.getStyle()
-							// + " height = " + tmpHt);
 
 						}
-						model.getGeometry(rightCell).setHeight(tmpHt);
+						setCellHeight(rightCell, tmpHt);
 
 						mxCell rowCell = (mxCell) rightCell.getParent();
-						model.getGeometry(rowCell).setHeight(tmpHt);
+						setCellHeight(rowCell, tmpHt);
+						int row = Integer.parseInt(rightCell.getId());
+						setCellHeight(location.getRangeCell(row), tmpHt);
 
 					} else {
 						if (model.getChildCount(c.getParent()) > 2) {
@@ -459,10 +439,12 @@ public class NewContent {
 						mxCell rightCell = (mxCell) c.getParent();
 						int row = Integer.parseInt(rightCell.getId());
 						double currHt = (lineTable.get(row).getHeight() + 1) * htPerLine + 7 + 10;
-						model.getGeometry(rightCell).setHeight(currHt);
+						setCellHeight(rightCell, currHt);
 
 						mxCell rowCell = (mxCell) rightCell.getParent();
-						model.getGeometry(rowCell).setHeight(currHt);
+						setCellHeight(rowCell, currHt);
+
+						setCellHeight(location.getRangeCell(row), currHt);
 					}
 				}
 				graph.refresh();
@@ -814,7 +796,7 @@ public class NewContent {
 		}
 
 		double sumHt = numOfLines * htPerLine + 10;
-		model.getGeometry(summaryBorder).setHeight(sumHt);
+		setCellHeight(summaryBorder, sumHt);
 		((mxCell) summaryBorder).setVisible(false);
 
 	}

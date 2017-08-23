@@ -214,7 +214,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	private class FoldListener extends MouseAdapter {
 		public void mouseReleased(MouseEvent e) {
-			System.out.println("mouse released");
 			if (content.areAllExpanded()) {
 				foldButton.setSelected(false);
 				foldButton.setEnabled(true);
@@ -237,8 +236,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 	private class ClickListener extends MouseAdapter {
 		public void mouseClicked(MouseEvent e) {
-			System.out.println("mouse clicked");
-			System.out.println(e.getPoint());
 
 			Point point = e.getPoint();
 			if (point == null) {
@@ -246,7 +243,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			}
 			Object cell = threadStateComponent.getCellAt(point.x, point.y);
 			String style = threadStateView.getCellStyle(cell);
-			System.out.println(style);
 
 			if (style.contains("arrow")) {
 				return;
@@ -255,7 +251,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 			int row = findGroup(point.y);
 			setArrow(row);
 
-			System.out.println(row);
 			scrollContentToRow(row);
 		}
 	}
@@ -274,7 +269,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 		}
 		mxCellState state = graph.getView().getState(cell);
 		mxRectangle bounds = state;
-		System.out.println(state);
 		graphComponent.getVerticalScrollBar().setValue((int) bounds.getY());
 	}
 
@@ -322,7 +316,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		@Override
 		public void componentResized(ComponentEvent e) {
-			System.out.println("resize thread state");
 			double rightCellWidth = ((splitPane.getWidth() - splitPane.getLeftComponent().getBounds().getWidth()
 					- PaneConstants.RANGE_SIZE - PaneConstants.ARROW_SIZE - PaneConstants.SIGN_SIZE
 					- PaneConstants.BAR_SIZE)) / numOfThreads;
@@ -354,7 +347,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 
 		@Override
 		public void adjustmentValueChanged(AdjustmentEvent e) {
-			System.out.println("adjust value change");
 			JScrollBar bar = (JScrollBar) e.getSource();
 			Object cell = graphComponent.getCellAt(0, bar.getValue());
 			int row = Integer.parseInt(content.getCellId(cell));
@@ -362,7 +354,6 @@ public class ErrorTablePane extends JPanel implements ComponentListener {
 				return;
 			}
 			previousRow = row;
-			System.out.println(row);
 			setScrollArrow(row);
 		}
 

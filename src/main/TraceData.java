@@ -40,6 +40,10 @@ public class TraceData {
 	private Map<String, Set<Pair<Integer, Integer>>> classFieldMap = new HashMap<>();
 	private Map<String, Set<Pair<Integer, Integer>>> classMethodMap = new HashMap<>();
 	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap = new HashMap<>();
+	private Map<String, ClassInfo> classMap = new HashMap<>();
+	private Map<ClassInfo, Set<ClassInfo>> classStruture = new HashMap<>();
+	private Set<ClassInfo> classRoots = new HashSet<>();
+	private Map<String, Set<String>> classFieldNameMap = new HashMap<>();
 
 	public TraceData(Path path) {
 		this.path = path;
@@ -47,15 +51,26 @@ public class TraceData {
 			return; // nothing to publish
 		}
 
-		int currTran = 0;
-		int prevThread = -1;
-		int start = -1;
-
 		// group the transition range
 		group = new ArrayList<>();
 		threadNames = new ArrayList<>();
 		numOfThreads = -1;
 		// first pass of the trace
+		firstPass();
+
+		// second pass of the path
+		secondPass();
+
+		// synchronized methods
+		processSynchronizedMethods();
+
+		// loadClassStructure();
+	}
+
+	private void firstPass() {
+		int currTran = 0;
+		int prevThread = -1;
+		int start = -1;
 		for (Transition t : path) {
 			int currThread = t.getThreadIndex();
 			if (threadNames.size() == currThread) {
@@ -78,7 +93,9 @@ public class TraceData {
 			numOfThreads = Math.max(numOfThreads, currThread);
 		}
 		numOfThreads++;
+	}
 
+	private void secondPass() {
 		// second pass of the path
 		int prevThreadIdx = 0;
 		for (int pi = 0; pi < group.size(); pi++) {
@@ -101,71 +118,8 @@ public class TraceData {
 				ChoiceGenerator<?> cg = transition.getChoiceGenerator();
 
 				if (cg instanceof ThreadChoiceFromSet) {
-					// thread start/join highlight
-					if (cg.getId() == "START" || cg.getId() == "JOIN") {
-						if (lineTable.get(pi).getTextLine(height - 1).isSrc()) {
-							threadStartSet.add(new Pair<>(pi, height - 1));
-						}
-					}
 					ThreadInfo ti = transition.getThreadInfo();
-					Pair<Integer, Integer> tmp = new Pair<>(pi, height);
-
-					// thread state view
-					// ROOT - main thread
-					if (cg.getId() == "ROOT") {
-						Pair<Integer, String> threadState = new Pair<>(ti.getId(), "ROOT");
-						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
-						list.add(threadState);
-						threadStateMap.put(tmp, list);
-					}
-
-					// TERMINATE
-					if (cg.getId() == "TERMINATE") {
-						Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "TERMINATE");
-						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
-						list.add(threadState);
-						threadStateMap.put(tmp, list);
-					}
-
-					// START
-					if (cg.getId() == "START") {
-						int tid = ((ThreadChoiceFromSet) cg).getChoice(cg.getTotalNumberOfChoices() - 1).getId();
-						Pair<Integer, String> threadState = new Pair<>(tid, "START");
-
-						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
-						list.add(threadState);
-						threadStateMap.put(tmp, list);
-					}
-
-					// LOCK
-					if (cg.getId() == "LOCK") {
-						Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "LOCK");
-
-						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
-						list.add(threadState);
-						threadStateMap.put(tmp, list);
-					}
-
-					// WAIT
-					if (cg.getId() == "WAIT") {
-						Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "WAIT");
-
-						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
-						list.add(threadState);
-						threadStateMap.put(tmp, list);
-					}
-
-					// RELEASE
-					if (cg.getId() == "RELEASE") {
-						Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "RELEASE");
-						Pair<Integer, String> threadState2 = new Pair<>(ti.getId(), "RELEASE");
-
-						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
-						list.add(threadState);
-						list.add(threadState2);
-						threadStateMap.put(tmp, list);
-					}
-
+					processChoiceGenerator(cg, prevThreadIdx, pi, height, ti);
 				}
 
 				tempStr.append(cg + "\n");
@@ -216,69 +170,26 @@ public class TraceData {
 
 					Instruction insn = s.getInstruction();
 					MethodInfo mi = insn.getMethodInfo();
+					ThreadInfo ti = transition.getThreadInfo();
 
-					if (line != null && mi.isSynchronized()) {
-						ClassInfo mci = mi.getClassInfo();
-						String mName = mi.getUniqueName();
-						if (mci != null && mi.getUniqueName() != null && mName != null && !mName.contains("<clinit>")) {
-							lockMethodName.add(mci.getName() + "." + mName);
-						}
-					}
+					// deal with the class and outer class
+					loadOuterClass(line, mi);
 
-					if (line != null && insn instanceof VirtualInvocation) {
-						String insnStr = insn.toString();
-						if (insnStr.contains("java.lang.Object.wait()") || insnStr.contains("java.lang.Object.notify()")
-								|| insnStr.contains("java.lang.Object.notifyAll()")) {
-							waitSet.add(new Pair<>(pi, height - 1));
-						}
-					}
+					loadSynchronizedMethod(line, mi);
 
-					if (line != null && insn instanceof LockInstruction) {
-						LockInstruction minsn = (LockInstruction) insn;
-						ThreadInfo ti = transition.getThreadInfo();
-						String fieldName = ti.getElementInfo(minsn.getLastLockRef()).toString().replace("$", ".")
-								.replaceAll("@.*", "");
-						Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
+					loadWaitNotify(line, insn, pi, height);
 
-						if (fieldNames.contains(fieldName)) {
-							lockTable.get(fieldName).add(pair);
-						} else {
-							fieldNames.add(fieldName);
-							Set<Pair<Integer, Integer>> newSet = new HashSet<>();
-							newSet.add(pair);
-							lockTable.put(fieldName, newSet);
-						}
-					}
+					loadLockUnlock(line, insn, mi, ti, pi, height);
 
-					if (line != null && insn instanceof JVMReturnInstruction) {
-						String mName = mi.getFullName();
-						String cName = mi.getClassName();
-						if (lockMethodName.contains(mName)) {
-							Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
-							if (fieldNames.contains(cName)) {
-								lockTable.get(cName).add(pair);
-							} else {
-								fieldNames.add(cName);
-								Set<Pair<Integer, Integer>> newSet = new HashSet<>();
-								newSet.add(pair);
-								lockTable.put(cName, newSet);
-							}
+					loadFields(line, insn);
 
-						}
-					}
 				}
 				prevThreadIdx = transition.getThreadIndex();
 
+				ThreadInfo ti = transition.getThreadInfo();
 				// final transition wait
 				if (pi == group.size() - 1 && i == to) {
-					ThreadInfo ti = transition.getThreadInfo();
-					Pair<Integer, Integer> tmp = new Pair<>(pi, height - 1);
-					if (ti.getStateName() == "WAITING" || ti.getStateName() == "TIMEOUT_WAITING") {
-						Pair<Integer, String> threadState = new Pair<>(ti.getId(), "WAIT");
-						ArrayList<Pair<Integer, String>> list = new ArrayList<>();
-						list.add(threadState);
-						threadStateMap.put(tmp, list);
-					}
+					loadFinaWaitInFinalTransition(ti, pi, height);
 				}
 			}
 
@@ -301,35 +212,202 @@ public class TraceData {
 
 		}
 
-		/**
-		 * synchronized methods
-		 */
+	}
+
+	private void processChoiceGenerator(ChoiceGenerator<?> cg, int prevThreadIdx, int pi, int height, ThreadInfo ti) {
+		// thread start/join highlight
+		if (cg.getId() == "START" || cg.getId() == "JOIN") {
+			if (lineTable.get(pi).getTextLine(height - 1).isSrc()) {
+				threadStartSet.add(new Pair<>(pi, height - 1));
+			}
+		}
+		Pair<Integer, Integer> tmp = new Pair<>(pi, height);
+
+		// thread state view
+		// ROOT - main thread
+		if (cg.getId() == "ROOT") {
+			Pair<Integer, String> threadState = new Pair<>(ti.getId(), "ROOT");
+			ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+			list.add(threadState);
+			threadStateMap.put(tmp, list);
+		}
+
+		// TERMINATE
+		if (cg.getId() == "TERMINATE") {
+			Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "TERMINATE");
+			ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+			list.add(threadState);
+			threadStateMap.put(tmp, list);
+		}
+
+		// START
+		if (cg.getId() == "START") {
+			int tid = ((ThreadChoiceFromSet) cg).getChoice(cg.getTotalNumberOfChoices() - 1).getId();
+			Pair<Integer, String> threadState = new Pair<>(tid, "START");
+
+			ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+			list.add(threadState);
+			threadStateMap.put(tmp, list);
+		}
+
+		// LOCK
+		if (cg.getId() == "LOCK") {
+			Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "LOCK");
+
+			ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+			list.add(threadState);
+			threadStateMap.put(tmp, list);
+		}
+
+		// WAIT
+		if (cg.getId() == "WAIT") {
+			Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "WAIT");
+
+			ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+			list.add(threadState);
+			threadStateMap.put(tmp, list);
+		}
+
+		// RELEASE
+		if (cg.getId() == "RELEASE") {
+			Pair<Integer, String> threadState = new Pair<>(prevThreadIdx, "RELEASE");
+			Pair<Integer, String> threadState2 = new Pair<>(ti.getId(), "RELEASE");
+
+			ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+			list.add(threadState);
+			list.add(threadState2);
+			threadStateMap.put(tmp, list);
+		}
+
+	}
+
+	private void loadOuterClass(String line, MethodInfo mi) {
+		if (line != null && mi != null) {
+			ClassInfo ci = mi.getClassInfo();
+			if (ci != null && !classMap.containsKey(ci.getName())) {
+				classMap.put(ci.getName(), ci);
+			}
+		}
+	}
+
+	private void loadSynchronizedMethod(String line, MethodInfo mi) {
+		if (line != null && mi.isSynchronized()) {
+			ClassInfo mci = mi.getClassInfo();
+			String mName = mi.getUniqueName();
+			if (mci != null && mi.getUniqueName() != null && mName != null && !mName.contains("<clinit>")) {
+				lockMethodName.add(mci.getName() + "." + mName);
+			}
+		}
+	}
+
+	private void loadWaitNotify(String line, Instruction insn, int pi, int height) {
+		if (line != null && insn instanceof VirtualInvocation) {
+			String insnStr = insn.toString();
+			if (insnStr.contains("java.lang.Object.wait()") || insnStr.contains("java.lang.Object.notify()")
+					|| insnStr.contains("java.lang.Object.notifyAll()")) {
+				waitSet.add(new Pair<>(pi, height - 1));
+			}
+		}
+	}
+
+	private void loadLockUnlock(String line, Instruction insn, MethodInfo mi, ThreadInfo ti, int pi, int height) {
+		if (line != null && insn instanceof LockInstruction) {
+			LockInstruction minsn = (LockInstruction) insn;
+			String fieldName = ti.getElementInfo(minsn.getLastLockRef()).toString().replace("$", ".").replaceAll("@.*",
+					"");
+			Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
+
+			if (fieldNames.contains(fieldName)) {
+				lockTable.get(fieldName).add(pair);
+			} else {
+				fieldNames.add(fieldName);
+				Set<Pair<Integer, Integer>> newSet = new HashSet<>();
+				newSet.add(pair);
+				lockTable.put(fieldName, newSet);
+			}
+		}
+		if (line != null && insn instanceof JVMReturnInstruction) {
+			String mName = mi.getFullName();
+			String cName = mi.getClassName();
+			if (lockMethodName.contains(mName)) {
+				Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
+				if (fieldNames.contains(cName)) {
+					lockTable.get(cName).add(pair);
+				} else {
+					fieldNames.add(cName);
+					Set<Pair<Integer, Integer>> newSet = new HashSet<>();
+					newSet.add(pair);
+					lockTable.put(cName, newSet);
+				}
+
+			}
+		}
+	}
+
+	private void loadFields(String line, Instruction insn) {
+		if (line != null && insn instanceof FieldInstruction) {
+			String name = ((FieldInstruction) insn).getVariableId();
+			int dotPos = name.lastIndexOf(".");
+			if (dotPos == 0 || dotPos == name.length() - 1) {
+			} else {
+				String clsName = name.substring(0, dotPos);
+				String fmName = name.substring(dotPos + 1, name.length());
+				if (classFieldNameMap.containsKey(clsName)) {
+					classFieldNameMap.get(clsName).add(fmName);
+				} else {
+					Set<String> fields = new HashSet<>();
+					fields.add(fmName);
+					classFieldNameMap.put(clsName, fields);
+				}
+			}
+		}
+	}
+
+	private void loadFinaWaitInFinalTransition(ThreadInfo ti, int pi, int height) {
+		// final transition wait
+		Pair<Integer, Integer> tmp = new Pair<>(pi, height - 1);
+		if (ti.getStateName() == "WAITING" || ti.getStateName() == "TIMEOUT_WAITING") {
+			Pair<Integer, String> threadState = new Pair<>(ti.getId(), "WAIT");
+			ArrayList<Pair<Integer, String>> list = new ArrayList<>();
+			list.add(threadState);
+			threadStateMap.put(tmp, list);
+		}
+
+	}
+
+	private void processSynchronizedMethods() {
 		if (!lockMethodName.isEmpty()) {
 			for (TextLineList list : lineTable.values()) {
 				for (TextLine tl : list.getList()) {
-					if (tl.isSrc()) {
-						for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
-							Step s = tl.getTransition().getStep(si);
-							Instruction insn = s.getInstruction();
-							if (insn instanceof VirtualInvocation) {
-								VirtualInvocation vinsn = (VirtualInvocation) insn;
-								String cName = vinsn.getInvokedMethodClassName();
-								String tmp = cName + "." + vinsn.getInvokedMethodName();
-								Pair<Integer, Integer> pair = new Pair<>(tl.getGroupNum(), tl.getLineNum());
-
-								if (lockMethodName.contains(tmp)) {
-									if (fieldNames.contains(cName)) {
-										lockTable.get(cName).add(pair);
-									} else {
-										fieldNames.add(cName);
-										Set<Pair<Integer, Integer>> newSet = new HashSet<>();
-										newSet.add(pair);
-										lockTable.put(cName, newSet);
-									}
-								}
-							}
-						}
+					if (!tl.isSrc()) {
+						continue;
 					}
+					processTextLineForSynchronizedMethods(tl);
+				}
+			}
+		}
+	}
+
+	private void processTextLineForSynchronizedMethods(TextLine tl) {
+		for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
+			Step s = tl.getTransition().getStep(si);
+			Instruction insn = s.getInstruction();
+			if (insn instanceof VirtualInvocation) {
+				VirtualInvocation vinsn = (VirtualInvocation) insn;
+				String cName = vinsn.getInvokedMethodClassName();
+				String tmp = cName + "." + vinsn.getInvokedMethodName();
+				Pair<Integer, Integer> pair = new Pair<>(tl.getGroupNum(), tl.getLineNum());
+
+				if (lockMethodName.contains(tmp)) {
+					if (fieldNames.contains(cName)) {
+						lockTable.get(cName).add(pair);
+					} else {
+						fieldNames.add(cName);
+						Set<Pair<Integer, Integer>> newSet = new HashSet<>();
+						newSet.add(pair);
+						lockTable.put(cName, newSet);
+					}
+
 				}
 			}
 		}
@@ -345,29 +423,36 @@ public class TraceData {
 		Set<Pair<Integer, Integer>> targetSet = new HashSet<>();
 		for (TextLineList list : lineTable.values()) {
 			for (TextLine tl : list.getList()) {
-				if (tl.isSrc()) {
-					for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
-						Step step = tl.getTransition().getStep(si);
-						Instruction insn = step.getInstruction();
-						String cName = insn.getMethodInfo().getClassInfo().getName();
-						if (clsName.equals(cName) && srcSet.contains(insn.getFileLocation())) {
-							targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
-							break;
-						} else if (insn instanceof FieldInstruction) {
-							if (((FieldInstruction) insn).getVariableId().equals(target)) {
-								targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
-								srcSet.add(insn.getFileLocation());
-								break;
-							}
-						}
-					}
+				if (!tl.isSrc()) {
+					continue;
 				}
+				processTextLineForClassField(tl, clsName, target, srcSet, targetSet);
 			}
 		}
 		classFieldMap.put(target, targetSet);
 		return targetSet;
-
 	}
+
+	private void processTextLineForClassField(TextLine tl, String clsName, String target, Set<String> srcSet,
+			Set<Pair<Integer, Integer>> targetSet) {
+		for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
+			Step step = tl.getTransition().getStep(si);
+			Instruction insn = step.getInstruction();
+			String cName = insn.getMethodInfo().getClassInfo().getName();
+			if (clsName.equals(cName) && srcSet.contains(insn.getFileLocation())) {
+				targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
+				break;
+			} else if (insn instanceof FieldInstruction) {
+				if (((FieldInstruction) insn).getVariableId().equals(target)) {
+					targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
+					srcSet.add(insn.getFileLocation());
+					break;
+				}
+			}
+		}
+	}
+	
+	// getters
 
 	public Set<Pair<Integer, Integer>> getClassMethod(String clsName, String m) {
 		String target = clsName + "." + m;
@@ -379,36 +464,71 @@ public class TraceData {
 		for (TextLineList list : lineTable.values()) {
 			Map<String, String> srcMap = new HashMap<>();
 			for (TextLine tl : list.getList()) {
-				if (tl.isSrc()) {
-					for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
-						Step step = tl.getTransition().getStep(si);
-						Instruction insn = step.getInstruction();
-						String cName = insn.getMethodInfo().getClassInfo().getName();
-						if (cName.equals(srcMap.get(insn.getFileLocation()))) {
-							targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
-							break;
-						} else if (insn instanceof JVMInvokeInstruction) {
-							String mName = ((JVMInvokeInstruction) insn).getInvokedMethodName().replaceAll("\\(.*$",
-									"");
-
-							if (((JVMInvokeInstruction) insn).getInvokedMethodClassName().equals(clsName)
-									&& methodName.equals(mName)) {
-								targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
-								srcMap.put(insn.getFileLocation(), insn.getMethodInfo().getClassName());
-								System.out.println(clsName + "." + m + ": " + tl.getGroupNum() + tl.getLineNum());
-								break;
-							}
-						}
-					}
+				if (!tl.isSrc()) {
+					continue;
 				}
+				processTextLineForClassMethod(tl, srcMap, targetSet, clsName, methodName);
 			}
 		}
 		classMethodMap.put(target, targetSet);
 		return targetSet;
-
 	}
 
-	// getters
+	private void processTextLineForClassMethod(TextLine tl, Map<String, String> srcMap,
+			Set<Pair<Integer, Integer>> targetSet, String clsName, String methodName) {
+		for (int si = tl.getStartStep(); si <= tl.getEndStep(); si++) {
+			Step step = tl.getTransition().getStep(si);
+			Instruction insn = step.getInstruction();
+			String cName = insn.getMethodInfo().getClassInfo().getName();
+			if (cName.equals(srcMap.get(insn.getFileLocation()))) {
+				targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
+				break;
+			} else if (insn instanceof JVMInvokeInstruction) {
+				String mName = ((JVMInvokeInstruction) insn).getInvokedMethodName().replaceAll("\\(.*$", "");
+
+				if (((JVMInvokeInstruction) insn).getInvokedMethodClassName().equals(clsName)
+						&& methodName.equals(mName)) {
+					targetSet.add(new Pair<Integer, Integer>(tl.getGroupNum(), tl.getLineNum()));
+					srcMap.put(insn.getFileLocation(), insn.getMethodInfo().getClassName());
+					break;
+				}
+			}
+		}
+	}
+
+	public Map<String, Set<String>> getClassFieldStructure() {
+		return this.classFieldNameMap;
+	}
+
+	protected void loadClassStructure() {
+		for (ClassInfo ci : classMap.values()) {
+			if (ci.getEnclosingClassInfo() == null || !classMap.containsKey(ci.getEnclosingClassName())) {
+				classRoots.add(ci);
+			}
+		}
+
+		for (ClassInfo ci : classMap.values()) {
+			if (classRoots.contains(ci)) {
+				Set<ClassInfo> children = new HashSet<>();
+				classStruture.put(ci, children);
+			} else if (classStruture.containsKey(ci.getEnclosingClassInfo())) {
+				classStruture.get(ci.getEnclosingClassInfo()).add(ci);
+			} else {
+				Set<ClassInfo> children = new HashSet<>();
+				children.add(ci);
+				classStruture.put(ci.getEnclosingClassInfo(), children);
+			}
+		}
+	}
+
+	public Map<ClassInfo, Set<ClassInfo>> getClassStruture() {
+		return this.classStruture;
+	}
+
+	public Set<ClassInfo> getClassRoots() {
+		return this.classRoots;
+	}
+
 	public int getNumberOfThreads() {
 		return this.numOfThreads;
 	}

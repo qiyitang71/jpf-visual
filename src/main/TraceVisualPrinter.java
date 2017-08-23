@@ -311,7 +311,7 @@ public class TraceVisualPrinter extends Publisher {
 					}
 
 					ThreadInfo ti = t.getThreadInfo();
-					out.println("threadinfo: " + ti);
+					// out.println("threadinfo: " + ti);
 
 					if (line != null) {
 
@@ -333,8 +333,12 @@ public class TraceVisualPrinter extends Publisher {
 								// mi.getClassInfo().getClassObject());
 								out.print("mci:    ");
 								if (mci != null) {
-									out.print(" className: " + mci.getName());
+									out.println(" className: " + mci.getName());
+									out.println(" simple className: " + mci.getSimpleName());
 
+									//out.println("super class: " + mci.getSuperClass());
+									out.println("outer class: " + mci.getEnclosingClassInfo());
+									
 									// out.print(" uniquename:");
 									// FieldInfo[] fi = mci.getInstanceFields();
 									// out.println("FieldInfos: ");
@@ -352,8 +356,8 @@ public class TraceVisualPrinter extends Publisher {
 								lastMi = mi;
 								// }
 							}
-							out.print("      ");
-							out.println("insn: " + insn);
+							// out.print(" ");
+							// out.println("insn: " + insn);
 
 							// if (insn instanceof VirtualInvocation) {
 							// VirtualInvocation vinsn = (VirtualInvocation)

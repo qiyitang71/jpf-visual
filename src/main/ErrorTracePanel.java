@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,10 +19,17 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.report.Publisher;
@@ -70,6 +78,8 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	private Map<String, String> colors = new HashMap<>();
 	private int numOfColors = 0;
 	private int colorID = 2;
+
+	private ClassFieldExplorer classFieldExplorer;
 
 	public ErrorTracePanel() {
 		super("Error Trace", null, "View JPF's Output");
@@ -276,7 +286,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					JOptionPane.PLAIN_MESSAGE, null, null, "Class.method");
 		}
 		// do things with user input;
-		System.out.println(userInput);
 		return userInput;
 
 	}
@@ -308,6 +317,9 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			popNotExistDialogue(userInput);
 		} else {
 			String s = clsName + "." + fmName;
+			if (colors.containsKey(s)) {
+				return;
+			}
 			JCheckBox fmCheckBox = null;
 			if (isField) {
 				fmCheckBox = new JCheckBox("field: " + s);
@@ -355,6 +367,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					Set<Pair<Integer, Integer>> set = td.getLocks(str);
 					errorTrace.expand(set, colors.get(str));
 				} else if (str.contains("field")) {
+					// field access
 					str = str.replaceAll(".*\\s", "");
 					int dotPos = str.lastIndexOf(".");
 					String cName = str.substring(0, dotPos);
@@ -362,6 +375,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 					Set<Pair<Integer, Integer>> set = td.getClassField(cName, fName);
 					errorTrace.expand(set, colors.get(str));
 				} else {
+					// method access
 					str = str.replaceAll(".*\\s", "");
 					int dotPos = str.lastIndexOf(".");
 					String cName = str.substring(0, dotPos);
@@ -421,7 +435,6 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 	class ButtonListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
 			assert (e.getSource() instanceof JButton);
 
 			JButton button = (JButton) e.getSource();
@@ -447,6 +460,36 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 	}
 
+	class TreeListener implements TreeSelectionListener {
+		private JTree tree;
+		private JDialog dialog;
+
+		public TreeListener(JTree tree, JDialog dialog) {
+			this.tree = tree;
+			this.dialog = dialog;
+		}
+
+		@Override
+		public void valueChanged(TreeSelectionEvent e) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+
+			if (node == null)
+				return;
+
+			if (!(node.getUserObject() instanceof FieldNode)) {
+				return;
+			}
+
+			FieldNode fn = (FieldNode) node.getUserObject();
+			String clsName = fn.clsName;
+			String fieldName = fn.fieldName;
+
+			fieldMethodSearch(clsName, fieldName, clsName + "." + fieldName, true);
+			dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+		}
+
+	}
+
 	/**
 	 * the dropdown list listener
 	 *
@@ -459,35 +502,52 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			if (e.getSource() instanceof JComboBox<?>) {
 				JComboBox<?> cb = (JComboBox<?>) e.getSource();
 				String newSelection = (String) cb.getSelectedItem();
-				String userInput;
-				boolean isField;
 				if (newSelection.contains("Field")) {
-					userInput = showDialog("field", userControlPanel);
-					isField = true;
-				} else {
-					userInput = showDialog("method", userControlPanel);
-					isField = false;
-				}
-				cb.setSelectedIndex(0);
+					cb.setSelectedIndex(0);
 
-				if (userInput == null) {
-					return;
-				}
-				if (!userInput.contains(".")) {
-					popInvalidDialogue(userInput);
+					if (classFieldExplorer == null) {
+						classFieldExplorer = new ClassFieldExplorer(td);
+					}
+					JTree tree = classFieldExplorer.getTree();
+
+					JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(userControlPanel);
+					
+					JDialog dialog = new JDialog(topFrame, "Field Access");
+					dialog.add(classFieldExplorer);
+					dialog.setVisible(true);
+					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+					dialog.setAlwaysOnTop(true);
+					dialog.setMinimumSize(new Dimension(200, 100));
+					dialog.setLocationRelativeTo(userControlPanel);
+
+					TreeListener treeListener = new TreeListener(tree, dialog);
+					classFieldExplorer.addTreeSelectionListener(treeListener);
 
 				} else {
-					int dotPos = userInput.lastIndexOf(".");
-					if (dotPos == 0 || dotPos == userInput.length() - 1) {
+					String userInput = showDialog("method", userControlPanel);
+
+					cb.setSelectedIndex(0);
+
+					if (userInput == null) {
+						return;
+					}
+					if (!userInput.contains(".")) {
 						popInvalidDialogue(userInput);
+
 					} else {
-						String clsName = userInput.substring(0, dotPos);
-						String fmName = userInput.substring(dotPos + 1, userInput.length());
-						fieldMethodSearch(clsName, fmName, userInput, isField);
+						int dotPos = userInput.lastIndexOf(".");
+						if (dotPos == 0 || dotPos == userInput.length() - 1) {
+							popInvalidDialogue(userInput);
+						} else {
+							String clsName = userInput.substring(0, dotPos);
+							String fmName = userInput.substring(dotPos + 1, userInput.length());
+							fieldMethodSearch(clsName, fmName, userInput, false);
+						}
 					}
 				}
+
 			}
+
 		}
 	}
-
 }
