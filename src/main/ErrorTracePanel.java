@@ -55,7 +55,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 
 	// Panel
 	private JLabel statusLabel = new JLabel();
-	private ErrorTablePane errorTrace = new ErrorTablePane();
+	private ErrorTableAndMapPane errorTrace = new ErrorTableAndMapPane();
 
 	private ProgressTrackerUI tracker = new ProgressTrackerUI();
 	private CardLayout layout = new CardLayout();
