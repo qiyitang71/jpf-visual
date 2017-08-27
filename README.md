@@ -1,6 +1,6 @@
 # jpf-visual
 
-This project aims to provide a visualization tool for JPF. The current JPF can show the programme trace leading to a property violation, e.g. deadlock. The new panel, which is built upon jpf-shell, will visualize the programme trace to help understand the nature of failures and properties . 
+This project aims to provide a visualization tool for JPF (https://babelfish.arc.nasa.gov/hg/jpf/jpf-core). The current JPF can show the programme trace leading to a property violation, e.g. deadlock. The new panel, which is built upon jpf-shell (https://babelfish.arc.nasa.gov/hg/jpf/jpf-shell), will visualize the programme trace to help understand the nature of failures and properties . 
 
 ## How to Download
 You can obtain the source code of the jpf-visual using Mecurial (hg):
