@@ -247,12 +247,6 @@ public class ErrorTableAndMapPane extends JPanel implements ComponentListener {
 			if (point == null) {
 				return;
 			}
-			Object cell = threadStateComponent.getCellAt(point.x, point.y);
-			String style = threadStateView.getCellStyle(cell);
-
-			if (style.contains("arrow")) {
-				return;
-			}
 
 			int row = findGroup(point.y);
 			setArrow(row);
