@@ -4,8 +4,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
@@ -20,7 +18,6 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
 import javax.swing.JSplitPane;
 
 import com.mxgraph.model.mxCell;
@@ -43,7 +40,6 @@ public class ErrorTableAndMapPane extends JPanel implements ComponentListener {
 	private ThreadStateView threadStateView = null;
 	private mxGraphComponent threadStateComponent;
 	private Object previousArrowCell = null;
-	private int previousRow = -1;
 
 	private JButton foldButton = null;
 	private JButton expandButton = null;
@@ -131,7 +127,6 @@ public class ErrorTableAndMapPane extends JPanel implements ComponentListener {
 		threadStateComponent.setDragEnabled(false);
 		// initialize
 		previousArrowCell = null;
-		previousRow = -1;
 
 		threadHeightList = threadStateView.getHeightList();
 
@@ -141,7 +136,6 @@ public class ErrorTableAndMapPane extends JPanel implements ComponentListener {
 
 		graphComponent.addKeyListener(new CopyListener());
 		graphComponent.getGraphControl().addMouseListener(new FoldListener());
-		graphComponent.getVerticalScrollBar().addAdjustmentListener(new MyAdjustmentListener());
 
 		// set menu
 		menu = new MenuPane(cellWidth, threadNames);
@@ -341,34 +335,6 @@ public class ErrorTableAndMapPane extends JPanel implements ComponentListener {
 
 		}
 
-	}
-
-	private class MyAdjustmentListener implements AdjustmentListener {
-
-		@Override
-		public void adjustmentValueChanged(AdjustmentEvent e) {
-			JScrollBar bar = (JScrollBar) e.getSource();
-			Object cell = graphComponent.getCellAt(0, bar.getValue());
-			if (cell == null)
-				return;
-			int row = Integer.parseInt(content.getCellId(cell));
-			if (row == previousRow) {
-				return;
-			}
-			previousRow = row;
-			setScrollArrow(row);
-		}
-
-	}
-
-	private void setScrollArrow(int row) {
-		if (previousArrowCell != null) {
-			threadStateView.resetArrow(previousArrowCell);
-		}
-		Object arrowCell = location.getArrowCell(row);
-		threadStateView.setArrow(row);
-		previousArrowCell = arrowCell;
-		// threadStateComponent.scrollCellToVisible(arrowCell);
 	}
 
 	private int findGroup(double y) {
