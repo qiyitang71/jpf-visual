@@ -53,13 +53,15 @@ public class TraceData {
 		group = new ArrayList<>();
 		threadNames = new ArrayList<>();
 		numOfThreads = -1;
-		// first pass of the trace
+		// group actions by thread
 		firstPass();
 
-		// second pass of the path
+		// register actions that can be visualized and create GUI elements
 		secondPass();
 
-		// synchronized methods
+		// special step: process synchronized methods
+		// to ensure they are treated as if having monitorenter/exit
+		// at the beginning and end of the method
 		processSynchronizedMethods();
 	}
 
