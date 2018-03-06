@@ -56,7 +56,7 @@ public class TraceData {
 		// group actions by thread
 		firstPass();
 
-		// register actions that can be visualized and create GUI elements
+		// register actions that can be visualized
 		secondPass();
 
 		// special step: process synchronized methods
