@@ -44,7 +44,10 @@ public class ErrorTracePrinter extends Publisher {
 	}
 
 	public Path getPath() {
-		return path.clone();
+		if (path != null) {
+			return path.clone();
+		}
+		return null;
 	}
 
 }

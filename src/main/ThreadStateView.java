@@ -9,7 +9,6 @@ import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.layout.mxStackLayout;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxIGraphModel;
-import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
@@ -24,8 +23,6 @@ public class ThreadStateView {
 	private mxIGraphModel model;
 	private Object parent;
 	private mxGraph graph;
-	private mxGraphComponent graphComponent;
-
 	private Map<String, Object> contentStyle;
 
 	private int numOfThreads = -1;

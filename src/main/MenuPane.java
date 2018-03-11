@@ -106,7 +106,6 @@ public class MenuPane {
 		for (Object menu : graph.getChildCells(parent)) {
 			double menuWidth = PaneConstants.RANGE_SIZE + PaneConstants.SIGN_SIZE + cellWidth * numOfThreads;
 			menuModel.getGeometry(menu).setWidth(menuWidth);
-			System.out.println("resize menu: " + menuModel.getChildCount(menu));
 			for (int i = 1; i < menuModel.getChildCount(menu); i++) {
 				Object obj = menuModel.getChildAt(menu, i);
 				double cw = cellWidth;

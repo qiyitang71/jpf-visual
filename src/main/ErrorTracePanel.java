@@ -189,7 +189,7 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 				path = ((ErrorTracePrinter) publisher).getPath();
 			}
 		}
-		if (found) {
+		if (found && path != null) {
 			// reset
 			td = new TraceData(path);
 			errorTrace.draw(td);
@@ -206,9 +206,17 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 			layout.show(this, TOPICS);
 			getShell().requestFocus(this);
 
+		} else if (found && path == null) {
+			ShellManager.getManager().getConfig().put("report.publisher", publishers);
+			publishers = null;
+			// layout.show(this, TOPICS);
+			JOptionPane.showMessageDialog(this, "No error trace is generated!", "No Error Found",
+					JOptionPane.NO_OPTION | JOptionPane.ERROR_MESSAGE);
 		} else {
 			ShellManager.getManager().getConfig().put("report.publisher", publishers);
 			publishers = null;
+			JOptionPane.showMessageDialog(this, "ErrorTracePrinter is not set as a publisher!", "Error config .jpf",
+					JOptionPane.NO_OPTION | JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
