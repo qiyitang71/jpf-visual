@@ -31,6 +31,7 @@ If you want to run your own program, the easiest way to execute JPF and use trac
 target=[Application]
 target_args=[application_args]
 classpath=[classpath to your application]
+sourcepath=[sourcepath to your applicaiton]
 
 # print trace when property is violated
 report.errorTracePrinter.property_violation=trace
