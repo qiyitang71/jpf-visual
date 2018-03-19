@@ -191,14 +191,17 @@ public class ErrorTracePanel extends ShellPanel implements VerifyCommandListener
 		}
 		if (found && path != null) {
 			// reset
+			//process data
 			td = new TraceData(path);
+			
+			//draw main/central panel and map/right panel
 			errorTrace.draw(td);
 			userControlPanel.removeAll();
 			selectTable = new LinkedHashMap<>();
 			colors.clear();
 			colorID = 2;
 
-			// install buttons, check boxes, dropdown list
+			// Control panel install buttons, check boxes, dropdown list
 			installFoldExpandButtons();
 			errorTrace.setButton(foldAllButton, expandAllButton);
 			installCheckBoxes();

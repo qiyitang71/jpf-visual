@@ -9,7 +9,6 @@ import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
 import gov.nasa.jpf.jvm.bytecode.JVMReturnInstruction;
 import gov.nasa.jpf.jvm.bytecode.LockInstruction;
 import gov.nasa.jpf.jvm.bytecode.VirtualInvocation;
-import gov.nasa.jpf.util.Left;
 import gov.nasa.jpf.util.Pair;
 import gov.nasa.jpf.vm.ChoiceGenerator;
 import gov.nasa.jpf.vm.ClassInfo;
@@ -36,7 +35,7 @@ public class TraceData {
 	private Map<String, Set<Pair<Integer, Integer>>> lockTable = new HashMap<>();
 	private Set<Pair<Integer, Integer>> threadStartSet = new HashSet<>();
 	private Map<Integer, TextLineList> lineTable = new HashMap<>();
-	private Set<String> lockMethodName = new HashSet<>();
+	private Set<String> syncMethodName = new HashSet<>();
 	private Map<String, Set<Pair<Integer, Integer>>> classFieldMap = new HashMap<>();
 	private Map<String, Set<Pair<Integer, Integer>>> classMethodMap = new HashMap<>();
 	private Map<Pair<Integer, Integer>, List<Pair<Integer, String>>> threadStateMap = new HashMap<>();
@@ -101,7 +100,6 @@ public class TraceData {
 			int from = p._1;
 			int to = p._2;
 			int height = 0;
-			StringBuilder tempStr = new StringBuilder();
 
 			ArrayList<TextLine> lineList = new ArrayList<>();
 			TextLineList txtLinelist = new TextLineList(lineList);
@@ -117,34 +115,38 @@ public class TraceData {
 
 				if (cg instanceof ThreadChoiceFromSet) {
 					ThreadInfo ti = transition.getThreadInfo();
+					
+					//TO DO: build the threadStateMap
 					processChoiceGenerator(cg, prevThreadIdx, pi, height, ti);
 				}
 
-				tempStr.append(cg + "\n");
 				TextLine txt = new TextLine(cg.toString(), true, false, transition, pi, height);
 				lineList.add(txt);
 
 				height++;
 				TextLine txtSrc = null;
+				
+				//process a transition
+				//each loop is processing a step of the transition
 				for (int si = 0; si < transition.getStepCount(); si++) {
 					Step s = transition.getStep(si);
 					String line = s.getLineString();
 					if (line != null) {
+						//the src text line without comments and discard all the leading/trailing white spaces 
 						String src = line.replaceAll("/\\*.*?\\*/", "").replaceAll("//.*$", "")
 								.replaceAll("/\\*.*$", "").replaceAll("^.*?\\*/", "").replaceAll("\\*.*$", "").trim();
-
+						
+						//a new src text line
 						if (!line.equals(lastLine) && src.length() > 0) {
+							
+							//wrap up for the previous src text line
+							//print if there are several instructions without srcs 
 							if (nNoSrc > 0) {
 								String noSrc = " [" + nNoSrc + " insn w/o sources]";
-								tempStr.append(noSrc + "\n");
 								txtSrc = new TextLine(noSrc, false, false, transition, pi, height);
 								lineList.add(txtSrc);
 								height++;
 							}
-							tempStr.append(" ");
-							tempStr.append(Left.format(s.getLocationString(), 20));
-							tempStr.append(": ");
-							tempStr.append(src + "\n");
 
 							txtSrc = new TextLine(src, false, true, transition, pi, height);
 							txtSrc.setStartStep(si);
@@ -169,27 +171,36 @@ public class TraceData {
 					Instruction insn = s.getInstruction();
 					MethodInfo mi = insn.getMethodInfo();
 					ThreadInfo ti = transition.getThreadInfo();
-
+					
+					//store the names of synchronized methods 
+					//in the set syncMethodName
 					loadSynchronizedMethod(line, mi);
 
+					//store the Pair <group_id, the_line_number_in_the_group(height)> 
+					//in the set waitSet
 					loadWaitNotify(line, insn, pi, height);
 
+					//pair<group_id, the_line_number_in_the_group(height)> 
+					//store the lock/unlock field names as map<field name, set of pairs>
 					loadLockUnlock(line, insn, mi, ti, pi, height);
 
+					//build the class and field map
+					//classFieldNameMap<class_name, set_of_field_names>
 					loadFields(line, insn, txtSrc);
 
+					//build the class and method map
+					//classMethodNameMap<class_name, set_of_method_names>
 					loadMethods(line, insn, txtSrc);
 				}
 				prevThreadIdx = transition.getThreadIndex();
 
 				ThreadInfo ti = transition.getThreadInfo();
+				
 				// final transition wait
 				if (pi == group.size() - 1 && i == to) {
 					loadFinaWaitInFinalTransition(ti, pi, height);
 				}
 			}
-
-			tempStr.deleteCharAt(tempStr.length() - 1);
 
 			/**
 			 * set last line
@@ -210,6 +221,8 @@ public class TraceData {
 
 	}
 
+	//TO DO: build the threadStateMap
+	//issue #34
 	private void processChoiceGenerator(ChoiceGenerator<?> cg, int prevThreadIdx, int pi, int height, ThreadInfo ti) {
 		// thread start/join highlight
 		if (cg.getId() == "START" || cg.getId() == "JOIN") {
@@ -282,7 +295,7 @@ public class TraceData {
 			ClassInfo mci = mi.getClassInfo();
 			String mName = mi.getUniqueName();
 			if (mci != null && mi.getUniqueName() != null && mName != null && !mName.contains("<clinit>")) {
-				lockMethodName.add(mci.getName() + "." + mName);
+				syncMethodName.add(mci.getName() + "." + mName);
 			}
 		}
 	}
@@ -316,7 +329,7 @@ public class TraceData {
 		if (line != null && insn instanceof JVMReturnInstruction) {
 			String mName = mi.getFullName();
 			String cName = mi.getClassName();
-			if (lockMethodName.contains(mName)) {
+			if (syncMethodName.contains(mName)) {
 				Pair<Integer, Integer> pair = new Pair<>(pi, height - 1);
 				if (fieldNames.contains(cName)) {
 					lockTable.get(cName).add(pair);
@@ -378,7 +391,7 @@ public class TraceData {
 	}
 
 	private void processSynchronizedMethods() {
-		if (!lockMethodName.isEmpty()) {
+		if (!syncMethodName.isEmpty()) {
 			for (TextLineList list : lineTable.values()) {
 				for (TextLine tl : list.getList()) {
 					if (!tl.isSrc()) {
@@ -400,7 +413,7 @@ public class TraceData {
 				String tmp = cName + "." + vinsn.getInvokedMethodName();
 				Pair<Integer, Integer> pair = new Pair<>(tl.getGroupNum(), tl.getLineNum());
 
-				if (lockMethodName.contains(tmp)) {
+				if (syncMethodName.contains(tmp)) {
 					if (fieldNames.contains(cName)) {
 						lockTable.get(cName).add(pair);
 					} else {
