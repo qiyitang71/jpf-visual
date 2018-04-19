@@ -71,7 +71,17 @@ public class TraceData {
 		for (Transition t : path) {
 			int currThread = t.getThreadIndex();
 			if (threadNames.size() == currThread) {
-				threadNames.add(t.getThreadInfo().getName());
+				String tn = t.getThreadInfo().getName();
+				//test for type of thread
+				/** section for print thread full names
+				ClassInfo ci = t.getThreadInfo().getClassInfo();
+				if(ci != null){
+					String cname = ci.getName();//.replaceAll(".*\\$", "");
+					tn += "\n" + cname;
+				}
+				*/
+				
+				threadNames.add(tn);
 			}
 			if (currTran == 0) {
 				start = 0;
@@ -226,9 +236,13 @@ public class TraceData {
 	private void processChoiceGenerator(ChoiceGenerator<?> cg, int prevThreadIdx, int pi, int height, ThreadInfo ti) {
 		// thread start/join highlight
 		if (cg.getId() == "START" || cg.getId() == "JOIN") {
+			if(height == 0){
+				return;
+			}			
 			if (lineTable.get(pi).getTextLine(height - 1).isSrc()) {
 				threadStartSet.add(new Pair<>(pi, height - 1));
 			}
+			return;
 		}
 		Pair<Integer, Integer> tmp = new Pair<>(pi, height);
 

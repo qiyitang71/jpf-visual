@@ -90,6 +90,7 @@ public class MenuPane {
 				if (i == 0) {
 					cw = cellWidth + PaneConstants.SIGN_SIZE;
 				}
+				//full name: threadNames.get(i)
 				((mxCell) graph.insertVertex(menu, null, threadNames.get(i) + "\n" + i, 0, 0, cw,
 						PaneConstants.CELL_HEIGHT, "menu")).setConnectable(false);
 

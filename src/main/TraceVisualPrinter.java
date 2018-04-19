@@ -258,7 +258,7 @@ public class TraceVisualPrinter extends Publisher {
 		for (Transition t : path) {
 			out.print("------------------------------------------------------ ");
 			out.println("transition #" + i++ + " thread: " + t.getThreadIndex());
-
+			out.println("^^^^^^^^^" + t.getThreadInfo().getClassInfo());
 			if (showCG) {
 				out.println(t.getChoiceGenerator());
 				if (t.getChoiceGenerator() instanceof ThreadChoiceFromSet) {

@@ -38,14 +38,16 @@ public class ErrorTracePrinter extends Publisher {
 		out.println(topic);
 	}
 
-	@Override
-	protected void publishTrace() {
-		path = reporter.getPath();
-	}
+//	@Override
+//	protected void publishTrace() {
+//		path = reporter.getPath();
+//	}
 
 	public Path getPath() {
+		path = reporter.getPath();
+
 		if (path != null) {
-			return path.clone();
+			return path;
 		}
 		return null;
 	}
