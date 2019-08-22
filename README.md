@@ -5,7 +5,7 @@ This project aims to provide a visualization tool for JPF (https://babelfish.arc
 ## How to Download
 You can obtain the source code of the jpf-visual using Mecurial (hg):
 
-`hg clone https://qiyitang71@bitbucket.org/qiyitang71/jpf-visual`
+`git clone https://github.com/qiyitang71/jpf-visual`
 
 The jpf-visual comes with a jpf.properties file for configuration with JPF. The file should work if you have checked out jpf-visual as a subdirectory of the overall jpf repository, with jpf-core and jpf-shell being another subdirectories. For example, JPF resides in project/jpf-core, the extension in project/jpf-visual. Note: you will have to have ​site.properties.
 
@@ -49,4 +49,4 @@ shell.panels.errorTrace=ErrorTracePanel
 ~~~
 
 ##The current product and future work
-See [wiki page](https://bitbucket.org/qiyitang71/jpf-visual/wiki/Home).
+See [wiki page](https://github.com/qiyitang71/jpf-visual/wiki).
