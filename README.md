@@ -48,5 +48,5 @@ shell.panels+= ,errorTrace
 shell.panels.errorTrace=ErrorTracePanel
 ~~~
 
-##The current product and future work
+## The current product and future work
 See [wiki page](https://github.com/qiyitang71/jpf-visual/wiki).
