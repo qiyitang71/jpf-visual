@@ -16,7 +16,7 @@ To compile the jpf-visual project, we recommend building sources with Apache Ant
 `ant`
 
 ## Installation
-Installing jpf-visual is just like installing any other jpf project. Make sure to add jpf-visual's path to the extensions property in your site.properties file. Usually adding the following lines to your site.properties will work:
+Installing jpf-visual is just like installing any other jpf project. Make sure to add jpf-visual's path to the extensions property in your site.properties file. Usually adding the following lines to your `~/.jpf/site.properties` will work:
 ~~~
 #Visual extention
 jpf-visual = /path/to/the/visual/project/jpf-visual/
