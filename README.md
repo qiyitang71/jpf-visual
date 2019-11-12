@@ -1,6 +1,16 @@
 # jpf-visual
 
-This project aims to provide a visualization tool for [JPF](https://github.com/javapathfinder/jpf-core). The current JPF can show the programme trace leading to a property violation, e.g. deadlock. The new panel, which is built upon [jpf-shell](https://jpf.byu.edu/hg/jpf-shell), visualizes the programme trace to help understand the nature of failures and properties . 
+This project aims to provide a visualization tool for traces from [Java Pathfinder](https://github.com/javapathfinder/jpf-core). Java Pathfinder (JPF) can show the programme trace leading to a property violation, e.g. deadlock. The new panel, which is built upon [jpf-shell](https://jpf.byu.edu/hg/jpf-shell), visualizes the programme trace to help understand the nature of failures and properties . 
+
+## Dependencies
+
+* Java 8 (OpenJDK version 8 will work).
+
+* [jpf-core](https://github.com/javapathfinder/jpf-core)
+
+* [jpf-shell](https://jpf.byu.edu/hg/jpf-shell)
+
+Optional: The two latter packages are available as a pre-compiled ZIP file alongside with an extended version of jpf-visual that also handles JVM traces: [VA4JVM](https://github.com/monalip/VA4JVM/tree/master/JPF).
 
 ## How to Download
 You can get the source code of jpf-visual by typing in the terminal:
