@@ -4,11 +4,13 @@ This project aims to provide a visualization tool for traces from [Java Pathfind
 
 ## Dependencies
 
-* Java 8 (OpenJDK version 8 will work).
+1. Java 8 (OpenJDK version 8 will work).
 
-* [jpf-core](https://github.com/javapathfinder/jpf-core)
+2. [Apache ant](https://ant.apache.org/) and Gradle (will self-install upon compilation).
 
-* [jpf-shell](https://jpf.byu.edu/hg/jpf-shell)
+3. [jpf-core](https://github.com/javapathfinder/jpf-core)
+
+4. [jpf-shell](https://jpf.byu.edu/hg/jpf-shell)
 
 Optional: The two latter packages are available as a pre-compiled ZIP file alongside with an extended version of jpf-visual that also handles JVM traces: [VA4JVM](https://github.com/monalip/VA4JVM/tree/master/JPF).
 
